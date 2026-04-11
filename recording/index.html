@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RECORDING // DIVE BAR RECORDS</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DB%20favicon.ico" />
+    
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@300;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
+    
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --paper: #ecebe4;
+            --accent: #d4af37;
+            --ink: #1a1a1a;
+            --transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
+        body {
+            background-color: var(--bg);
+            color: var(--paper);
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* --- OVERLAYS --- */
+        .texture-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9998; pointer-events: none; opacity: 0.05;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: cover;
+        }
+
+        .fuzzy-overlay {
+            position: fixed; inset: -50%; z-index: -9999; pointer-events: none; opacity: 0.04;
+            background-color: #fff;
+        }
+        .fuzzy-overlay::before {
+            content: ""; position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            animation: grain-flicker 0.15s steps(1) infinite;
+        }
+        @keyframes grain-flicker {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(-2%, -3%); }
+            50% { transform: translate(3%, 1%); }
+            75% { transform: translate(-1%, 2%); }
+            100% { transform: translate(2%, -2%); }
+        }
+
+        /* --- NAVIGATION --- */
+        .main-header {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            background: rgba(15, 15, 15, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 5%;
+        }
+        .header-logo {
+            font-family: "plunct", sans-serif; font-size: 2rem;
+            color: var(--paper); text-decoration: none;
+        }
+        .nav-links a {
+            text-decoration: none; color: var(--paper);
+            font-family: 'Special Elite'; font-size: 0.8rem;
+            padding: 5px 12px; transition: var(--transition);
+        }
+        .nav-links a:hover { background: var(--accent); color: var(--bg); }
+
+        /* --- CONTENT --- */
+        .recording-section {
+            padding: 160px 5% 100px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .label-tape {
+            background: #1a1a1a; color: var(--accent);
+            padding: 5px 15px; font-family: 'Special Elite';
+            display: inline-block; transform: rotate(1deg);
+            box-shadow: 2px 2px 0px var(--accent);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-family: 'Syncopate';
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            line-height: 0.9;
+            margin-bottom: 60px;
+            letter-spacing: -2px;
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .service-card {
+            border: 1px solid #222;
+            padding: 40px;
+            background: rgba(17, 17, 17, 0.3);
+            transition: var(--transition);
+        }
+        .service-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+        .service-card h2 { 
+            font-family: 'Syncopate'; 
+            font-size: 1.2rem; 
+            margin-bottom: 15px; 
+            color: var(--accent);
+        }
+        .service-card p { font-size: 0.95rem; opacity: 0.8; }
+
+        .spec-list {
+            margin-top: 80px;
+            padding: 40px;
+            border: 1px dashed var(--accent);
+            font-family: 'Special Elite';
+            font-size: 0.9rem;
+        }
+        .spec-list h3 { margin-bottom: 20px; color: var(--accent); text-transform: uppercase; }
+        .spec-list ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .spec-list li::before { content: "> "; color: var(--accent); }
+
+        footer { padding: 80px 5%; border-top: 1px solid #222; display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.5; }
+
+        @media (max-width: 768px) {
+            .spec-list ul { grid-template-columns: 1fr; }
+            footer { flex-direction: column; text-align: center; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="fuzzy-overlay"></div>
+    <div class="texture-overlay"></div>
+
+    <nav class="main-header">
+        <a href="../" class="header-logo">DIVE BAR RECORDS</a>
+        <div class="nav-links">
+            <a href="../">← BACK TO BASE</a>
+        </div>
+    </nav>
+
+    <main class="recording-section">
+        <div class="label-tape">DEPT // SONIC ARCHIVING</div>
+        <h1>RECORDING<br>& PRODUCTION</h1>
+
+        <div class="service-grid">
+            <div class="service-card">
+                <h2>TRACKING</h2>
+                <p>Full band sessions or solo tracking. High-fidelity capture with a gritty, authentic edge. We don't do "sterile."</p>
+            </div>
+            <div class="service-card">
+                <h2>MIXING</h2>
+                <p>Taking your raw stems and carving out a wall of sound. Analog character meets modern clarity.</p>
+            </div>
+            <div class="service-card">
+                <h2>MASTERING</h2>
+                <p>The final polish. Competitive loudness without sacrificing the soul and dynamics of your performance.</p>
+            </div>
+        </div>
+
+        <section class="spec-list">
+            <h3>Studio Manifesto // Gear Core</h3>
+            <ul>
+                <li>Multi-track Analog Summing</li>
+                <li>Vintage Valve Pre-amps</li>
+                <li>Industry Standard Mic Locker</li>
+                <li>Bespoke Sound Treatment</li>
+                <li>In-house Session Engineers</li>
+                <li>Post-Production Suite</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <div>DIVE BAR RECORDS // STUDIO DEPT</div>
+        <div>© 2026 ARCHIVE COMPLETED</div>
+    </footer>
+</body>
+</html>
