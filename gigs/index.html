@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
     
     <style>
-        /* --- COPY OF CORE STYLES FROM INDEX.HTML --- */
         :root {
             --bg: #0f0f0f;
             --paper: #ecebe4;
@@ -30,7 +29,7 @@
             line-height: 1.6;
         }
 
-        /* --- NOISE OVERLAYS (EXACT MATCH) --- */
+        /* --- NOISE OVERLAYS --- */
         .texture-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 9998; pointer-events: none; opacity: 0.05;
@@ -75,7 +74,7 @@
         }
         .nav-links a:hover { background: var(--accent); color: var(--bg); }
 
-        /* --- GIGS PAGE SPECIFIC --- */
+        /* --- GIGS PAGE CONTENT --- */
         .gigs-section {
             padding: 160px 5% 100px;
             max-width: 1100px;
@@ -97,19 +96,75 @@
             margin-bottom: 40px;
         }
 
-        /* Bandsintown Widget Styling Container */
+        /* --- API GIG LIST STYLING --- */
         .widget-vessel {
             border: 1px solid #222;
-            padding: 40px;
-            background: rgba(17, 17, 17, 0.5);
+            padding: 20px;
+            background: rgba(17, 17, 17, 0.3);
+            min-height: 200px;
+        }
+
+        .gig-row {
+            display: grid;
+            grid-template-columns: 1.2fr 2fr 1fr;
+            padding: 30px 10px;
+            border-bottom: 1px solid #222;
+            align-items: center;
             transition: var(--transition);
         }
-        .widget-vessel:hover { border-color: var(--accent); }
+        .gig-row:last-child { border-bottom: none; }
+        .gig-row:hover { background: rgba(212, 175, 55, 0.03); }
+
+        .gig-date {
+            font-family: 'Special Elite';
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        .venue-info .venue-name {
+            display: block;
+            font-family: 'Syncopate';
+            font-size: 1rem;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .venue-info .location {
+            font-size: 0.75rem;
+            opacity: 0.5;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .btn-ticket {
+            font-family: 'Special Elite';
+            color: var(--paper);
+            text-decoration: none;
+            border: 1px solid #333;
+            padding: 10px 15px;
+            font-size: 0.7rem;
+            text-align: center;
+            transition: var(--transition);
+        }
+        .btn-ticket:hover {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        .status-msg {
+            font-family: 'Special Elite';
+            opacity: 0.5;
+            padding: 40px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
 
         footer { padding: 80px 5%; border-top: 1px solid #222; display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.5; }
 
         @media (max-width: 900px) {
             .gigs-section { padding-top: 120px; }
+            .gig-row { grid-template-columns: 1fr; text-align: center; gap: 20px; }
             .nav-links { display: none; }
             footer { flex-direction: column; align-items: center; gap: 15px; text-align: center; }
         }
@@ -120,7 +175,7 @@
     <div class="texture-overlay"></div>
 
     <nav class="main-header">
-        <a href="index.html" class="header-logo">DIVE BAR RECORDS</a>
+        <a href="../" class="header-logo">DIVE BAR RECORDS</a>
         <div class="nav-links">
             <a href="../">← BACK TO BASE</a>
         </div>
@@ -132,18 +187,8 @@
             <h1>GIGS &<br>EVENTS</h1>
         </div>
 
-<div class="widget-vessel">
-            <script charset="utf-8" src="https://widget.bandsintown.com/main.min.js"></script>
-            <a class="bit-widget-initializer" 
-               data-artist-name="Dirty Word" 
-               data-display-local-dates="true" 
-               data-display-past-dates="true" 
-               data-auto-style="false" 
-               data-text-color="#ecebe4" 
-               data-link-color="#d4af37" 
-               data-background-color="transparent" 
-               data-display-limit="15" 
-               data-link-text-color="#1a1a1a"></a>
+        <div class="widget-vessel" id="gigs-output">
+            <div class="status-msg">LOADING DATES...</div>
         </div>
     </main>
 
@@ -152,5 +197,77 @@
         <div>YOUR MUSIC, YOUR WAY.</div>
         <div>© ALL RIGHTS RESERVED</div>
     </footer>
+
+    <script>
+    const API_KEY = "40af8d519748e771c95a9c2ca3cb4ebc"; 
+    // ADD ALL ARTIST NAMES HERE (Use %20 for spaces)
+    const ARTISTS = [
+        "Dirty%20Word", 
+        "", 
+        ""
+    ]; 
+    
+    const output = document.getElementById('gigs-output');
+
+    async function getAllLiveDates() {
+        try {
+            let allEvents = [];
+
+            // 1. Fetch data for every artist in list
+            const fetchPromises = ARTISTS.map(artist => 
+                fetch(`https://rest.bandsintown.com/artists/${artist}/events?app_id=${API_KEY}`)
+                .then(res => res.json())
+            );
+
+            const results = await Promise.all(fetchPromises);
+
+            // 2. Flatten the results into one single array
+            results.forEach(eventList => {
+                if (Array.isArray(eventList)) {
+                    allEvents = allEvents.concat(eventList);
+                }
+            });
+
+            if (allEvents.length === 0) {
+                output.innerHTML = '<div class="status-msg">NO CURRENT TRANSMISSIONS DETECTED. CHECK BACK SOON.</div>';
+                return;
+            }
+
+            // 3. SORT BY DATE (Chronological order)
+            allEvents.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+
+            output.innerHTML = ''; // Clear loading message
+
+            // 4. Render the master list
+            allEvents.forEach(event => {
+                const dateObj = new Date(event.datetime);
+                const formattedDate = dateObj.toLocaleDateString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric'
+                }).toUpperCase();
+
+                const gigHTML = `
+                    <div class="gig-row">
+                        <div class="gig-date">${formattedDate}</div>
+                        <div class="venue-info">
+                            <span class="venue-name">${event.venue.name}</span>
+                            <span class="location">${event.venue.city}, ${event.venue.country}</span>
+                            <div style="font-size: 0.6rem; color: var(--accent); font-family: 'Special Elite'; margin-top: 5px;">
+                                ARTIST: ${event.lineup[0]}
+                            </div>
+                        </div>
+                        <a href="${event.url}" target="_blank" class="btn-ticket">GET ACCESS →</a>
+                    </div>
+                `;
+                output.innerHTML += gigHTML;
+            });
+
+        } catch (err) {
+            console.error("API Error:", err);
+            output.innerHTML = '<div class="status-msg">CONNECTION INTERRUPTED. DATA UNAVAILABLE.</div>';
+        }
+    }
+
+    getAllLiveDates();
+</script>
 </body>
 </html>
