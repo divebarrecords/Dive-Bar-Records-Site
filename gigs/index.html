@@ -109,6 +109,104 @@
             margin-bottom: 40px;
             color: var(--paper);
         }
+        /* Controls */
+.gigs-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.gigs-controls button {
+    background: transparent;
+    border: 1px solid #333;
+    color: var(--paper);
+    padding: 6px 12px;
+    font-family: 'Special Elite';
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.gigs-controls button.active,
+.gigs-controls button:hover {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+/* Feed */
+#gigs-feed {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Month grouping */
+.gig-group {
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-family: 'Syncopate';
+    font-size: 0.8rem;
+    color: var(--accent);
+    opacity: 0.7;
+}
+
+/* Gig card */
+.gig-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #222;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeSlide 0.5s forwards;
+    transition: var(--transition);
+}
+
+.gig-card:hover {
+    background: rgba(212, 175, 55, 0.08);
+}
+
+/* Animation */
+@keyframes fadeSlide {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Elements */
+.gig-date {
+    font-family: 'Special Elite';
+    color: var(--accent);
+    min-width: 110px;
+}
+
+.gig-info {
+    flex: 1;
+    padding: 0 20px;
+}
+
+.gig-artist {
+    font-weight: 700;
+}
+
+.gig-venue {
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.gig-link {
+    text-decoration: none;
+    background: var(--accent);
+    color: var(--ink);
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-family: 'Special Elite';
+    transition: var(--transition);
+}
+
+.gig-link:hover {
+    background: var(--paper);
+}
 
         /* The Widget Container */
         .widget-vessel {
@@ -153,24 +251,134 @@
             <h1>GIGS &<br>EVENTS</h1>
         </div>
 
-        <div class="widget-vessel">
-            <script charset="utf-8" src="https://widgetv3.bandsintown.com/main.min.js"></script>
-            
-<!-- add new artists inside artist name vaariable with comma seperator then ID -->
-            <a class="bit-widget-initializer" 
-               data-artist-name="id_15642594" 
-               data-app-id="dbca326d93e57f64bba2988ed98ac009"
-               
-               data-display-local-dates="false" 
-               data-display-past-dates="true" 
-               data-auto-style="false" 
-               
-               data-text-color="#ecebe4" 
-               data-link-color="#d4af37" 
-               data-background-color="transparent" 
-               data-display-limit="20" 
-               data-link-text-color="#1a1a1a"></a>
-        </div>
+<div class="widget-vessel">
+    <div class="gigs-controls">
+        <button data-filter="upcoming" class="active">UPCOMING</button>
+        <button data-filter="past">PAST</button>
+    </div>
+
+    <div id="gigs-feed"></div>
+</div>
+
+<script>
+const APP_ID = "dbca326d93e57f64bba2988ed98ac009";
+
+// ✅ Use artist IDs here
+const ARTISTS = [
+  "id_15642594",
+  "id_12345678"
+];
+
+let ALL_EVENTS = [];
+
+async function fetchAllEvents() {
+  const allEvents = [];
+
+  for (const artist of ARTISTS) {
+    try {
+      const res = await fetch(
+        `https://rest.bandsintown.com/artists/${artist}/events?app_id=${APP_ID}`
+      );
+      const data = await res.json();
+
+      if (!Array.isArray(data)) continue;
+
+      data.forEach(event => {
+        event.artist = event.lineup ? event.lineup[0] : "Unknown";
+        allEvents.push(event);
+      });
+
+    } catch (err) {
+      console.error(`Error loading ${artist}`, err);
+    }
+  }
+
+  return allEvents;
+}
+
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function getMonthYear(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-GB", {
+    month: "long",
+    year: "numeric"
+  }).toUpperCase();
+}
+
+function renderEvents(filter = "upcoming") {
+  const container = document.getElementById("gigs-feed");
+  container.innerHTML = "";
+
+  const now = new Date();
+
+  let events = ALL_EVENTS.filter(e => {
+    const eventDate = new Date(e.datetime);
+    return filter === "upcoming"
+      ? eventDate >= now
+      : eventDate < now;
+  });
+
+  events.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+
+  if (events.length === 0) {
+    container.innerHTML = "<p>No events found.</p>";
+    return;
+  }
+
+  let currentGroup = "";
+
+  events.forEach((event, i) => {
+    const group = getMonthYear(event.datetime);
+
+    if (group !== currentGroup) {
+      const header = document.createElement("div");
+      header.classList.add("gig-group");
+      header.textContent = group;
+      container.appendChild(header);
+      currentGroup = group;
+    }
+
+    const el = document.createElement("div");
+    el.classList.add("gig-card");
+
+    el.style.animationDelay = `${i * 0.04}s`;
+
+    el.innerHTML = `
+      <div class="gig-date">${formatDate(event.datetime)}</div>
+      <div class="gig-info">
+        <div class="gig-artist">${event.artist}</div>
+        <div class="gig-venue">${event.venue.name}, ${event.venue.city}</div>
+      </div>
+      <a class="gig-link" href="${event.url}" target="_blank">TICKETS</a>
+    `;
+
+    container.appendChild(el);
+  });
+}
+
+// Filter buttons
+document.querySelectorAll(".gigs-controls button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".gigs-controls button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderEvents(btn.dataset.filter);
+  });
+});
+
+// Init
+(async function init() {
+  ALL_EVENTS = await fetchAllEvents();
+  renderEvents("upcoming");
+})();
+</script>
     </main>
 
     <footer>
