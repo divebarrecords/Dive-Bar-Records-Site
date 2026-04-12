@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GIGS // DIVE BAR RECORDS</title>
     <link rel="shortcut icon" type="image/x-icon" href="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DB%20favicon.ico" />
-    
     <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@300;700&family=Special+Elite&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
     
     <style>
@@ -20,8 +18,6 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
-        html { scroll-behavior: smooth; }
-
         body {
             background-color: var(--bg);
             color: var(--paper);
@@ -30,7 +26,7 @@
             line-height: 1.6;
         }
 
-        /* --- NOISE OVERLAYS --- */
+        /* --- OVERLAYS --- */
         .texture-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 9998; pointer-events: none; opacity: 0.05;
@@ -55,7 +51,6 @@
             100% { transform: translate(2%, -2%); }
         }
 
-        /* --- HEADER --- */
         .main-header {
             position: fixed; top: 0; width: 100%; z-index: 1000;
             background: rgba(15, 15, 15, 0.85);
@@ -64,63 +59,23 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: 20px 5%;
         }
-        .header-logo {
-            font-family: "plunct", sans-serif; font-size: 2rem;
-            color: var(--paper); text-decoration: none; letter-spacing: -1px;
-        }
-        .nav-links a {
-            text-decoration: none; color: var(--paper);
-            font-family: 'Special Elite'; font-size: 0.8rem;
-            padding: 5px 12px; transition: var(--transition);
-        }
+        .header-logo { font-family: "plunct", sans-serif; font-size: 2rem; color: var(--paper); text-decoration: none; }
+        .nav-links a { text-decoration: none; color: var(--paper); font-family: 'Special Elite'; font-size: 0.8rem; padding: 5px 12px; transition: var(--transition); }
         .nav-links a:hover { background: var(--accent); color: var(--bg); }
 
-        /* --- CONTENT --- */
-        .gigs-section {
-            padding: 160px 5% 100px;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
+        .gigs-section { padding: 160px 5% 100px; max-width: 1100px; margin: 0 auto; }
+        .label-tape { background: #1a1a1a; color: var(--accent); padding: 5px 15px; font-family: 'Special Elite'; display: inline-block; transform: rotate(-1deg); box-shadow: 2px 2px 0px var(--accent); margin-bottom: 20px; }
+        .gigs-header h1 { font-family: 'Syncopate'; font-size: clamp(2.5rem, 8vw, 4rem); line-height: 1; margin-bottom: 40px; }
 
-        .label-tape {
-            background: #1a1a1a; color: var(--accent);
-            padding: 5px 15px; font-family: 'Special Elite';
-            display: inline-block; transform: rotate(-1deg);
-            box-shadow: 2px 2px 0px var(--accent);
-            margin-bottom: 20px; text-transform: uppercase;
-        }
-
-        .gigs-header h1 {
-            font-family: 'Syncopate';
-            font-size: clamp(2.5rem, 8vw, 4rem);
-            line-height: 1;
-            margin-bottom: 40px;
-        }
-
+        /* Widget Container */
         .widget-vessel {
             border: 1px solid #222;
-            padding: 30px;
-            background: rgba(17, 17, 17, 0.3);
-            min-height: 500px;
-            transition: var(--transition);
-        }
-        .widget-vessel:hover { border-color: var(--accent); }
-
-        footer { 
-            padding: 80px 5%; 
-            border-top: 1px solid #222; 
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 0.8rem; 
-            opacity: 0.5; 
-            font-family: 'Special Elite';
+            padding: 20px;
+            background: rgba(17, 17, 17, 0.4);
+            min-height: 400px;
         }
 
-        @media (max-width: 900px) {
-            .gigs-section { padding-top: 120px; }
-            .nav-links { display: none; }
-            footer { flex-direction: column; align-items: center; gap: 15px; text-align: center; }
-        }
+        footer { padding: 80px 5%; border-top: 1px solid #222; display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.5; }
     </style>
 </head>
 <body>
@@ -129,36 +84,31 @@
 
     <nav class="main-header">
         <a href="../" class="header-logo">DIVE BAR RECORDS</a>
-        <div class="nav-links">
-            <a href="../">← BACK TO BASE</a>
-        </div>
+        <div class="nav-links"><a href="../">← BACK TO BASE</a></div>
     </nav>
 
     <main class="gigs-section">
-        <div class="label-tape">DEPT // LIVE EVENTS</div>
-        <div class="gigs-header">
-            <h1>GIGS &<br>EVENTS</h1>
-        </div>
+        <div class="label-tape">004 / LIVE EVENTS FEED</div>
+        <div class="gigs-header"><h1>GIGS &<br>EVENTS</h1></div>
 
         <div class="widget-vessel">
             <script charset="utf-8" src="https://widget.bandsintown.com/main.min.js"></script>
             <a class="bit-widget-initializer" 
-               data-promoter-id="1763471" 
-               data-display-local-dates="true" 
+               data-artist-name="Dirty Word" 
+               data-display-local-dates="false" 
                data-display-past-dates="true" 
                data-auto-style="false" 
                data-text-color="#ecebe4" 
                data-link-color="#d4af37" 
                data-background-color="transparent" 
-               data-display-limit="20" 
+               data-display-limit="15" 
                data-link-text-color="#1a1a1a"></a>
         </div>
     </main>
 
     <footer>
         <div>DIVE BAR RECORDS // LIVE DEPT</div>
-        <div>SCANNING FOR UPCOMING DATES...</div>
-        <div>© 2026 ALL RIGHTS RESERVED</div>
+        <div>© 2026 ARCHIVE COMPLETED</div>
     </footer>
 </body>
 </html>
