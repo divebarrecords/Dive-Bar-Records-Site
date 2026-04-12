@@ -274,24 +274,32 @@ let ALL_EVENTS = [];
 async function fetchAllEvents() {
   const allEvents = [];
 
-  for (const artist of ARTISTS) {
-    try {
-      const res = await fetch(
-        `https://rest.bandsintown.com/artists/${artist}/events?app_id=${APP_ID}`
-      );
-      const data = await res.json();
+ for (const artist of ARTISTS) {
+  try {
+    console.log("Fetching:", artist);
 
-      if (!Array.isArray(data)) continue;
+    const res = await fetch(
+      `https://rest.bandsintown.com/artists/${encodeURIComponent(artist)}/events?app_id=${APP_ID}`
+    );
 
-      data.forEach(event => {
-        event.artist = event.lineup ? event.lineup[0] : "Unknown";
-        allEvents.push(event);
-      });
+    const data = await res.json();
 
-    } catch (err) {
-      console.error(`Error loading ${artist}`, err);
+    console.log("Response:", artist, data);
+
+    if (!Array.isArray(data)) {
+      console.warn("Not an array:", artist, data);
+      continue;
     }
+
+    data.forEach(event => {
+      event.artist = event.lineup ? event.lineup[0] : artist;
+      allEvents.push(event);
+    });
+
+  } catch (err) {
+    console.error(`Error loading ${artist}`, err);
   }
+}
 
   return allEvents;
 }
