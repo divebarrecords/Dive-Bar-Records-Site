@@ -199,27 +199,38 @@
     </footer>
 
 <script>
-    const API_KEY = "40af8d519748e771c95a9c2ca3cb4ebc"; 
+    // 1. Use a string-based App ID (Bandsintown prefers names/slugs over hex keys for public API)
+    // If hex key doesn't work, try just "dive_bar_records"
+    const APP_ID = "40af8d519748e771c95a9c2ca3cb4ebc"; 
+
+    // 2. Just type the names normally here - no more %20
     const ARTISTS = [
-        "Dirty%20Word"
-        // Add more bands here: "Band%20Two", "Band%20Three"
+        "Dirty Word"
     ]; 
     
     const output = document.getElementById('gigs-output');
-    // Using a public proxy to bypass the CORS block
-    const PROXY_URL = "https://corsproxy.io/?";
+
+    // 3. Switching to AllOrigins proxy - it's generally more reliable
+    const PROXY = "https://api.allorigins.win/get?url=";
 
     async function getAllLiveDates() {
         try {
             let allEvents = [];
 
             const fetchPromises = ARTISTS.map(artist => {
-                const targetUrl = `https://rest.bandsintown.com/artists/${artist}/events?app_id=${API_KEY}`;
-                // We wrap the target URL in the proxy URL
-                return fetch(PROXY_URL + encodeURIComponent(targetUrl))
+                // Encode the name once here
+                const cleanName = encodeURIComponent(artist);
+                const targetUrl = `https://rest.bandsintown.com/artists/${cleanName}/events?app_id=${APP_ID}`;
+                
+                // We use the AllOrigins format
+                return fetch(`${PROXY}${encodeURIComponent(targetUrl)}`)
                     .then(res => {
-                        if (!res.ok) throw new Error('Network response was not ok');
+                        if (!res.ok) throw new Error('Proxy Link Failed');
                         return res.json();
+                    })
+                    .then(data => {
+                        // AllOrigins wraps the result in a .contents string
+                        return JSON.parse(data.contents);
                     });
             });
 
@@ -232,10 +243,11 @@
             });
 
             if (allEvents.length === 0) {
-                output.innerHTML = '<div class="status-msg">NO CURRENT TRANSMISSIONS DETECTED.</div>';
+                output.innerHTML = '<div class="status-msg">NO CURRENT DATES DETECTED.</div>';
                 return;
             }
 
+            // Sort by date
             allEvents.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
 
             output.innerHTML = ''; 
@@ -253,7 +265,7 @@
                             <span class="venue-name">${event.venue.name}</span>
                             <span class="location">${event.venue.city}, ${event.venue.country}</span>
                             <div style="font-size: 0.6rem; color: var(--accent); font-family: 'Special Elite'; margin-top: 5px; opacity: 0.8;">
-                                ARCHIVE_REF: ${event.lineup[0].toUpperCase()}
+                                SOURCE: ${event.lineup[0].toUpperCase()}
                             </div>
                         </div>
                         <a href="${event.url}" target="_blank" class="btn-ticket">GET ACCESS →</a>
@@ -263,8 +275,8 @@
             });
 
         } catch (err) {
-            console.error("API Error:", err);
-            output.innerHTML = '<div class="status-msg">ENCRYPTION ERROR: SATELLITE LINK FAILED.</div>';
+            console.error("Satellite Error:", err);
+            output.innerHTML = '<div class="status-msg">ENCRYPTION ERROR: CONNECTION FAILED.</div>';
         }
     }
 
