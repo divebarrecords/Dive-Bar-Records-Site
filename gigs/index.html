@@ -299,25 +299,25 @@ async function fetchAllEvents() {
 
   for (const artist of activeArtists) {
     try {
-      console.log("Fetching Data for ID:", artist);
+      console.log("Attempting satellite link for ID:", artist);
 
-      // Using AllOrigins proxy to bypass CORS restrictions
-      const proxy = "https://api.allorigins.win/get?url=";
+      // Switching to a more robust proxy service
+      const proxy = "https://corsproxy.io/?";
       const targetUrl = `https://rest.bandsintown.com/artists/${artist}/events?app_id=${APP_ID}`;
       
-      const res = await fetch(proxy + encodeURIComponent(targetUrl));
-      const proxyData = await res.json();
+      const response = await fetch(proxy + encodeURIComponent(targetUrl));
       
-      // Data is wrapped in .contents by the proxy
-      const data = JSON.parse(proxyData.contents);
+      if (!response.ok) throw new Error(`Network response was not ok for ${artist}`);
+
+      const data = await response.json();
 
       if (!Array.isArray(data)) {
-        console.warn(`No event array for ${artist}:`, data);
+        console.warn(`No valid event array returned for ${artist}`);
         continue;
       }
 
       data.forEach(event => {
-        // Map the artist name from the lineup so we don't display the ID
+        // Map the artist name for the custom UI
         event.display_artist = (event.lineup && event.lineup.length > 0) ? event.lineup[0] : "DIVE BAR ARTIST";
         allEvents.push(event);
       });
