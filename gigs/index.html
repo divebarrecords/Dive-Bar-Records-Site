@@ -1,343 +1,74 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIGS // DIVE BAR RECORDS</title>
-    <link rel="shortcut icon" type="image/x-icon" href="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DB%20favicon.ico" />
-    
-    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@300;700&family=Special+Elite&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
-    
-    <style>
-        :root {
-            --bg: #0f0f0f;
-            --paper: #ecebe4;
-            --accent: #d4af37;
-            --ink: #1a1a1a;
-            --transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-
-        /* Base Reset */
-        * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
-        
-        body {
-            background-color: var(--bg);
-            color: var(--paper);
-            font-family: 'Space Grotesk', sans-serif;
-            overflow-x: hidden;
-            line-height: 1.6;
-        }
-
-        /* --- NOISE & TEXTURE OVERLAYS --- */
-        .texture-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9998; pointer-events: none; opacity: 0.05;
-            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            background-size: cover;
-        }
-
-        .fuzzy-overlay {
-            position: fixed; inset: -50%; z-index: -9999; pointer-events: none; opacity: 0.04;
-            background-color: #fff;
-        }
-        .fuzzy-overlay::before {
-            content: ""; position: absolute; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            animation: grain-flicker 0.15s steps(1) infinite;
-        }
-        @keyframes grain-flicker {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(-2%, -3%); }
-            50% { transform: translate(3%, 1%); }
-            75% { transform: translate(-1%, 2%); }
-            100% { transform: translate(2%, -2%); }
-        }
-
-        /* --- HEADER --- */
-        .main-header {
-            position: fixed; top: 0; width: 100%; z-index: 1000;
-            background: rgba(15, 15, 15, 0.85);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 5%;
-        }
-        .header-logo {
-            font-family: "plunct", sans-serif; 
-            font-size: 2rem;
-            color: var(--paper); 
-            text-decoration: none;
-            letter-spacing: -1px;
-        }
-        .nav-links a {
-            text-decoration: none; 
-            color: var(--paper);
-            font-family: 'Special Elite'; 
-            font-size: 0.8rem;
-            padding: 5px 12px; 
-            transition: var(--transition);
-        }
-        .nav-links a:hover { 
-            background: var(--accent); 
-            color: var(--bg); 
-        }
-
-        /* --- GIGS SECTION --- */
-        .gigs-section {
-            padding: 160px 5% 100px;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .label-tape {
-            background: #1a1a1a; 
-            color: var(--accent);
-            padding: 5px 15px; 
-            font-family: 'Special Elite';
-            display: inline-block; 
-            transform: rotate(-1deg);
-            box-shadow: 2px 2px 0px var(--accent);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-        }
-
-        .gigs-header h1 {
-            font-family: 'Syncopate';
-            font-size: clamp(2.5rem, 8vw, 4rem);
-            line-height: 1;
-            margin-bottom: 40px;
-            color: var(--paper);
-        }
-        /* Controls */
-.gigs-controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.gigs-controls button {
-    background: transparent;
-    border: 1px solid #333;
-    color: var(--paper);
-    padding: 6px 12px;
-    font-family: 'Special Elite';
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.gigs-controls button.active,
-.gigs-controls button:hover {
-    background: var(--accent);
-    color: var(--bg);
-}
-
-/* Feed */
-#gigs-feed {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Month grouping */
-.gig-group {
-    margin-top: 25px;
-    margin-bottom: 10px;
-    font-family: 'Syncopate';
-    font-size: 0.8rem;
-    color: var(--accent);
-    opacity: 0.7;
-}
-
-/* Gig card */
-.gig-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid #222;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeSlide 0.5s forwards;
-    transition: var(--transition);
-}
-
-.gig-card:hover {
-    background: rgba(212, 175, 55, 0.08);
-}
-
-/* Animation */
-@keyframes fadeSlide {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Elements */
-.gig-date {
-    font-family: 'Special Elite';
-    color: var(--accent);
-    min-width: 110px;
-}
-
-.gig-info {
-    flex: 1;
-    padding: 0 20px;
-}
-
-.gig-artist {
-    font-weight: 700;
-}
-
-.gig-venue {
-    font-size: 0.85rem;
-    opacity: 0.7;
-}
-
-.gig-link {
-    text-decoration: none;
-    background: var(--accent);
-    color: var(--ink);
-    padding: 6px 12px;
-    font-size: 0.75rem;
-    font-family: 'Special Elite';
-    transition: var(--transition);
-}
-
-.gig-link:hover {
-    background: var(--paper);
-}
-
-        /* The Widget Container */
-        .widget-vessel {
-            border: 1px solid #222;
-            padding: 20px;
-            background: rgba(17, 17, 17, 0.4);
-            min-height: 400px;
-            position: relative;
-        }
-
-        /* --- FOOTER --- */
-        footer { 
-            padding: 80px 5%; 
-            border-top: 1px solid #222; 
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 0.8rem; 
-            opacity: 0.5;
-            font-family: 'Special Elite';
-        }
-
-        @media (max-width: 768px) {
-            .gigs-section { padding-top: 120px; }
-            footer { flex-direction: column; text-align: center; gap: 20px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="fuzzy-overlay"></div>
-    <div class="texture-overlay"></div>
-
-    <nav class="main-header">
-        <a href="../" class="header-logo">DIVE BAR RECORDS</a>
-        <div class="nav-links">
-            <a href="../">← BACK TO BASE</a>
-        </div>
-    </nav>
-
-    <main class="gigs-section">
-        <div class="label-tape">004 / LIVE EVENTS FEED</div>
-        <div class="gigs-header">
-            <h1>GIGS &<br>EVENTS</h1>
-        </div>
-
-<div class="widget-vessel">
-    <div class="gigs-controls">
-        <button data-filter="upcoming" class="active">UPCOMING</button>
-        <button data-filter="past">PAST</button>
-    </div>
-
-    <div id="gigs-feed"></div>
-</div>
-
 <script>
 const APP_ID = "dbca326d93e57f64bba2988ed98ac009";
 
-// Use artist IDs here
+// Use the numeric ID ONLY (No "id_" prefix for the REST API)
 const ARTISTS = [
-  "id_15642594",
-  "null" //placeholder
+  "15642594", // This is your Dirty Word ID
+  "15560450" // <-- Add future numeric IDs here
 ];
 
 let ALL_EVENTS = [];
 
 async function fetchAllEvents() {
   const allEvents = [];
+  
+  // Filter out placeholders like "null" before fetching
+  const activeArtists = ARTISTS.filter(a => a !== "null" && a !== "");
 
- for (const artist of ARTISTS) {
-  try {
-    console.log("Fetching:", artist);
+  for (const artist of activeArtists) {
+    try {
+      console.log("Fetching Data for ID:", artist);
 
-    const res = await fetch(
-      `https://rest.bandsintown.com/artists/${encodeURIComponent(artist)}/events?app_id=${APP_ID}`
-    );
+      // Using a proxy to bypass CORS issues on the live site
+      const proxy = "https://api.allorigins.win/get?url=";
+      const targetUrl = `https://rest.bandsintown.com/artists/${artist}/events?app_id=${APP_ID}`;
+      
+      const res = await fetch(proxy + encodeURIComponent(targetUrl));
+      const proxyData = await res.json();
+      
+      // AllOrigins returns the API data inside a .contents string
+      const data = JSON.parse(proxyData.contents);
 
-    const data = await res.json();
+      if (!Array.isArray(data)) {
+        console.warn(`No event array for ${artist}:`, data);
+        continue;
+      }
 
-    console.log("Response:", artist, data);
+      data.forEach(event => {
+        // Grab the actual Artist Name from the API response so we don't display the ID number
+        event.display_artist = event.lineup && event.lineup.length > 0 ? event.lineup[0] : "DIVE BAR ARTIST";
+        allEvents.push(event);
+      });
 
-    if (!Array.isArray(data)) {
-      console.warn("Not an array:", artist, data);
-      continue;
+    } catch (err) {
+      console.error(`Satellite Error for ${artist}:`, err);
     }
-
-    data.forEach(event => {
-      event.artist = event.lineup ? event.lineup[0] : artist;
-      allEvents.push(event);
-    });
-
-  } catch (err) {
-    console.error(`Error loading ${artist}`, err);
   }
-}
 
   return allEvents;
 }
 
-function formatDate(dateStr) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric"
-  });
-}
-
-function getMonthYear(dateStr) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-GB", {
-    month: "long",
-    year: "numeric"
-  }).toUpperCase();
-}
-
 function renderEvents(filter = "upcoming") {
   const container = document.getElementById("gigs-feed");
+  if (!container) return;
+  
   container.innerHTML = "";
-
   const now = new Date();
 
   let events = ALL_EVENTS.filter(e => {
     const eventDate = new Date(e.datetime);
-    return filter === "upcoming"
-      ? eventDate >= now
-      : eventDate < now;
+    return filter === "upcoming" ? eventDate >= now : eventDate < now;
   });
 
-  events.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+  // Sort: Upcoming (closest first), Past (most recent first)
+  events.sort((a, b) => {
+    return filter === "upcoming" 
+      ? new Date(a.datetime) - new Date(b.datetime)
+      : new Date(b.datetime) - new Date(a.datetime);
+  });
 
   if (events.length === 0) {
-    container.innerHTML = "<p>No events found.</p>";
+    container.innerHTML = `<p style="padding:20px; font-family:'Special Elite'; opacity:0.5;">[ NO ${filter.toUpperCase()} TRANSMISSIONS FOUND ]</p>`;
     return;
   }
 
@@ -356,14 +87,13 @@ function renderEvents(filter = "upcoming") {
 
     const el = document.createElement("div");
     el.classList.add("gig-card");
-
-    el.style.animationDelay = `${i * 0.04}s`;
+    el.style.animationDelay = `${i * 0.05}s`;
 
     el.innerHTML = `
       <div class="gig-date">${formatDate(event.datetime)}</div>
       <div class="gig-info">
-        <div class="gig-artist">${event.artist}</div>
-        <div class="gig-venue">${event.venue.name}, ${event.venue.city}</div>
+        <div class="gig-artist">${event.display_artist}</div>
+        <div class="gig-venue">${event.venue.name} // ${event.venue.city}</div>
       </div>
       <a class="gig-link" href="${event.url}" target="_blank">TICKETS</a>
     `;
@@ -372,27 +102,14 @@ function renderEvents(filter = "upcoming") {
   });
 }
 
-// Filter buttons
-document.querySelectorAll(".gigs-controls button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".gigs-controls button").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    renderEvents(btn.dataset.filter);
-  });
-});
+// ... Keep your existing formatDate, getMonthYear, and Filter Button listeners ...
 
-// Init
+// Updated Init to handle the new fetch logic
 (async function init() {
+  const feed = document.getElementById("gigs-feed");
+  feed.innerHTML = "<p style='padding:20px; font-family:\"Special Elite\";'>SCANNING FREQUENCIES...</p>";
+  
   ALL_EVENTS = await fetchAllEvents();
   renderEvents("upcoming");
 })();
 </script>
-    </main>
-
-    <footer>
-        <div>DIVE BAR RECORDS // LIVE DEPT</div>
-        <div>YOUR MUSIC, YOUR WAY.</div>
-        <div>© ALL RIGHTS RESERVED</div>
-    </footer>
-</body>
-</html>
