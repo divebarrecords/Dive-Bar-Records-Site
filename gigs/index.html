@@ -260,7 +260,154 @@
     <div id="gigs-feed"></div>
 </div>
 
-<script> const APP_ID = "dbca326d93e57f64bba2988ed98ac009"; // Use the numeric ID ONLY (No "id_" prefix for the REST API) const ARTISTS = [ "15642594", // This is your Dirty Word ID "15560450" // <-- Add future numeric IDs here ]; let ALL_EVENTS = []; async function fetchAllEvents() { const allEvents = []; // Filter out placeholders like "null" before fetching const activeArtists = ARTISTS.filter(a => a !== "null" && a !== ""); for (const artist of activeArtists) { try { console.log("Fetching Data for ID:", artist); // Using a proxy to bypass CORS issues on the live site const proxy = "https://api.allorigins.win/get?url="; const targetUrl = `https://rest.bandsintown.com/artists/${artist}/events?app_id=${APP_ID}`; const res = await fetch(proxy + encodeURIComponent(targetUrl)); const proxyData = await res.json(); // AllOrigins returns the API data inside a .contents string const data = JSON.parse(proxyData.contents); if (!Array.isArray(data)) { console.warn(`No event array for ${artist}:`, data); continue; } data.forEach(event => { // Grab the actual Artist Name from the API response so we don't display the ID number event.display_artist = event.lineup && event.lineup.length > 0 ? event.lineup[0] : "DIVE BAR ARTIST"; allEvents.push(event); }); } catch (err) { console.error(`Satellite Error for ${artist}:`, err); } } return allEvents; } function renderEvents(filter = "upcoming") { const container = document.getElementById("gigs-feed"); if (!container) return; container.innerHTML = ""; const now = new Date(); let events = ALL_EVENTS.filter(e => { const eventDate = new Date(e.datetime); return filter === "upcoming" ? eventDate >= now : eventDate < now; }); // Sort: Upcoming (closest first), Past (most recent first) events.sort((a, b) => { return filter === "upcoming" ? new Date(a.datetime) - new Date(b.datetime) : new Date(b.datetime) - new Date(a.datetime); }); if (events.length === 0) { container.innerHTML = `<p style="padding:20px; font-family:'Special Elite'; opacity:0.5;">[ NO ${filter.toUpperCase()} TRANSMISSIONS FOUND ]</p>`; return; } let currentGroup = ""; events.forEach((event, i) => { const group = getMonthYear(event.datetime); if (group !== currentGroup) { const header = document.createElement("div"); header.classList.add("gig-group"); header.textContent = group; container.appendChild(header); currentGroup = group; } const el = document.createElement("div"); el.classList.add("gig-card"); el.style.animationDelay = `${i * 0.05}s`; el.innerHTML = ` <div class="gig-date">${formatDate(event.datetime)}</div> <div class="gig-info"> <div class="gig-artist">${event.display_artist}</div> <div class="gig-venue">${event.venue.name} // ${event.venue.city}</div> </div> <a class="gig-link" href="${event.url}" target="_blank">TICKETS</a> `; container.appendChild(el); }); } // ... Keep your existing formatDate, getMonthYear, and Filter Button listeners ... // Updated Init to handle the new fetch logic (async function init() { const feed = document.getElementById("gigs-feed"); feed.innerHTML = "<p style='padding:20px; font-family:\"Special Elite\";'>SCANNING FREQUENCIES...</p>"; ALL_EVENTS = await fetchAllEvents(); renderEvents("upcoming"); })(); </script>
+<script> 
+    
+const APP_ID = "dbca326d93e57f64bba2988ed98ac009";
+
+// Use the numeric ID ONLY (No "id_" prefix for the REST API)
+const ARTISTS = [
+  "15642594", // Dirty Word
+  "15560450"  // Second Artist
+];
+
+let ALL_EVENTS = [];
+
+// --- HELPER FUNCTIONS ---
+
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function getMonthYear(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-GB", {
+    month: "long",
+    year: "numeric"
+  }).toUpperCase();
+}
+
+// --- DATA FETCHING ---
+
+async function fetchAllEvents() {
+  const allEvents = [];
+  const activeArtists = ARTISTS.filter(a => a !== "null" && a !== "");
+
+  for (const artist of activeArtists) {
+    try {
+      console.log("Fetching Data for ID:", artist);
+
+      // Using AllOrigins proxy to bypass CORS restrictions
+      const proxy = "https://api.allorigins.win/get?url=";
+      const targetUrl = `https://rest.bandsintown.com/artists/${artist}/events?app_id=${APP_ID}`;
+      
+      const res = await fetch(proxy + encodeURIComponent(targetUrl));
+      const proxyData = await res.json();
+      
+      // Data is wrapped in .contents by the proxy
+      const data = JSON.parse(proxyData.contents);
+
+      if (!Array.isArray(data)) {
+        console.warn(`No event array for ${artist}:`, data);
+        continue;
+      }
+
+      data.forEach(event => {
+        // Map the artist name from the lineup so we don't display the ID
+        event.display_artist = (event.lineup && event.lineup.length > 0) ? event.lineup[0] : "DIVE BAR ARTIST";
+        allEvents.push(event);
+      });
+
+    } catch (err) {
+      console.error(`Satellite Error for ${artist}:`, err);
+    }
+  }
+  return allEvents;
+}
+
+// --- RENDERING ---
+
+function renderEvents(filter = "upcoming") {
+  const container = document.getElementById("gigs-feed");
+  if (!container) return;
+  
+  container.innerHTML = "";
+  const now = new Date();
+
+  // Filter based on date
+  let events = ALL_EVENTS.filter(e => {
+    const eventDate = new Date(e.datetime);
+    return filter === "upcoming" ? eventDate >= now : eventDate < now;
+  });
+
+  // Sort Chronologically
+  events.sort((a, b) => {
+    return filter === "upcoming" 
+      ? new Date(a.datetime) - new Date(b.datetime)
+      : new Date(b.datetime) - new Date(a.datetime);
+  });
+
+  if (events.length === 0) {
+    container.innerHTML = `<p style="padding:20px; font-family:'Special Elite'; opacity:0.5;">[ NO ${filter.toUpperCase()} TRANSMISSIONS FOUND ]</p>`;
+    return;
+  }
+
+  let currentGroup = "";
+
+  events.forEach((event, i) => {
+    const group = getMonthYear(event.datetime);
+
+    // Month Heading
+    if (group !== currentGroup) {
+      const header = document.createElement("div");
+      header.classList.add("gig-group");
+      header.textContent = group;
+      container.appendChild(header);
+      currentGroup = group;
+    }
+
+    // Individual Gig Card
+    const el = document.createElement("div");
+    el.classList.add("gig-card");
+    el.style.animationDelay = `${i * 0.05}s`;
+
+    el.innerHTML = `
+      <div class="gig-date">${formatDate(event.datetime)}</div>
+      <div class="gig-info">
+        <div class="gig-artist">${event.display_artist}</div>
+        <div class="gig-venue">${event.venue.name} // ${event.venue.city}</div>
+      </div>
+      <a class="gig-link" href="${event.url}" target="_blank">TICKETS</a>
+    `;
+
+    container.appendChild(el);
+  });
+}
+
+// --- EVENT LISTENERS ---
+
+document.querySelectorAll(".gigs-controls button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".gigs-controls button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderEvents(btn.dataset.filter);
+  });
+});
+
+// --- INITIALIZE ---
+
+(async function init() {
+  const feed = document.getElementById("gigs-feed");
+  feed.innerHTML = "<p style='padding:20px; font-family:\"Special Elite\";'>SCANNING FREQUENCIES...</p>";
+  
+  ALL_EVENTS = await fetchAllEvents();
+  renderEvents("upcoming");
+})();
+</script>
     </main>
 
     <footer>
