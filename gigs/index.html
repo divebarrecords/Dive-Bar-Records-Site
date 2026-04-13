@@ -261,10 +261,9 @@
 </div>
 
 <script> 
-    
 const APP_ID = "dbca326d93e57f64bba2988ed98ac009";
 
-// Use the numeric ID ONLY (No "id_" prefix for the REST API)
+// Use the numeric IDs. The script will add the required "id_" prefix automatically.
 const ARTISTS = [
   "15642594", // Dirty Word
   "15560450"  // Second Artist
@@ -272,7 +271,7 @@ const ARTISTS = [
 
 let ALL_EVENTS = [];
 
-// --- HELPER FUNCTIONS ---
+// --- 1. HELPER FUNCTIONS (The "Missing" parts that broke the site) ---
 
 function formatDate(dateStr) {
   const date = new Date(dateStr);
@@ -291,7 +290,7 @@ function getMonthYear(dateStr) {
   }).toUpperCase();
 }
 
-// --- DATA FETCHING ---
+// --- 2. DATA FETCHING ---
 
 async function fetchAllEvents() {
   const allEvents = [];
@@ -299,37 +298,35 @@ async function fetchAllEvents() {
 
   for (const artist of activeArtists) {
     try {
-      console.log("Attempting satellite link for ID:", artist);
+      console.log("Connecting to BIT for Artist ID:", artist);
 
-      // Switching to a more robust proxy service
-      const proxy = "https://corsproxy.io/?";
-      const targetUrl = `https://rest.bandsintown.com/artists/${artist}/events?app_id=${APP_ID}`;
+      // BIT requires the "id_" prefix before the number in the URL
+      const url = `https://rest.bandsintown.com/artists/id_${artist}/events?app_id=${APP_ID}`;
       
-      const response = await fetch(proxy + encodeURIComponent(targetUrl));
+      const res = await fetch(url);
       
-      if (!response.ok) throw new Error(`Network response was not ok for ${artist}`);
-
-      const data = await response.json();
-
-      if (!Array.isArray(data)) {
-        console.warn(`No valid event array returned for ${artist}`);
+      if (!res.ok) {
+        console.warn(`Artist ${artist} not found or API error.`);
         continue;
       }
 
-      data.forEach(event => {
-        // Map the artist name for the custom UI
-        event.display_artist = (event.lineup && event.lineup.length > 0) ? event.lineup[0] : "DIVE BAR ARTIST";
-        allEvents.push(event);
-      });
+      const data = await res.json();
 
+      if (Array.isArray(data)) {
+        data.forEach(event => {
+          // Use the lineup name or a fallback
+          event.display_artist = (event.lineup && event.lineup.length > 0) ? event.lineup[0] : "DIVE BAR ARTIST";
+          allEvents.push(event);
+        });
+      }
     } catch (err) {
-      console.error(`Satellite Error for ${artist}:`, err);
+      console.error(`Fetch Error for ${artist}:`, err);
     }
   }
   return allEvents;
 }
 
-// --- RENDERING ---
+// --- 3. RENDERING LOGIC ---
 
 function renderEvents(filter = "upcoming") {
   const container = document.getElementById("gigs-feed");
@@ -338,13 +335,12 @@ function renderEvents(filter = "upcoming") {
   container.innerHTML = "";
   const now = new Date();
 
-  // Filter based on date
   let events = ALL_EVENTS.filter(e => {
     const eventDate = new Date(e.datetime);
     return filter === "upcoming" ? eventDate >= now : eventDate < now;
   });
 
-  // Sort Chronologically
+  // Sort: Upcoming (closest first), Past (most recent first)
   events.sort((a, b) => {
     return filter === "upcoming" 
       ? new Date(a.datetime) - new Date(b.datetime)
@@ -361,7 +357,6 @@ function renderEvents(filter = "upcoming") {
   events.forEach((event, i) => {
     const group = getMonthYear(event.datetime);
 
-    // Month Heading
     if (group !== currentGroup) {
       const header = document.createElement("div");
       header.classList.add("gig-group");
@@ -370,11 +365,9 @@ function renderEvents(filter = "upcoming") {
       currentGroup = group;
     }
 
-    // Individual Gig Card
     const el = document.createElement("div");
     el.classList.add("gig-card");
     el.style.animationDelay = `${i * 0.05}s`;
-
     el.innerHTML = `
       <div class="gig-date">${formatDate(event.datetime)}</div>
       <div class="gig-info">
@@ -383,12 +376,11 @@ function renderEvents(filter = "upcoming") {
       </div>
       <a class="gig-link" href="${event.url}" target="_blank">TICKETS</a>
     `;
-
     container.appendChild(el);
   });
 }
 
-// --- EVENT LISTENERS ---
+// --- 4. INITIALIZATION ---
 
 document.querySelectorAll(".gigs-controls button").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -397,8 +389,6 @@ document.querySelectorAll(".gigs-controls button").forEach(btn => {
     renderEvents(btn.dataset.filter);
   });
 });
-
-// --- INITIALIZE ---
 
 (async function init() {
   const feed = document.getElementById("gigs-feed");
