@@ -298,32 +298,33 @@ async function fetchAllEvents() {
 
   for (const artist of activeArtists) {
     try {
-      console.log(` DIALING OUT: Artist ID ${artist}...`);
-
-      const url = `https://rest.bandsintown.com/artists/id_${artist}/events?app_id=${APP_ID}`;
-      const res = await fetch(url);
+      // 1. First, let's verify WHO this ID belongs to
+      const infoUrl = `https://rest.bandsintown.com/artists/id_${artist}?app_id=${APP_ID}`;
+      const infoRes = await fetch(infoUrl);
+      const artistInfo = await infoRes.json();
       
-      if (!res.ok) {
-        console.error(` CONNECTION FAILED: Artist ${artist} returned status ${res.status}`);
-        continue;
-      }
+      const realName = artistInfo.name || "Unknown Artist";
+      console.log(`DIALING OUT: ${realName} (ID: ${artist})...`);
 
+      // 2. Fetch ALL events (past and future) to see if data exists at all
+      const eventsUrl = `https://rest.bandsintown.com/artists/id_${artist}/events?app_id=${APP_ID}&date=all`;
+      const res = await fetch(eventsUrl);
       const data = await res.json();
 
-      // DIAGNOSTIC LOG: This tells us if the band actually has data
-      console.log(` DATA RECEIVED for ${artist}: Found ${data.length} total events.`);
+      console.log(`DATA RECEIVED for ${realName}: Found ${data.length} total events in the vault.`);
 
       if (Array.isArray(data) && data.length > 0) {
         data.forEach(event => {
-          event.display_artist = (event.lineup && event.lineup.length > 0) ? event.lineup[0] : "DIVE BAR ARTIST";
+          // Use the verified name from the artist info if lineup is missing
+          event.display_artist = realName;
           allEvents.push(event);
         });
       } else {
-        console.warn(` EMPTY FEED: Artist ${artist} exists but has 0 events on their profile.`);
+        console.warn(`EMPTY ARRAY - NO EVENTS: ${realName} has 0 events registered in the API.`);
       }
       
     } catch (err) {
-      console.error(` CRITICAL ERROR for ${artist}:`, err);
+      console.error(`CRITICAL ERROR for ${artist}:`, err);
     }
   }
   return allEvents;
