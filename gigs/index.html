@@ -266,12 +266,12 @@ const APP_ID = "dbca326d93e57f64bba2988ed98ac009";
 // Use the numeric IDs. The script will add the required "id_" prefix automatically.
 const ARTISTS = [
   "15642594", // Dirty Word
-  "15494363"  // Second Artist
+  "null"  // Second Artist
 ];
 
 let ALL_EVENTS = [];
 
-// --- 1. HELPER FUNCTIONS (The "Missing" parts that broke the site) ---
+// --- 1. HELPER FUNCTIONS
 
 function formatDate(dateStr) {
   const date = new Date(dateStr);
@@ -396,7 +396,7 @@ document.querySelectorAll(".gigs-controls button").forEach(btn => {
 
 (async function init() {
   const feed = document.getElementById("gigs-feed");
-  feed.innerHTML = "<p style='padding:20px; font-family:\"Special Elite\";'>SCANNING FREQUENCIES...</p>";
+  feed.innerHTML = "<p style='padding:20px; font-family:\"Special Elite\";'>LOADING DATES...</p>";
   
   ALL_EVENTS = await fetchAllEvents();
   renderEvents("upcoming");
