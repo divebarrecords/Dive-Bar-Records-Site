@@ -298,29 +298,32 @@ async function fetchAllEvents() {
 
   for (const artist of activeArtists) {
     try {
-      console.log("Connecting to BIT for Artist ID:", artist);
+      console.log(` DIALING OUT: Artist ID ${artist}...`);
 
-      // BIT requires the "id_" prefix before the number in the URL
       const url = `https://rest.bandsintown.com/artists/id_${artist}/events?app_id=${APP_ID}`;
-      
       const res = await fetch(url);
       
       if (!res.ok) {
-        console.warn(`Artist ${artist} not found or API error.`);
+        console.error(` CONNECTION FAILED: Artist ${artist} returned status ${res.status}`);
         continue;
       }
 
       const data = await res.json();
 
-      if (Array.isArray(data)) {
+      // DIAGNOSTIC LOG: This tells us if the band actually has data
+      console.log(` DATA RECEIVED for ${artist}: Found ${data.length} total events.`);
+
+      if (Array.isArray(data) && data.length > 0) {
         data.forEach(event => {
-          // Use the lineup name or a fallback
           event.display_artist = (event.lineup && event.lineup.length > 0) ? event.lineup[0] : "DIVE BAR ARTIST";
           allEvents.push(event);
         });
+      } else {
+        console.warn(` EMPTY FEED: Artist ${artist} exists but has 0 events on their profile.`);
       }
+      
     } catch (err) {
-      console.error(`Fetch Error for ${artist}:`, err);
+      console.error(` CRITICAL ERROR for ${artist}:`, err);
     }
   }
   return allEvents;
