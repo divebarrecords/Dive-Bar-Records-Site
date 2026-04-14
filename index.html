@@ -193,6 +193,29 @@
     mix-blend-mode: multiply;
     pointer-events: none;
 }
+/* Slideshow logic */
+#hero-slideshow {
+    position: relative;
+    width: 100%;
+    max-width: 450px;
+    min-height: 450px; /* Adjust based on your image aspect ratio */
+}
+
+.slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    pointer-events: none;
+}
+
+.slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    position: relative; /* Keeps the container height responsive to the active image */
+}
 
         .label-tape {
             background: #1a1a1a; color: var(--accent);
@@ -390,12 +413,17 @@ footer {
     </div>
 
 <div class="hero-image">
-    <div class="img-frame">
-        <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/ruairi_mixing.JPG" alt="Dive Bar Records">
-        <p>Ruairi, Cadman Music Studios, 18.12.24</p>
+    <div class="img-frame" id="hero-slideshow">
+        <div class="slide">
+            <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/ruairi_mixing.JPG" alt="Ruairi Mixing">
+            <p>Ruairi, Cadman Music Studios, 18.12.24</p>
+        </div>
+        <div class="slide">
+            <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/slideshow_images/sharn_playing.JPG" alt="Sharnald Playing">
+            <p>Sharnald, Lending Room Leeds, 08.05.25</p>
+        </div>
     </div>
 </div>
-</section>
 
 <section class="manifesto" id="mission">
     <div>
@@ -471,6 +499,26 @@ footer {
     <div>YOUR MUSIC, YOUR WAY.</div>
     <div>© ALL RIGHTS RESERVED</div>
 </footer>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const slides = document.querySelectorAll('.slide');
+        
+        // The "Coin-Toss": Pick 0 or 1 randomly to start
+        let currentIndex = Math.random() < 0.5 ? 0 : 1;
+        
+        // Show the initial random slide
+        slides[currentIndex].classList.add('active');
 
+        // Function to cycle slides
+        const nextSlide = () => {
+            slides[currentIndex].classList.remove('active');
+            currentIndex = (currentIndex + 1) % slides.length;
+            slides[currentIndex].classList.add('active');
+        };
+
+        // Change image every 5 seconds
+        setInterval(nextSlide, 5000);
+    });
+</script>
 </body>
 </html>
