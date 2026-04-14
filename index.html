@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DIVE BAR RECORDS</title>
-   <link rel="shortcut icon" type="image/x-icon" href="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DB%20favicon.ico" />
-	<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@300;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" type="image/x-icon" href="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DB%20favicon.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@300;700&family=Special+Elite&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
-	<style>
+    <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
+    <style>
         :root {
             --bg: #0f0f0f;
             --paper: #ecebe4;
-            --accent: #d4af37; /* Brass/Tobacco Gold */
+            --accent: #d4af37;
             --ink: #1a1a1a;
             --transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
         }
@@ -30,49 +30,28 @@
         }
 
         /* --- UI OVERLAYS --- */
-.texture-overlay {
-    position: fixed; 
-    top: 0; left: 0; 
-    width: 100%; height: 100%;
-    z-index: 9998; 
-    pointer-events: none; 
-    opacity: 0.03;
-    
-    /* updated the SVG to include stitchTiles and a larger viewbox */
-    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    
-    /* This ensures the texture stretches to the edges rather than tiling */
-    background-size: cover;
-    background-repeat: no-repeat;
-}
-.fuzzy-overlay {
-    position: fixed;
-    inset: -50%; /* Overscan buffer */
-    z-index: -9999;
-    pointer-events: none;
-    opacity: 0.04; /* Slightly lower for elegance */
-    background-color: #fff; /* The base for the noise filter */
-}
+        .texture-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9998; pointer-events: none; opacity: 0.03;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: cover; background-repeat: no-repeat;
+        }
+        .fuzzy-overlay {
+            position: fixed; inset: -50%; z-index: -9999; pointer-events: none; opacity: 0.04; background-color: #fff;
+        }
+        .fuzzy-overlay::before {
+            content: ""; position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            animation: grain-flicker 0.15s steps(1) infinite; filter: brightness(0.01);
+        }
 
-/* pseudo-element to generate the grain */
-.fuzzy-overlay::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    /* This generates the noise as a filter instead of a tiled image */
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    
-    animation: grain-flicker 0.15s steps(1) infinite;
-	filter: brightness(0.01)
-}
-
-@keyframes grain-flicker {
-    0% { transform: translate(0, 0); }
-    25% { transform: translate(-2%, -3%); }
-    50% { transform: translate(3%, 1%); }
-    75% { transform: translate(-1%, 2%); }
-    100% { transform: translate(2%, -2%); }
-}
+        @keyframes grain-flicker {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(-2%, -3%); }
+            50% { transform: translate(3%, 1%); }
+            75% { transform: translate(-1%, 2%); }
+            100% { transform: translate(2%, -2%); }
+        }
 
         .stamp {
             position: fixed; bottom: 40px; right: 40px;
@@ -88,7 +67,7 @@
 
         @keyframes rotateStamp { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* --- NEW NAVIGATION HEADER --- */
+        /* --- NAVIGATION --- */
         .main-header {
             position: fixed; top: 0; width: 100%; z-index: 1000;
             background: rgba(15, 15, 15, 0.85);
@@ -130,92 +109,82 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
         /* --- HERO SECTION --- */
-.hero {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 60px;
-    /* 140px is usually better for mobile headers */
-    padding: 140px 5% 60px; 
-    position: relative;
-    border-bottom: 1px solid #222;
-}
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 60px;
+            padding: 140px 5% 60px; 
+            position: relative;
+            border-bottom: 1px solid #222;
+        }
 
-.hero-title {
-    display: block;
-    width: 100%;
-    max-width: 500px;
-    height: auto;
-    filter: invert();
-}
+        .hero-title {
+            display: block;
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            filter: invert();
+        }
 
         .hero-sub {
             margin-top: 40px; font-size: 1.5rem; max-width: 600px;
             font-weight: 300; border-left: 4px solid var(--accent); padding-left: 30px;
         }
-		.hero-content {
-    z-index: 2;
-}
 
-.hero-image {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
+        .hero-content { z-index: 2; }
 
-.img-frame {
-    position: relative;
-    display: inline-block;
-    transform: rotate(2deg);
-    transition: var(--transition);
-}
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-.hero-image img {
-    width: 100%;
-    max-width: 450px;
-    height: auto;
-    box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
-    background: var(--paper);
-    padding: 20px;
-    display: block;
-}
+        /* --- SLIDESHOW STYLES --- */
+        #hero-slideshow {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            min-height: 500px; /* Ensures space for the rotation */
+            transform: rotate(2deg);
+        }
 
-.hero-image p {
-    position: absolute;
-    bottom: -1px;
-    left: 25px;
-    font-family: 'Permanent Marker', cursive;
-    font-size: 1rem;
-    color: rgba(0, 0, 0, 0.85);
-    background: transparent;
-    mix-blend-mode: multiply;
-    pointer-events: none;
-}
-/* Slideshow logic */
-#hero-slideshow {
-    position: relative;
-    width: 100%;
-    max-width: 450px;
-    min-height: 450px; /* Adjust based on your image aspect ratio */
-}
+        .slide {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            pointer-events: none;
+        }
 
-.slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    opacity: 0;
-    transition: opacity 1s ease-in-out;
-    pointer-events: none;
-}
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            position: relative;
+        }
 
-.slide.active {
-    opacity: 1;
-    pointer-events: auto;
-    position: relative; /* Keeps the container height responsive to the active image */
-}
+        .slide img {
+            width: 100%;
+            height: auto;
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+            background: var(--paper);
+            padding: 20px;
+            display: block;
+        }
+
+        .slide p {
+            position: absolute;
+            bottom: 15px;
+            left: 25px;
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1rem;
+            color: rgba(0, 0, 0, 0.85);
+            mix-blend-mode: multiply;
+            pointer-events: none;
+        }
 
         .label-tape {
             background: #1a1a1a; color: var(--accent);
@@ -225,7 +194,7 @@
             margin-bottom: 20px; text-transform: uppercase;
         }
 
-        /* --- MANIFESTO / FOUNDERS SECTION --- */
+        /* --- MANIFESTO --- */
         .manifesto {
             padding: 150px 5%; display: grid; grid-template-columns: 1fr; gap: 60px;
             background: #0a0a0a;
@@ -247,11 +216,11 @@
         /* --- THE VESSEL --- */
         .vessel-section { padding: 150px 5%; }
         .vessel-grid { display: grid; grid-template-columns: 1fr; gap: 40px; margin-top: 80px; }
-        .vessel-card { border: 1px solid #222; padding: 50px; transition: var(--transition); }
+        .vessel-card { border: 1px solid #222; padding: 50px; transition: var(--transition); text-decoration: none; color: inherit; display: block; }
         .vessel-card:hover { border-color: var(--accent); background: #111; transform: translateY(-10px); }
         .vessel-card h3 { font-family: 'Syncopate'; font-size: 1.2rem; margin-bottom: 20px; color: var(--accent); }
 
-        /* --- ARTIST ROSTER --- */
+        /* --- ROSTER --- */
         .roster-row {
             padding: 50px 0; border-bottom: 1px solid #222;
             display: flex; justify-content: space-between; align-items: flex-end;
@@ -259,44 +228,22 @@
         }
         .roster-row:hover { color: var(--accent); border-bottom-color: var(--accent); }
         .roster-row h4 { font-family: 'Syncopate'; font-size: 10vw; text-transform: uppercase; line-height: 1; }
+        .roster-row a { color: inherit; text-decoration: none; }
         .roster-loc { font-family: 'Special Elite'; font-size: 1rem; opacity: 0.6; }
-		
-		.roster-row a {
-    color: inherit;
-    text-decoration: none;
-}
-
-.roster-row a:hover {
-    color: inherit;
-}
 
         /* --- CONTACT --- */
-
         .contact-box {
-            margin: 60px 0; /* Reduced margin for mobile */
-            border: 1px solid var(--accent);
-            padding: 30px; /* Smaller padding so it doesn't squeeze the inputs */
-            display: grid; 
-            grid-template-columns: 1fr; 
-            gap: 40px;
-            width: 100%; /* Ensure it stays within its parent */
+            margin: 60px 0; border: 1px solid var(--accent);
+            padding: 30px; display: grid; grid-template-columns: 1fr; gap: 40px;
         }
 
         input, textarea {
-            width: 100%; 
-            max-width: 100%; /* Prevents horizontal overflow */
-            background: transparent; 
-            border: none;
-            border-bottom: 2px solid #222; 
-            padding: 15px 0;
-            color: white; 
-            font-family: 'Space Grotesk'; 
-            font-size: 1.1rem; 
-            margin-bottom: 20px;
-            border-radius: 0; /* Fixes iOS rounded corner defaults */
+            width: 100%; background: transparent; border: none;
+            border-bottom: 2px solid #222; padding: 15px 0;
+            color: white; font-family: 'Space Grotesk'; font-size: 1.1rem;
+            margin-bottom: 20px; border-radius: 0;
         }
         input:focus { outline: none; border-bottom-color: var(--accent); }
-
         textarea { resize: vertical; min-height: 150px; }
 
         .btn-black {
@@ -307,76 +254,27 @@
         }
         .btn-black:hover { background: var(--accent); color: white; }
 
-footer { 
-            padding: 80px 5%; 
-            border-top: 1px solid #222; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; /* Centers the flex items */
-            text-align: center; /* Centers the text inside the items */
-            gap: 15px; 
-            font-size: 0.7rem; 
-            opacity: 0.5; 
-            letter-spacing: 1px;
+        footer { 
+            padding: 80px 5%; border-top: 1px solid #222; 
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            gap: 15px; font-size: 0.7rem; opacity: 0.5; letter-spacing: 1px;
         }
-/* --- RESPONSIVE QUERIES --- */
-        
-        /* Desktop Layouts (Screens wider than 900px) */
+
+        /* --- RESPONSIVE --- */
         @media (min-width: 900px) {
-            .hero { 
-                display: grid; 
-                grid-template-columns: 1.2fr 1fr; 
-                padding: 120px 5% 60px; 
-                min-height: 100vh;
-                align-content: center; 
-            }
-            /* Multi-column grids for desktop only */
+            .hero { display: grid; grid-template-columns: 1.2fr 1fr; align-content: center; }
             .manifesto, .contact-box { grid-template-columns: 1fr 1fr; }
             .vessel-grid { grid-template-columns: repeat(3, 1fr); }
-            
             .roster-row h4 { font-size: 5vw; }
-            .contact-box { padding: 80px; margin: 150px 0; grid-template-columns: 1fr 1fr; }
-            footer { 
-                flex-direction: row; 
-                justify-content: space-between; 
-                text-align: left; 
-                align-items: flex-start;
-            }
-            .manifesto { gap: 100px; }
-            footer { flex-direction: row; justify-content: space-between; }
+            .contact-box { padding: 80px; margin: 150px 0; }
+            footer { flex-direction: row; justify-content: space-between; text-align: left; }
         }
 
-        /* Tablet & Mobile (Screens smaller than 900px) */
         @media (max-width: 900px) {
-			.container {
-                padding: 0 5% !important;
-                overflow: hidden; 
-            }
             .header-logo { font-size: 1.2rem; }
-            .nav-links { gap: 15px; }
-            .nav-links a { font-size: 0.7rem; padding: 4px 8px; }
             .nav-status { display: none; }
             .typewritten-note { padding: 30px; }
-            .stamp { width: 80px; height: 80px; bottom: 20px; right: 20px; font-size: 0.4rem; }
-			.roster-row h4 { font-size: 10vw; }
-            
-            /* Force stacking on mobile */
-            .manifesto, .vessel-grid, .contact-box { 
-                grid-template-columns: 1fr; 
-                gap: 40px; 
-            }
-        }
-
-        /* Small Phones (Screens smaller than 500px) */
-        @media (max-width: 500px) {
-            .header-logo {
-                font-size: 0.9rem;
-                letter-spacing: 0;
-            }
-            .nav-links { gap: 8px; }
-            .nav-links a { font-size: 0.6rem; padding: 2px 5px; }
-            .stamp { display: none; }
-            .hero { padding-top: 120px; }
+            .stamp { width: 80px; height: 80px; }
         }
     </style>
 </head>
@@ -385,52 +283,49 @@ footer {
 <div class="texture-overlay"></div>
 <div class="stamp">DIVE BAR RECORDS // UK ALTERNATIVE // ARTIST FIRST</div>
 
-	
 <nav class="main-header">
-  <a href="#" class="header-logo">DIVE BAR RECORDS&nbsp;</a>
+    <a href="#" class="header-logo">DIVE BAR RECORDS&nbsp;</a>
     <div class="nav-links">
         <a href="#mission">MISSION</a>
-		<a href="gigs/">GIGS</a>
+        <a href="gigs/">GIGS</a>
         <a href="#vessel">SERVICES&nbsp;</a>
         <a href="#roster">ROSTER</a>
         <a href="#contact">CONTACT</a>
     </div>
     <div class="nav-status">
         <span class="led"></span>
-      MCR-LDN-LDS
-  </div>
+        MCR-LDN-LDS
+    </div>
 </nav>
 
-	
 <section class="hero">
     <div class="hero-content">
         <div class="label-tape">YOUR MUSIC, YOUR WAY.&nbsp;</div>
-		<img class="hero-title" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/dive%20bar%20logo%20cropped.png"> </img>
+        <img class="hero-title" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/dive%20bar%20logo%20cropped.png" alt="Logo">
         <p class="hero-sub">
             Empowering grassroots artists to actualise their cultural vision. 
             A platform for the UK alternative scene.
         </p>
     </div>
 
-<div class="hero-image">
-    <div class="img-frame" id="hero-slideshow">
-        <div class="slide">
-            <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/ruairi_mixing.JPG" alt="Ruairi Mixing">
-            <p>Ruairi, Cadman Music Studios, 18.12.24</p>
-        </div>
-        <div class="slide">
-            <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/slideshow_images/sharn_playing.JPG" alt="Sharnald Playing">
-            <p>Sharnald, Lending Room Leeds, 08.05.25</p>
+    <div class="hero-image">
+        <div id="hero-slideshow">
+            <div class="slide">
+                <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/ruairi_mixing.JPG" alt="Ruairi Mixing">
+                <p>Ruairi, Cadman Music Studios, 18.12.24</p>
+            </div>
+            <div class="slide">
+                <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/slideshow_images/sharn_playing.JPG" alt="Sharn Playing">
+                <p>Sharn, Lending Room Leeds, 08.05.25</p>
+            </div>
         </div>
     </div>
-</div>
-
-<section class="manifesto" id="mission">
+</section> <section class="manifesto" id="mission">
     <div>
         <div class="label-tape">001 / THE CORE PHILOSOPHY</div>
         <h2 style="font-family: 'Syncopate'; font-size: 3rem; margin-top: 20px;">ARTIST BACK<br>IN THE ART.</h2>
         <p style="margin-top: 40px; font-size: 1.2rem; color: #888;">We have made it our mission to give up and coming artists value in their space, offering our trusted network as a vessel for their growth.</p>
-  </div>
+    </div>
     
     <div class="typewritten-note">
         <p>Dive Bar Records is the brainchild of Ben O’Shea and Ruairi McLean. Born from the North-West alternative scene.</p>
@@ -450,16 +345,16 @@ footer {
             <h3>Promotion</h3>
             <p>Our lived experience navigating promoters and venues alike allows us to provide <b>visibility</b> that is missing in the scene.</p>
         </div>
-<a href="gigs/" class="vessel-card" style="text-decoration: none; color: inherit; display: block;">
-    <h3>Gigs</h3>
-    <p>Creative freedom to showcase <b>your art, your way.</b> From the North-West to the London underground.</p>
-    <div style="margin-top: 20px; font-family: 'Special Elite'; font-size: 0.7rem; color: var(--accent);">VIEW LIVE DATES →</div>
-</a>
-<a href="recording/" class="vessel-card" style="text-decoration: none; color: inherit; display: block;">
-    <h3>Recording</h3>
-    <p>Professional tracking, mixing, and mastering tailored for the independent spirit.</p>
-    <div style="margin-top: 20px; font-family: 'Special Elite'; font-size: 0.7rem; color: var(--accent);">ENTER THE ARCHIVE →</div>
-</a>
+        <a href="gigs/" class="vessel-card">
+            <h3>Gigs</h3>
+            <p>Creative freedom to showcase <b>your art, your way.</b> From the North-West to the London underground.</p>
+            <div style="margin-top: 20px; font-family: 'Special Elite'; font-size: 0.7rem; color: var(--accent);">VIEW LIVE DATES →</div>
+        </a>
+        <a href="recording/" class="vessel-card">
+            <h3>Recording</h3>
+            <p>Professional tracking, mixing, and mastering tailored for the independent spirit.</p>
+            <div style="margin-top: 20px; font-family: 'Special Elite'; font-size: 0.7rem; color: var(--accent);">ENTER THE ARCHIVE →</div>
+        </a>
     </div>
 </section>
 
@@ -486,10 +381,10 @@ footer {
             <p style="margin-top: 20px; opacity: 0.6;">Are you an artist looking for a space that values your journey? Send a transmission.</p>
         </div>
         <form action="https://formspree.io/f/mreowjdq" method="post">
-    <input type="text" name="name" placeholder="NAME / PROJECT" required>
-    <input type="text" name="link" placeholder="URL / MUSIC LINK" required>
-    <textarea name="vision" placeholder="CULTURAL VISION STATEMENT..." required></textarea>
-    <button type="submit" class="btn-black">Submit Transmission</button>
+            <input type="text" name="name" placeholder="NAME / PROJECT" required>
+            <input type="text" name="link" placeholder="URL / MUSIC LINK" required>
+            <textarea name="vision" placeholder="CULTURAL VISION STATEMENT..." required></textarea>
+            <button type="submit" class="btn-black">Submit Transmission</button>
         </form>
     </section>
 </div>
@@ -499,24 +394,20 @@ footer {
     <div>YOUR MUSIC, YOUR WAY.</div>
     <div>© ALL RIGHTS RESERVED</div>
 </footer>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const slides = document.querySelectorAll('.slide');
-        
-        // The "Coin-Toss": Pick 0 or 1 randomly to start
         let currentIndex = Math.random() < 0.5 ? 0 : 1;
         
-        // Show the initial random slide
         slides[currentIndex].classList.add('active');
 
-        // Function to cycle slides
         const nextSlide = () => {
             slides[currentIndex].classList.remove('active');
             currentIndex = (currentIndex + 1) % slides.length;
             slides[currentIndex].classList.add('active');
         };
 
-        // Change image every 5 seconds
         setInterval(nextSlide, 5000);
     });
 </script>
