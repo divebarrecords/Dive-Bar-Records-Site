@@ -166,6 +166,8 @@
             position: relative;
         }
 
+        
+
         .slide img {
             width: 100%;
             height: auto;
@@ -173,6 +175,11 @@
             background: var(--paper);
             padding: 20px;
             display: block;
+            filter: grayscale(1);
+        }
+
+        .slide:hover img { 
+            filter: grayscale(0); 
         }
 
         .slide p {
