@@ -58,22 +58,23 @@
     color: #d8c9b5;
     margin-bottom: 2rem;
   }
-  .logo {
+.logo {
     width: min(320px, 70vw);
     height: auto;
     margin-bottom: 1.5rem;
     -webkit-filter: invert(1);
-    filter: drop-shadow(0 0 25px rgba(242,181,68,0.55)) drop-shadow(0 0 50px rgba(230,57,70,0.25)) invert(1);
+    filter: invert(1) drop-shadow(0 0 25px rgba(242,181,68,0.55)) drop-shadow(0 0 50px rgba(230,57,70,0.25));
     animation: flicker 4s infinite;
   }
   @keyframes flicker {
     0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
       opacity: 1;
-      filter: drop-shadow(0 0 25px rgba(242,181,68,0.55)) drop-shadow(0 0 50px rgba(230,57,70,0.25));
+      filter: invert(1) drop-shadow(0 0 25px rgba(242,181,68,0.55)) drop-shadow(0 0 50px rgba(230,57,70,0.25));
     }
     20%, 22%, 24%, 55% {
       opacity: 0.6;
-      filter: drop-shadow(0 0 6px rgba(242,181,68,0.2)) drop-shadow(0 0 12px rgba(230,57,70,0.1));
+
+      filter: invert(1) drop-shadow(0 0 6px rgba(242,181,68,0.2)) drop-shadow(0 0 12px rgba(230,57,70,0.1));
     }
   }
   .contact {
