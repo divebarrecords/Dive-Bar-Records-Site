@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DIVE BAR RECORDS</title>
+<title>DIVE BAR RECORDS - direction concept v10</title>
 <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -259,7 +259,10 @@ a{color:inherit;}
 .hero-photo-wrap:hover .washi{ transform:rotate(-14deg) translateY(-3px); }
 
 @media(min-width:880px){
-  .hero{grid-template-columns:1.3fr 1fr; align-items:center;}
+  .hero{
+    grid-template-columns:1.3fr 1fr; align-items:center;
+    padding:40px 5% 60px;
+  }
   .hero-photo-wrap{justify-self:end;}
 }
 
@@ -271,7 +274,80 @@ a{color:inherit;}
   clip-path:polygon(0% 100%, 3% 30%, 7% 90%, 12% 20%, 17% 80%, 22% 10%, 28% 70%, 34% 15%, 40% 85%, 46% 25%, 52% 75%, 58% 10%, 64% 90%, 70% 20%, 76% 80%, 82% 15%, 88% 85%, 94% 25%, 100% 100%);
 }
 
-/* ---- scroll reveal ---- */
+#mission, #roster, #contact{
+  scroll-margin-top:100px;
+}
+
+/* ---- CONTACT ---- */
+.contact-section{
+  padding:80px 5% 90px;
+  display:grid; gap:40px;
+}
+.contact-section .eyebrow{
+  font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+  letter-spacing:2px; color:var(--red); margin-bottom:16px;
+  text-transform:uppercase;
+}
+.contact-headline{
+  font-family:"plunct", sans-serif;
+  font-size:clamp(1.8rem, 5vw, 3rem);
+  line-height:1.1;
+  color:var(--ink);
+}
+.contact-lede{
+  max-width:420px;
+  margin-top:20px;
+  font-size:0.92rem;
+  opacity:0.8;
+}
+.contact-lede a{
+  color:var(--blue); font-weight:700; text-decoration:underline;
+}
+.contact-card{
+  position:relative;
+  background:var(--paper2);
+  padding:32px;
+  box-shadow:10px 10px 0 rgba(35,35,56,0.2);
+  transform:rotate(1.2deg);
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+}
+.contact-card:hover{
+  transform:rotate(0deg) translateY(-3px);
+  box-shadow:14px 14px 0 rgba(35,35,56,0.18);
+}
+.contact-card label{
+  display:block; font-size:0.7rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;
+}
+.contact-card input, .contact-card textarea{
+  width:100%;
+  font-family:'Space Mono';
+  font-size:0.9rem;
+  background:var(--paper);
+  border:2px solid var(--ink);
+  padding:10px 12px;
+  margin-bottom:20px;
+  color:var(--ink);
+}
+.contact-card textarea{ resize:vertical; min-height:90px; }
+.contact-card button{
+  font-family:'Space Mono'; font-weight:700; font-size:0.8rem;
+  text-transform:uppercase; letter-spacing:1px;
+  background:var(--ink); color:var(--paper);
+  border:none; padding:14px 26px;
+  cursor:pointer; transition:background 0.2s ease;
+}
+.contact-card button:hover{ background:var(--red); }
+.contact-card button:disabled{ opacity:0.6; cursor:default; }
+.contact-status{
+  margin-top:16px; font-size:0.8rem; font-weight:700;
+  min-height:1.2em;
+}
+.contact-status.ok{ color:var(--blue); }
+.contact-status.err{ color:var(--red); }
+@media(min-width:880px){
+  .contact-section{grid-template-columns:1fr 1fr; align-items:start;}
+}
 .reveal{
   opacity:0; transform:translateY(28px);
   transition:opacity 0.7s ease, transform 0.7s ease;
@@ -382,7 +458,8 @@ footer .stamp{
   border:2px dashed var(--red); border-radius:50%;
   width:70px; height:70px;
   display:flex; align-items:center; justify-content:center;
-  text-align:center; font-size:0.52rem; transform:rotate(-10deg);
+  text-align:center; font-size:0.52rem; line-height:1.3;
+  transform:rotate(-10deg);
   animation:bottle-sway 6s ease-in-out infinite;
 }
 </style>
@@ -453,7 +530,7 @@ footer .stamp{
     <p>Dive Bar Records is the brainchild of Ben O'Shea, Ruairi McLean, &amp; Freya Millar, born from the North-West alternative scene.</p>
     <br>
     <p>With a combined three decades of experience as creatives working our way up, we know what it's like to be on the wrong side of an industry that's becoming increasingly manufactured.</p>
-    <p class="sign">— B. O'Shea, R. McLean &amp; F. Millar</p>
+    <p class="sign">- B. O'Shea, R. McLean &amp; F. Millar</p>
   </div>
 </section>
 
@@ -478,7 +555,25 @@ footer .stamp{
   </div>
 </section>
 
-<footer id="contact">
+<section class="contact-section" id="contact">
+  <div class="reveal">
+    <div class="eyebrow">Get In Touch</div>
+    <h2 class="contact-headline">SEND US<br>YOUR DEMO.</h2>
+    <p class="contact-lede">Artist, promoter, or just fancy a chat - drop us a line, or email us directly at <a href="mailto:hello@divebarrecords.co.uk">hello@divebarrecords.co.uk</a>.</p>
+  </div>
+  <form class="contact-card reveal" id="contact-form" action="https://formspree.io/f/mreowjdq" method="POST">
+    <label for="c-name">Name</label>
+    <input id="c-name" type="text" name="name" required>
+    <label for="c-email">Email</label>
+    <input id="c-email" type="email" name="email" required>
+    <label for="c-message">Message</label>
+    <textarea id="c-message" name="message" required></textarea>
+    <button type="submit">Send it →</button>
+    <p class="contact-status" id="contact-status" role="status" aria-live="polite"></p>
+  </form>
+</section>
+
+<footer>
   <div>DIVE BAR RECORDS // EST 2026</div>
   <div class="stamp">YOUR MUSIC,<br>YOUR WAY.</div>
   <div>© ALL RIGHTS RESERVED</div>
@@ -533,6 +628,39 @@ if ('IntersectionObserver' in window){
 } else {
   revealEls.forEach(el => el.classList.add('in-view'));
 }
+
+// contact form -> Formspree, submitted via fetch so the page never navigates away
+const contactForm = document.getElementById('contact-form');
+const contactStatus = document.getElementById('contact-status');
+contactForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const submitBtn = contactForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  contactStatus.textContent = 'Sending...';
+  contactStatus.className = 'contact-status';
+  try {
+    const response = await fetch(contactForm.action, {
+      method: 'POST',
+      body: new FormData(contactForm),
+      headers: { 'Accept': 'application/json' }
+    });
+    if (response.ok) {
+      contactStatus.textContent = "Message received - we'll be in touch.";
+      contactStatus.className = 'contact-status ok';
+      contactForm.reset();
+    } else {
+      const data = await response.json().catch(() => null);
+      const message = data && data.errors ? data.errors.map(e => e.message).join(', ') : 'Something went wrong - try again, or email us directly.';
+      contactStatus.textContent = message;
+      contactStatus.className = 'contact-status err';
+    }
+  } catch (err) {
+    contactStatus.textContent = 'Something went wrong - try again, or email us directly.';
+    contactStatus.className = 'contact-status err';
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
 </script>
 
 </body>
