@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DIVE BAR RECORDS - direction concept v10</title>
+<title>DIVE BAR RECORDS</title>
 <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -280,6 +280,7 @@ a{color:inherit;}
 
 /* ---- CONTACT ---- */
 .contact-section{
+  background:var(--ink); color:var(--paper);
   padding:80px 5% 90px;
   display:grid; gap:40px;
 }
@@ -292,28 +293,30 @@ a{color:inherit;}
   font-family:"plunct", sans-serif;
   font-size:clamp(1.8rem, 5vw, 3rem);
   line-height:1.1;
-  color:var(--ink);
+  color:var(--paper);
 }
 .contact-lede{
   max-width:420px;
   margin-top:20px;
   font-size:0.92rem;
-  opacity:0.8;
+  color:var(--paper);
+  opacity:0.85;
 }
 .contact-lede a{
-  color:var(--blue); font-weight:700; text-decoration:underline;
+  color:var(--gold); font-weight:700; text-decoration:underline;
 }
 .contact-card{
   position:relative;
   background:var(--paper2);
+  color:var(--ink);
   padding:32px;
-  box-shadow:10px 10px 0 rgba(35,35,56,0.2);
+  box-shadow:10px 10px 0 rgba(0,0,0,0.35);
   transform:rotate(1.2deg);
   transition:transform 0.25s ease, box-shadow 0.25s ease;
 }
 .contact-card:hover{
   transform:rotate(0deg) translateY(-3px);
-  box-shadow:14px 14px 0 rgba(35,35,56,0.18);
+  box-shadow:14px 14px 0 rgba(0,0,0,0.3);
 }
 .contact-card label{
   display:block; font-size:0.7rem; font-weight:700;
@@ -343,7 +346,7 @@ a{color:inherit;}
   margin-top:16px; font-size:0.8rem; font-weight:700;
   min-height:1.2em;
 }
-.contact-status.ok{ color:var(--blue); }
+.contact-status.ok{ color:var(--lav); }
 .contact-status.err{ color:var(--red); }
 @media(min-width:880px){
   .contact-section{grid-template-columns:1fr 1fr; align-items:start;}
@@ -530,7 +533,7 @@ footer .stamp{
     <p>Dive Bar Records is the brainchild of Ben O'Shea, Ruairi McLean, &amp; Freya Millar, born from the North-West alternative scene.</p>
     <br>
     <p>With a combined three decades of experience as creatives working our way up, we know what it's like to be on the wrong side of an industry that's becoming increasingly manufactured.</p>
-    <p class="sign">- B. O'Shea, R. McLean &amp; F. Millar</p>
+    <p class="sign">— B. O'Shea, R. McLean &amp; F. Millar</p>
   </div>
 </section>
 
@@ -555,11 +558,13 @@ footer .stamp{
   </div>
 </section>
 
+<div class="torn-divider"></div>
+
 <section class="contact-section" id="contact">
   <div class="reveal">
     <div class="eyebrow">Get In Touch</div>
     <h2 class="contact-headline">SEND US<br>YOUR DEMO.</h2>
-    <p class="contact-lede">Artist, promoter, or just fancy a chat - drop us a line, or email us directly at <a href="mailto:hello@divebarrecords.co.uk">hello@divebarrecords.co.uk</a>.</p>
+    <p class="contact-lede">Artist, promoter, or just fancy a chat — drop us a line, or email us directly at <a href="mailto:hello@divebarrecords.co.uk">hello@divebarrecords.co.uk</a>.</p>
   </div>
   <form class="contact-card reveal" id="contact-form" action="https://formspree.io/f/mreowjdq" method="POST">
     <label for="c-name">Name</label>
@@ -645,17 +650,17 @@ contactForm.addEventListener('submit', async (e) => {
       headers: { 'Accept': 'application/json' }
     });
     if (response.ok) {
-      contactStatus.textContent = "Message received - we'll be in touch.";
+      contactStatus.textContent = "Message received — we'll be in touch.";
       contactStatus.className = 'contact-status ok';
       contactForm.reset();
     } else {
       const data = await response.json().catch(() => null);
-      const message = data && data.errors ? data.errors.map(e => e.message).join(', ') : 'Something went wrong - try again, or email us directly.';
+      const message = data && data.errors ? data.errors.map(e => e.message).join(', ') : 'Something went wrong — try again, or email us directly.';
       contactStatus.textContent = message;
       contactStatus.className = 'contact-status err';
     }
   } catch (err) {
-    contactStatus.textContent = 'Something went wrong - try again, or email us directly.';
+    contactStatus.textContent = 'Something went wrong — try again, or email us directly.';
     contactStatus.className = 'contact-status err';
   } finally {
     submitBtn.disabled = false;
