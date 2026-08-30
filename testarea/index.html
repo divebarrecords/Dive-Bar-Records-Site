@@ -68,6 +68,20 @@ a{color:inherit;}
   .blob{ animation:none; }
 }
 
+/* ---- paper scraps: hero's own negative-space filler, crisp where the
+   dark sections get soft ink instead ---- */
+.paper-scrap{
+  position:absolute;
+  z-index:0;
+  pointer-events:none;
+  border-radius:3px;
+  box-shadow:3px 4px 0 rgba(35,35,56,0.15);
+}
+@keyframes scrap-drift{
+  0%,100%{ transform:translate(0,0) rotate(var(--rot,0deg)); }
+  50%{ transform:translate(4px,-5px) rotate(calc(var(--rot,0deg) + 3deg)); }
+}
+
 @media (prefers-reduced-motion: reduce){
   html{scroll-behavior:auto;}
   body::before{animation:none;}
@@ -195,7 +209,7 @@ a{color:inherit;}
   isolation:isolate;
   overflow:hidden;
 }
-.hero > div:not(.blob){ position:relative; z-index:1; }
+.hero > div:not(.blob):not(.paper-scrap){ position:relative; z-index:1; }
 .hero-headline{
   display:block;
   width:100%;
@@ -737,10 +751,32 @@ function scatterBlobs(selector, count, colors){
     }
   });
 }
-scatterBlobs('.hero', 4, ['var(--gold)', 'var(--blue)']);
 scatterBlobs('.manifesto', 4, ['var(--red)', 'var(--lav)', 'var(--gold)']);
-scatterBlobs('.corkboard', 4, ['var(--blue)', 'var(--red)', 'var(--gold)', 'var(--lav)']);
 scatterBlobs('.contact-section', 4, ['var(--gold)', 'var(--blue)', 'var(--red)']);
+
+// hero gets crisp paper scraps instead of soft ink blobs, for an ABAB
+// rhythm with the dark sections rather than blobs on every board
+function scatterScraps(selector, count, colors){
+  const rand = (min, max) => Math.random() * (max - min) + min;
+  document.querySelectorAll(selector).forEach(section => {
+    for (let i = 0; i < count; i++) {
+      const scrap = document.createElement('div');
+      scrap.className = 'paper-scrap';
+      const w = Math.round(rand(26, 64));
+      const h = Math.round(rand(18, 40));
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const left = rand(0, 88);
+      const top = rand(4, 84);
+      const rot = rand(-22, 22).toFixed(1);
+      const opacity = rand(0.5, 0.85);
+      const duration = rand(7, 12);
+      const delay = -rand(0, 10);
+      scrap.style.cssText = `width:${w}px;height:${h}px;left:${left}%;top:${top}%;background:${color};opacity:${opacity};--rot:${rot}deg;animation:scrap-drift ${duration}s ease-in-out infinite;animation-delay:${delay}s;`;
+      section.insertBefore(scrap, section.firstChild);
+    }
+  });
+}
+scatterScraps('.hero', 5, ['var(--gold)', 'var(--red)', 'var(--blue)', 'var(--lav)']);
 
 // handwritten captions: a smooth baseline wave across each word (not random
 // per-letter noise, which breaks a connected script font) plus a hint of
