@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DIVE BAR RECORDS</title>
 <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --paper:#FBF7EC;
@@ -51,7 +51,7 @@ a{color:inherit;}
   z-index:0;
   pointer-events:none;
   filter:blur(30px);
-  animation:blob-float 17s ease-in-out infinite;
+  animation:blob-float 10s ease-in-out infinite;
 }
 @keyframes blob-float{
   0%,100%{ transform:translate(0,0) rotate(0deg) scale(1); }
@@ -246,23 +246,38 @@ a{color:inherit;}
 .slide.active{ opacity:1; pointer-events:auto; position:relative; }
 .slide-card{
   background:var(--paper2);
-  padding:14px 14px 46px;
-  border-radius:38px 12px 40px 16px / 16px 40px 14px 42px;
+  padding:16px 16px 50px;
+  border-radius:6px;
   overflow:hidden;
   box-shadow:5px 7px 0 var(--gold), 0 22px 38px rgba(35,35,56,0.28);
 }
 .slide-card img{
   width:100%; display:block;
-  border-radius:26px 8px 28px 10px / 10px 28px 8px 26px;
-  filter:grayscale(1) contrast(1.1);
+  border-radius:2px;
+  filter:grayscale(1) contrast(1.1) sepia(0.15);
   transition:filter 0.5s ease;
 }
-.slide-card:hover img{ filter:grayscale(0) contrast(1.05); }
+.slide-card:hover img{ filter:grayscale(0) contrast(1.05) sepia(0); }
 .slide-card figcaption{
-  font-family:'Space Mono'; font-style:italic;
-  font-size:0.82rem;
-  margin-top:10px;
+  font-family:'Caveat', cursive;
+  font-weight:700;
+  font-size:1.35rem;
+  line-height:1.1;
+  margin-top:8px;
   color:var(--ink);
+  transform:rotate(-1.2deg);
+  display:inline-block;
+  position:relative;
+}
+.slide:nth-child(2) .slide-card figcaption{ transform:rotate(1deg); }
+.slide:nth-child(3) .slide-card figcaption{ transform:rotate(-0.6deg); }
+.slide-card figcaption .letter{
+  display:inline-block;
+}
+.ink-splodge{
+  position:absolute;
+  background:var(--ink);
+  pointer-events:none;
 }
 .carousel-dots{
   display:flex; gap:10px; justify-content:center; margin-top:16px;
@@ -505,7 +520,7 @@ footer{
 <body>
 
 <div class="blob blob-fixed" style="top:-6%; left:-8%; width:46vw; height:46vw; max-width:520px; max-height:520px; background:var(--blue); border-radius:62% 38% 55% 45% / 45% 55% 42% 58%;"></div>
-<div class="blob blob-fixed" style="bottom:-10%; right:-10%; width:50vw; height:50vw; max-width:560px; max-height:560px; background:var(--gold); border-radius:40% 60% 45% 55% / 55% 42% 58% 45%; animation-duration:21s;"></div>
+<div class="blob blob-fixed" style="bottom:-10%; right:-10%; width:50vw; height:50vw; max-width:560px; max-height:560px; background:var(--gold); border-radius:40% 60% 45% 55% / 55% 42% 58% 45%; animation-duration:13s;"></div>
 
 <div class="masthead" id="masthead">
   <a href="#" class="logo-lockup">
@@ -577,7 +592,7 @@ footer{
   </div>
   <div class="manifesto-note reveal">
     <div class="washi"></div>
-    <p>Dive Bar Records is the brainchild of Ben "Sharnald" O'Shea, Ruairi McLean, &amp; Freya Millar, born from the North-West alternative scene.</p>
+    <p>Dive Bar Records is the brainchild of Ben O'Shea, Ruairi McLean, &amp; Freya Millar, born from the North-West alternative scene.</p>
     <br>
     <p>With a combined three decades of experience as creatives working our way up, we know what it's like to be on the wrong side of an industry that's becoming increasingly manufactured.</p>
     <p class="sign">- B. O'Shea, R. McLean &amp; F. Millar</p>
@@ -670,6 +685,43 @@ dots.forEach((dot, i) => dot.addEventListener('click', () => {
   goTo(i);
   timer = setInterval(() => goTo((current + 1) % slides.length), 6000);
 }));
+
+// handwritten captions: jitter each letter's rotation/baseline/weight so it
+// reads like it was actually written by hand, not set in a script typeface
+document.querySelectorAll('.slide-card figcaption').forEach(cap => {
+  const text = cap.textContent;
+  cap.textContent = '';
+  [...text].forEach(ch => {
+    const span = document.createElement('span');
+    span.className = 'letter';
+    span.textContent = ch;
+    if (ch !== ' ') {
+      const rot = (Math.random() * 8 - 4).toFixed(1);
+      const rise = (Math.random() * 6 - 3).toFixed(1);
+      const weight = Math.random() < 0.35 ? 600 : 700;
+      const scale = (0.94 + Math.random() * 0.14).toFixed(2);
+      span.style.transform = `translateY(${rise}px) rotate(${rot}deg) scale(${scale})`;
+      span.style.fontWeight = weight;
+    }
+    cap.appendChild(span);
+  });
+
+  // a couple of small stray ink splodges near the caption, like an
+  // overloaded pen dotting an "i" or resting a beat too long
+  const splodgeCount = 1 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < splodgeCount; i++) {
+    const dot = document.createElement('span');
+    dot.className = 'ink-splodge';
+    const size = 2 + Math.random() * 3;
+    dot.style.width = size + 'px';
+    dot.style.height = (size * (0.7 + Math.random() * 0.6)) + 'px';
+    dot.style.borderRadius = `${40 + Math.random()*30}% ${40 + Math.random()*30}% ${40 + Math.random()*30}% ${40 + Math.random()*30}%`;
+    dot.style.left = (Math.random() * 90) + '%';
+    dot.style.top = (Math.random() * 70 + 10) + '%';
+    dot.style.opacity = (0.35 + Math.random() * 0.35).toFixed(2);
+    cap.appendChild(dot);
+  }
+});
 
 // scroll reveal
 const revealEls = document.querySelectorAll('.reveal');
