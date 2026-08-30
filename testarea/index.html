@@ -45,6 +45,28 @@ body::before{
 }
 a{color:inherit;}
 
+/* ---- ambient ink blobs: soft, drifting, never sharp ---- */
+.blob{
+  position:absolute;
+  z-index:0;
+  pointer-events:none;
+  filter:blur(30px);
+  animation:blob-float 17s ease-in-out infinite;
+}
+@keyframes blob-float{
+  0%,100%{ transform:translate(0,0) rotate(0deg) scale(1); }
+  33%{ transform:translate(22px,-16px) rotate(7deg) scale(1.06); }
+  66%{ transform:translate(-16px,12px) rotate(-5deg) scale(0.96); }
+}
+.blob-fixed{
+  position:fixed;
+  z-index:-1;
+  opacity:0.09;
+}
+@media (prefers-reduced-motion: reduce){
+  .blob{ animation:none; }
+}
+
 @media (prefers-reduced-motion: reduce){
   html{scroll-behavior:auto;}
   body::before{animation:none;}
@@ -169,17 +191,22 @@ a{color:inherit;}
   grid-template-columns:1fr;
   gap:40px;
   position:relative;
+  isolation:isolate;
+  overflow:hidden;
 }
+.hero > div{ position:relative; z-index:1; }
 .hero-headline{
   display:block;
   width:100%;
   max-width:640px;
   height:auto;
-  filter: drop-shadow(-5px 0 0 var(--red)) drop-shadow(5px 5px 0 var(--blue));
-  transition:filter 0.3s ease;
+  transform:rotate(-1.5deg);
+  filter: drop-shadow(-5px 1px 4px var(--red)) drop-shadow(5px 6px 4px var(--blue));
+  transition:filter 0.3s ease, transform 0.3s ease;
 }
 .hero-headline:hover{
-  filter: drop-shadow(-8px 0 0 var(--red)) drop-shadow(8px 8px 0 var(--blue));
+  transform:rotate(0deg);
+  filter: drop-shadow(-9px 2px 6px var(--red)) drop-shadow(9px 10px 6px var(--blue));
 }
 .hero-tag{
   font-family:'Space Mono'; font-style:italic; font-weight:700;
@@ -222,10 +249,13 @@ a{color:inherit;}
 .slide-card{
   background:var(--paper2);
   padding:14px 14px 46px;
-  box-shadow:10px 10px 0 var(--ink);
+  border-radius:38px 12px 40px 16px / 16px 40px 14px 42px;
+  overflow:hidden;
+  box-shadow:5px 7px 0 var(--gold), 0 22px 38px rgba(35,35,56,0.28);
 }
 .slide-card img{
   width:100%; display:block;
+  border-radius:26px 8px 28px 10px / 10px 28px 8px 26px;
   filter:grayscale(1) contrast(1.1);
   transition:filter 0.5s ease;
 }
@@ -250,6 +280,7 @@ a{color:inherit;}
 .washi{
   position:absolute; top:-16px; left:36%;
   width:96px; height:28px;
+  border-radius:40% 10% 40% 10% / 50% 50% 50% 50%;
   background:repeating-linear-gradient(45deg, var(--lav), var(--lav) 6px, #b3bade 6px, #b3bade 12px);
   opacity:0.92;
   transform:rotate(-8deg);
@@ -263,15 +294,15 @@ a{color:inherit;}
     grid-template-columns:1.3fr 1fr; align-items:center;
     padding:40px 5% 60px;
   }
-  .hero-photo-wrap{justify-self:end;}
+  .hero-photo-wrap{ justify-self:end; margin-left:-50px; }
 }
 
-/* ---- torn divider ---- */
-.torn-divider{
-  height:26px;
+/* ---- wave divider: an ink-drip line instead of a jagged tear ---- */
+.wave-divider{
+  display:block;
+  width:100%;
+  height:34px;
   margin-bottom:-2px;
-  background:var(--ink);
-  clip-path:polygon(0% 100%, 3% 30%, 7% 90%, 12% 20%, 17% 80%, 22% 10%, 28% 70%, 34% 15%, 40% 85%, 46% 25%, 52% 75%, 58% 10%, 64% 90%, 70% 20%, 76% 80%, 82% 15%, 88% 85%, 94% 25%, 100% 100%);
 }
 
 #mission, #roster, #contact{
@@ -283,7 +314,11 @@ a{color:inherit;}
   background:var(--ink); color:var(--paper);
   padding:80px 5% 90px;
   display:grid; gap:40px;
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
 }
+.contact-section > div, .contact-section > form{ position:relative; z-index:1; }
 .contact-section .eyebrow{
   font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
   letter-spacing:2px; color:var(--red); margin-bottom:16px;
@@ -310,13 +345,14 @@ a{color:inherit;}
   background:var(--paper2);
   color:var(--ink);
   padding:32px;
-  box-shadow:10px 10px 0 rgba(0,0,0,0.35);
+  border-radius:42px 16px 46px 14px / 14px 44px 16px 42px;
+  box-shadow:6px 8px 0 var(--gold), 0 24px 42px rgba(0,0,0,0.35);
   transform:rotate(1.2deg);
   transition:transform 0.25s ease, box-shadow 0.25s ease;
 }
 .contact-card:hover{
   transform:rotate(0deg) translateY(-3px);
-  box-shadow:14px 14px 0 rgba(0,0,0,0.3);
+  box-shadow:8px 10px 0 var(--gold), 0 30px 50px rgba(0,0,0,0.3);
 }
 .contact-card label{
   display:block; font-size:0.7rem; font-weight:700;
@@ -328,6 +364,7 @@ a{color:inherit;}
   font-size:0.9rem;
   background:var(--paper);
   border:2px solid var(--ink);
+  border-radius:14px;
   padding:10px 12px;
   margin-bottom:20px;
   color:var(--ink);
@@ -337,7 +374,8 @@ a{color:inherit;}
   font-family:'Space Mono'; font-weight:700; font-size:0.8rem;
   text-transform:uppercase; letter-spacing:1px;
   background:var(--ink); color:var(--paper);
-  border:none; padding:14px 26px;
+  border:none; border-radius:30px 8px 30px 8px;
+  padding:14px 26px;
   cursor:pointer; transition:background 0.2s ease;
 }
 .contact-card button:hover{ background:var(--red); }
@@ -362,7 +400,11 @@ a{color:inherit;}
   background:var(--ink); color:var(--paper);
   padding:70px 5% 90px;
   display:grid; gap:40px;
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
 }
+.manifesto > div{ position:relative; z-index:1; }
 .manifesto .eyebrow{
   font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
   letter-spacing:2px; color:var(--gold); margin-bottom:16px;
@@ -384,14 +426,15 @@ a{color:inherit;}
   background:var(--paper2);
   color:var(--ink);
   padding:30px;
-  box-shadow:10px 10px 0 rgba(0,0,0,0.35);
+  border-radius:44px 14px 40px 18px / 18px 42px 16px 44px;
+  box-shadow:6px 8px 0 var(--red), 0 24px 40px rgba(0,0,0,0.3);
   transform:rotate(-1.5deg);
   font-size:0.92rem;
   transition:transform 0.25s ease, box-shadow 0.25s ease;
 }
 .manifesto-note:hover{
   transform:rotate(0deg) translateY(-3px);
-  box-shadow:14px 14px 0 rgba(0,0,0,0.3);
+  box-shadow:8px 10px 0 var(--red), 0 30px 48px rgba(0,0,0,0.28);
 }
 .manifesto-note .washi{ left:auto; right:10%; top:-16px; }
 .manifesto-note .sign{
@@ -402,14 +445,15 @@ a{color:inherit;}
 }
 
 /* ---- ROSTER ---- */
-.corkboard{ padding:80px 5%; position:relative; }
+.corkboard{ padding:80px 5%; position:relative; isolation:isolate; overflow:hidden; }
+.corkboard > div{ position:relative; z-index:1; }
 .corkboard .eyebrow{
   font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
   letter-spacing:2px; color:var(--blue); margin-bottom:34px;
   text-transform:uppercase;
 }
 .flyer-grid{
-  display:grid; gap:36px;
+  display:grid; gap:56px 36px;
   grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
 }
 .flyer{
@@ -417,16 +461,17 @@ a{color:inherit;}
   color:var(--ink);
   padding:22px 18px;
   position:relative;
-  box-shadow:8px 8px 0 rgba(35,35,56,0.25);
+  border-radius:40px 12px 36px 16px / 16px 38px 12px 40px;
+  box-shadow:5px 6px 0 var(--blue), 0 20px 34px rgba(35,35,56,0.22);
   text-decoration:none;
   transition:transform 0.25s ease, box-shadow 0.25s ease;
 }
-.flyer:nth-child(1){transform:rotate(-2deg);}
-.flyer:nth-child(2){transform:rotate(1.5deg);}
-.flyer:nth-child(3){transform:rotate(-1deg);}
+.flyer:nth-child(1){transform:rotate(-3deg) translateY(0);}
+.flyer:nth-child(2){transform:rotate(2deg) translateY(34px);}
+.flyer:nth-child(3){transform:rotate(-1.5deg) translateY(-14px);}
 .flyer:hover{
   transform:rotate(0deg) translateY(-6px);
-  box-shadow:8px 14px 0 rgba(35,35,56,0.25);
+  box-shadow:6px 8px 0 var(--blue), 0 26px 40px rgba(35,35,56,0.24);
 }
 .flyer::before{
   content:"";
@@ -461,6 +506,9 @@ footer{
 </head>
 <body>
 
+<div class="blob blob-fixed" style="top:-6%; left:-8%; width:46vw; height:46vw; max-width:520px; max-height:520px; background:var(--blue); border-radius:62% 38% 55% 45% / 45% 55% 42% 58%;"></div>
+<div class="blob blob-fixed" style="bottom:-10%; right:-10%; width:50vw; height:50vw; max-width:560px; max-height:560px; background:var(--gold); border-radius:40% 60% 45% 55% / 55% 42% 58% 45%; animation-duration:21s;"></div>
+
 <div class="masthead" id="masthead">
   <a href="#" class="logo-lockup">
     <img class="logo-mark" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DBR%20BOTTLE.png" alt="">
@@ -483,6 +531,7 @@ footer{
 </div>
 
 <section class="hero">
+  <div class="blob" style="top:10%; right:8%; width:220px; height:220px; background:var(--gold); opacity:0.3; border-radius:58% 42% 63% 37% / 40% 55% 45% 60%;"></div>
   <div>
     <span class="hero-tag">your music, your way</span>
     <img class="hero-headline" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/dive%20bar%20logo%20cropped.png" alt="Dive Bar Records">
@@ -518,9 +567,10 @@ footer{
   </div>
 </section>
 
-<div class="torn-divider"></div>
+<svg class="wave-divider" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--ink)"></path></svg>
 
 <section class="manifesto" id="mission">
+  <div class="blob" style="bottom:-8%; left:6%; width:260px; height:260px; background:var(--red); opacity:0.22; border-radius:45% 55% 40% 60% / 55% 40% 60% 45%;"></div>
   <div class="reveal">
     <div class="eyebrow">The Core Philosophy</div>
     <p class="ransom">
@@ -537,6 +587,7 @@ footer{
 </section>
 
 <section class="corkboard" id="roster">
+  <div class="blob" style="top:6%; right:4%; width:240px; height:240px; background:var(--lav); opacity:0.4; border-radius:60% 40% 50% 50% / 45% 60% 40% 55%;"></div>
   <div class="eyebrow reveal">Roster</div>
   <div class="flyer-grid">
     <a href="#" class="flyer reveal">
@@ -557,9 +608,10 @@ footer{
   </div>
 </section>
 
-<div class="torn-divider"></div>
+<svg class="wave-divider" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--ink)"></path></svg>
 
 <section class="contact-section" id="contact">
+  <div class="blob" style="bottom:2%; left:2%; width:230px; height:230px; background:var(--blue); opacity:0.3; border-radius:50% 50% 60% 40% / 40% 60% 40% 60%;"></div>
   <div class="reveal">
     <div class="eyebrow">Get In Touch</div>
     <h2 class="contact-headline">SEND US<br>YOUR DEMO.</h2>
