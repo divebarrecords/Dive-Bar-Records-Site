@@ -246,37 +246,47 @@ a{color:inherit;}
 .slide.active{ opacity:1; pointer-events:auto; position:relative; }
 .slide-card{
   background:var(--paper2);
-  padding:16px 16px 50px;
+  padding:16px 16px 20px;
   border-radius:6px;
   overflow:hidden;
   box-shadow:5px 7px 0 var(--gold), 0 22px 38px rgba(35,35,56,0.28);
 }
-.slide-card img{
-  width:100%; display:block;
+.photo-frame{
+  position:relative;
   border-radius:2px;
+  overflow:hidden;
+}
+.photo-frame img{
+  width:100%; display:block;
   filter:grayscale(1) contrast(1.1) sepia(0.15);
   transition:filter 0.5s ease;
 }
-.slide-card:hover img{ filter:grayscale(0) contrast(1.05) sepia(0); }
-.slide-card figcaption{
+.slide-card:hover .photo-frame img{ filter:grayscale(0) contrast(1.05) sepia(0); }
+.photo-frame::after{
+  content:"";
+  position:absolute; left:0; right:0; bottom:0; height:52%;
+  background:linear-gradient(to top, rgba(0,0,0,0.62), rgba(0,0,0,0));
+  pointer-events:none;
+}
+.photo-frame figcaption{
+  position:absolute; left:14px; right:14px; bottom:10px;
   font-family:'Caveat', cursive;
   font-weight:700;
-  font-size:1.35rem;
-  line-height:1.1;
-  margin-top:8px;
-  color:var(--ink);
+  font-size:1.3rem;
+  line-height:1.15;
+  color:#fff;
+  text-shadow:0 1px 3px rgba(0,0,0,0.55);
   transform:rotate(-1.2deg);
   display:inline-block;
-  position:relative;
 }
-.slide:nth-child(2) .slide-card figcaption{ transform:rotate(1deg); }
-.slide:nth-child(3) .slide-card figcaption{ transform:rotate(-0.6deg); }
-.slide-card figcaption .letter{
+.slide:nth-child(2) .photo-frame figcaption{ transform:rotate(1deg); }
+.slide:nth-child(3) .photo-frame figcaption{ transform:rotate(-0.6deg); }
+.photo-frame figcaption .letter{
   display:inline-block;
 }
 .ink-splodge{
   position:absolute;
-  background:var(--ink);
+  background:#fff;
   pointer-events:none;
 }
 .carousel-dots{
@@ -555,20 +565,26 @@ footer{
     <div id="carousel">
       <div class="slide active">
         <figure class="slide-card">
-          <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/ruairi_cadman.png" alt="Ruairi mixing">
-          <figcaption>Ruairi, Cadman Music Studios, 18.12.24</figcaption>
+          <div class="photo-frame">
+            <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/ruairi_cadman.png" alt="Ruairi mixing">
+            <figcaption>Ruairi, Cadman Music Studios, 18.12.24</figcaption>
+          </div>
         </figure>
       </div>
       <div class="slide">
         <figure class="slide-card">
-          <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/slideshow_images/sharn_playing.png" alt="Sharn playing">
-          <figcaption>Sharn, Lending Room Leeds, 08.05.25</figcaption>
+          <div class="photo-frame">
+            <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/slideshow_images/sharn_playing.png" alt="Sharn playing">
+            <figcaption>Sharn, Lending Room Leeds, 08.05.25</figcaption>
+          </div>
         </figure>
       </div>
       <div class="slide">
         <figure class="slide-card">
-          <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/freya_mixing.jpg" alt="Freya Mixing">
-          <figcaption>Freya, Tonic House, 22.03.26</figcaption>
+          <div class="photo-frame">
+            <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/freya_mixing.jpg" alt="Freya Mixing">
+            <figcaption>Freya, Tonic House, 22.03.26</figcaption>
+          </div>
         </figure>
       </div>
     </div>
@@ -686,22 +702,25 @@ dots.forEach((dot, i) => dot.addEventListener('click', () => {
   timer = setInterval(() => goTo((current + 1) % slides.length), 6000);
 }));
 
-// handwritten captions: jitter each letter's rotation/baseline/weight so it
-// reads like it was actually written by hand, not set in a script typeface
+// handwritten captions: a smooth baseline wave across each word (not random
+// per-letter noise, which breaks a connected script font) plus a hint of
+// fine irregularity too small to read as "scattered"
 document.querySelectorAll('.slide-card figcaption').forEach(cap => {
   const text = cap.textContent;
   cap.textContent = '';
+  const phase = Math.random() * Math.PI * 2;
+  const dir = Math.random() < 0.5 ? 1 : -1;
+  let i = 0;
   [...text].forEach(ch => {
     const span = document.createElement('span');
     span.className = 'letter';
     span.textContent = ch;
     if (ch !== ' ') {
-      const rot = (Math.random() * 8 - 4).toFixed(1);
-      const rise = (Math.random() * 6 - 3).toFixed(1);
-      const weight = Math.random() < 0.35 ? 600 : 700;
-      const scale = (0.94 + Math.random() * 0.14).toFixed(2);
-      span.style.transform = `translateY(${rise}px) rotate(${rot}deg) scale(${scale})`;
-      span.style.fontWeight = weight;
+      const wave = Math.sin(i * 0.5 + phase) * dir;
+      const rise = (wave * 1.0).toFixed(2);
+      const rot = (wave * 0.9 + (Math.random() * 0.35 - 0.175)).toFixed(2);
+      span.style.transform = `translateY(${rise}px) rotate(${rot}deg)`;
+      i++;
     }
     cap.appendChild(span);
   });
