@@ -51,12 +51,13 @@ a{color:inherit;}
   z-index:0;
   pointer-events:none;
   filter:blur(30px);
-  animation:blob-float 10s ease-in-out infinite;
+  animation:blob-wander 14s ease-in-out infinite;
 }
-@keyframes blob-float{
+@keyframes blob-wander{
   0%,100%{ transform:translate(0,0) rotate(0deg) scale(1); }
-  33%{ transform:translate(22px,-16px) rotate(7deg) scale(1.06); }
-  66%{ transform:translate(-16px,12px) rotate(-5deg) scale(0.96); }
+  25%{ transform:translate(var(--mx1,60px),var(--my1,-40px)) rotate(8deg) scale(1.08); }
+  50%{ transform:translate(var(--mx2,-70px),var(--my2,50px)) rotate(-6deg) scale(0.94); }
+  75%{ transform:translate(var(--mx3,50px),var(--my3,60px)) rotate(5deg) scale(1.04); }
 }
 .blob-fixed{
   position:fixed;
@@ -533,8 +534,8 @@ footer{
 </head>
 <body>
 
-<div class="blob blob-fixed" style="top:-6%; left:-8%; width:46vw; height:46vw; max-width:520px; max-height:520px; background:var(--blue); border-radius:62% 38% 55% 45% / 45% 55% 42% 58%;"></div>
-<div class="blob blob-fixed" style="bottom:-10%; right:-10%; width:50vw; height:50vw; max-width:560px; max-height:560px; background:var(--gold); border-radius:40% 60% 45% 55% / 55% 42% 58% 45%; animation-duration:13s;"></div>
+<div class="blob blob-fixed" style="top:-6%; left:-8%; width:46vw; height:46vw; max-width:520px; max-height:520px; background:var(--blue); border-radius:62% 38% 55% 45% / 45% 55% 42% 58%; animation-duration:19s; --mx1:140px; --my1:-90px; --mx2:-110px; --my2:120px; --mx3:90px; --my3:100px;"></div>
+<div class="blob blob-fixed" style="bottom:-10%; right:-10%; width:50vw; height:50vw; max-width:560px; max-height:560px; background:var(--gold); border-radius:40% 60% 45% 55% / 55% 42% 58% 45%; animation-duration:16s; --mx1:-130px; --my1:100px; --mx2:120px; --my2:-80px; --mx3:-90px; --my3:-110px;"></div>
 
 <div class="masthead" id="masthead">
   <a href="#" class="logo-lockup">
@@ -558,7 +559,6 @@ footer{
 </div>
 
 <section class="hero">
-  <div class="blob" style="top:10%; right:8%; width:220px; height:220px; background:var(--gold); opacity:0.3; border-radius:58% 42% 63% 37% / 40% 55% 45% 60%;"></div>
   <div>
     <span class="hero-tag">your music, your way</span>
     <img class="hero-headline" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/dive%20bar%20logo%20cropped.png" alt="Dive Bar Records">
@@ -603,7 +603,6 @@ footer{
 <svg class="wave-divider" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--ink)"></path></svg>
 
 <section class="manifesto" id="mission">
-  <div class="blob" style="bottom:-8%; left:6%; width:260px; height:260px; background:var(--red); opacity:0.22; border-radius:45% 55% 40% 60% / 55% 40% 60% 45%;"></div>
   <div class="reveal">
     <div class="eyebrow">The Core Philosophy</div>
     <p class="ransom">
@@ -620,7 +619,6 @@ footer{
 </section>
 
 <section class="corkboard" id="roster">
-  <div class="blob" style="top:6%; right:4%; width:240px; height:240px; background:var(--lav); opacity:0.4; border-radius:60% 40% 50% 50% / 45% 60% 40% 55%;"></div>
   <div class="eyebrow reveal">Roster</div>
   <div class="flyer-grid">
     <a href="#" class="flyer reveal">
@@ -644,7 +642,6 @@ footer{
 <svg class="wave-divider" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--ink)"></path></svg>
 
 <section class="contact-section" id="contact">
-  <div class="blob" style="bottom:2%; left:2%; width:230px; height:230px; background:var(--blue); opacity:0.3; border-radius:50% 50% 60% 40% / 40% 60% 40% 60%;"></div>
   <div class="reveal">
     <div class="eyebrow">Get In Touch</div>
     <h2 class="contact-headline">SEND US<br>YOUR DEMO.</h2>
@@ -705,6 +702,45 @@ dots.forEach((dot, i) => dot.addEventListener('click', () => {
   goTo(i);
   timer = setInterval(() => goTo((current + 1) % slides.length), 6000);
 }));
+
+// scatter several ambient ink blobs per section, randomized in position,
+// size, color and timing so the effect reads as a deliberate system rather
+// than one decorative shape stuck in a corner
+function scatterBlobs(selector, count, colors){
+  const rand = (min, max) => Math.random() * (max - min) + min;
+  const blobRadius = () => {
+    const r = () => Math.round(rand(30, 70));
+    return `${r()}% ${100 - r()}% ${r()}% ${100 - r()}% / ${r()}% ${r()}% ${100 - r()}% ${100 - r()}%`;
+  };
+  document.querySelectorAll(selector).forEach(section => {
+    const rect = section.getBoundingClientRect();
+    const rangeX = Math.max(80, rect.width * 0.28);
+    const rangeY = Math.max(80, rect.height * 0.35);
+    for (let i = 0; i < count; i++) {
+      const blob = document.createElement('div');
+      blob.className = 'blob';
+      const size = Math.round(rand(90, 230));
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const left = rand(-5, 82);
+      const top = rand(-5, 78);
+      const opacity = rand(0.12, 0.3);
+      const duration = rand(11, 20);
+      const delay = -rand(0, 16);
+      const mx1 = rand(-rangeX, rangeX).toFixed(0);
+      const my1 = rand(-rangeY, rangeY).toFixed(0);
+      const mx2 = rand(-rangeX, rangeX).toFixed(0);
+      const my2 = rand(-rangeY, rangeY).toFixed(0);
+      const mx3 = rand(-rangeX, rangeX).toFixed(0);
+      const my3 = rand(-rangeY, rangeY).toFixed(0);
+      blob.style.cssText = `width:${size}px;height:${size}px;left:${left}%;top:${top}%;background:${color};opacity:${opacity};border-radius:${blobRadius()};animation-duration:${duration}s;animation-delay:${delay}s;--mx1:${mx1}px;--my1:${my1}px;--mx2:${mx2}px;--my2:${my2}px;--mx3:${mx3}px;--my3:${my3}px;`;
+      section.insertBefore(blob, section.firstChild);
+    }
+  });
+}
+scatterBlobs('.hero', 4, ['var(--gold)', 'var(--blue)']);
+scatterBlobs('.manifesto', 4, ['var(--red)', 'var(--lav)', 'var(--gold)']);
+scatterBlobs('.corkboard', 4, ['var(--blue)', 'var(--red)', 'var(--gold)', 'var(--lav)']);
+scatterBlobs('.contact-section', 4, ['var(--gold)', 'var(--blue)', 'var(--red)']);
 
 // handwritten captions: a smooth baseline wave across each word (not random
 // per-letter noise, which breaks a connected script font) plus a hint of
