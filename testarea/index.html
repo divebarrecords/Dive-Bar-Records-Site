@@ -63,20 +63,6 @@ a{color:inherit;}
   .blob{ animation:none; }
 }
 
-/* ---- paper scraps: hero's own negative-space filler, crisp where the
-   dark sections get soft ink instead ---- */
-.paper-scrap{
-  position:absolute;
-  z-index:0;
-  pointer-events:none;
-  border-radius:3px;
-  box-shadow:3px 4px 0 rgba(35,35,56,0.15);
-}
-@keyframes scrap-drift{
-  0%,100%{ transform:translate(0,0) rotate(var(--rot,0deg)); }
-  50%{ transform:translate(4px,-5px) rotate(calc(var(--rot,0deg) + 3deg)); }
-}
-
 @media (prefers-reduced-motion: reduce){
   html{scroll-behavior:auto;}
   body::before{animation:none;}
@@ -196,7 +182,7 @@ a{color:inherit;}
 
 /* ---- HERO ---- */
 .hero{
-  padding:90px 5% 70px;
+  padding:60px 5% 40px;
   display:grid;
   grid-template-columns:1fr;
   gap:40px;
@@ -204,17 +190,65 @@ a{color:inherit;}
   isolation:isolate;
   overflow:hidden;
 }
-.hero > div:not(.blob):not(.paper-scrap){ position:relative; z-index:1; }
-.hero-headline{
+.hero > div:not(.blob){ position:relative; z-index:1; }
+.logo-wrap{
+  position:relative;
   display:block;
   width:100%;
   max-width:640px;
+}
+.hero-headline{
+  display:block;
+  width:100%;
   height:auto;
   filter: drop-shadow(-5px 0 0 var(--red)) drop-shadow(5px 5px 0 var(--blue));
   transition:filter 0.3s ease;
 }
 .hero-headline:hover{
   filter: drop-shadow(-8px 0 0 var(--red)) drop-shadow(8px 8px 0 var(--blue));
+}
+/* positioned to sit on the drawn bottle cap in the logo artwork itself,
+   found by overlaying a percentage grid on the source image */
+.bottle-cap{
+  position:absolute;
+  left:85.5%; top:28%;
+  width:30px; height:30px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:
+    repeating-conic-gradient(var(--gold) 0deg 18deg, #b87d16 18deg 36deg);
+  box-shadow:0 2px 4px rgba(0,0,0,0.4), inset 0 0 0 2px rgba(0,0,0,0.35);
+  pointer-events:none;
+}
+.pop-cap-btn{
+  margin-top:22px;
+  font-family:'Space Mono'; font-weight:700; font-size:0.78rem;
+  text-transform:uppercase; letter-spacing:1px;
+  background:var(--ink); color:var(--paper);
+  border:none; border-radius:30px 8px 30px 8px;
+  padding:12px 22px;
+  cursor:pointer;
+  transition:background 0.2s ease, transform 0.15s ease;
+}
+.pop-cap-btn:hover{ background:var(--red); }
+.pop-cap-btn:active{ transform:scale(0.96); }
+.pop-cap-btn:disabled{ opacity:0.6; cursor:default; }
+.splash-ring{
+  position:fixed;
+  width:14px; height:14px;
+  border:3px solid var(--paper);
+  border-radius:50%;
+  transform:translate(-50%,-50%) scale(0.3);
+  opacity:0.9;
+  pointer-events:none;
+  z-index:500;
+  animation:splash-expand 0.75s ease-out forwards;
+}
+@keyframes splash-expand{
+  to{ transform:translate(-50%,-50%) scale(4.5); opacity:0; }
+}
+@media (prefers-reduced-motion: reduce){
+  .splash-ring{ animation:none; opacity:0; }
 }
 .hero-tag{
   font-family:'Space Mono'; font-style:italic; font-weight:700;
@@ -239,13 +273,13 @@ a{color:inherit;}
 /* ---- photo carousel ---- */
 .hero-photo-wrap{
   position:relative;
-  max-width:380px;
+  max-width:280px;
   justify-self:center;
 }
 #carousel{
   position:relative;
   transform:rotate(3deg);
-  min-height:420px;
+  min-height:300px;
 }
 .slide{
   position:absolute; inset:0;
@@ -329,7 +363,7 @@ a{color:inherit;}
 @media(min-width:880px){
   .hero{
     grid-template-columns:1.3fr 1fr; align-items:center;
-    padding:40px 5% 60px;
+    padding:30px 5% 40px;
   }
   .hero-photo-wrap{ justify-self:end; margin-left:-20px; }
 }
@@ -340,6 +374,7 @@ a{color:inherit;}
   width:100%;
   height:34px;
   margin-bottom:-2px;
+  scroll-margin-top:90px;
 }
 
 #mission, #roster, #contact{
@@ -568,8 +603,12 @@ footer{
 <section class="hero">
   <div>
     <span class="hero-tag">your music, your way</span>
-    <img class="hero-headline" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/dive%20bar%20logo%20cropped.png" alt="Dive Bar Records">
+    <div class="logo-wrap">
+      <img class="hero-headline" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/dive%20bar%20logo%20cropped.png" alt="Dive Bar Records">
+      <div class="bottle-cap" id="bottleCap" aria-hidden="true"></div>
+    </div>
     <p class="hero-sub">Grassroots artists actualising their own cultural vision - a platform for the UK alternative scene.</p>
+    <button class="pop-cap-btn" id="popCapBtn" type="button">Pop the cap ↓</button>
   </div>
   <div class="hero-photo-wrap">
     <div class="washi"></div>
@@ -747,53 +786,6 @@ function scatterBlobs(selector, count, colors){
 window.addEventListener('load', () => {
   scatterBlobs('.manifesto', 4, ['var(--red)', 'var(--lav)', 'var(--gold)']);
   scatterBlobs('.contact-section', 4, ['var(--gold)', 'var(--blue)', 'var(--red)']);
-
-// hero gets crisp paper scraps instead of soft ink blobs, for an ABAB
-// rhythm with the dark sections rather than blobs on every board.
-// Scraps actively avoid overlapping the section's real content (text,
-// photo) rather than just scattering blindly behind it.
-function scatterScraps(selector, count, colors){
-  const rand = (min, max) => Math.random() * (max - min) + min;
-  document.querySelectorAll(selector).forEach(section => {
-    const sectionRect = section.getBoundingClientRect();
-    const avoidRects = Array.from(section.children)
-      .filter(el => !el.classList.contains('paper-scrap') && !el.classList.contains('blob'))
-      .map(el => {
-        const r = el.getBoundingClientRect();
-        const pad = 10;
-        return {
-          left: r.left - sectionRect.left - pad,
-          top: r.top - sectionRect.top - pad,
-          right: r.right - sectionRect.left + pad,
-          bottom: r.bottom - sectionRect.top + pad
-        };
-      });
-    const overlaps = (x, y, w, h) => avoidRects.some(r =>
-      x < r.right && x + w > r.left && y < r.bottom && y + h > r.top
-    );
-    for (let i = 0; i < count; i++) {
-      const w = Math.round(rand(26, 64));
-      const h = Math.round(rand(18, 40));
-      let leftPx, topPx, attempts = 0;
-      do {
-        leftPx = rand(0, sectionRect.width - w);
-        topPx = rand(0, sectionRect.height - h);
-        attempts++;
-      } while (overlaps(leftPx, topPx, w, h) && attempts < 20);
-
-      const scrap = document.createElement('div');
-      scrap.className = 'paper-scrap';
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      const rot = rand(-22, 22).toFixed(1);
-      const opacity = rand(0.5, 0.85);
-      const duration = rand(7, 12);
-      const delay = -rand(0, 10);
-      scrap.style.cssText = `width:${w}px;height:${h}px;left:${leftPx}px;top:${topPx}px;background:${color};opacity:${opacity};--rot:${rot}deg;animation:scrap-drift ${duration}s ease-in-out infinite;animation-delay:${delay}s;`;
-      section.insertBefore(scrap, section.firstChild);
-    }
-  });
-}
-scatterScraps('.hero', 5, ['var(--gold)', 'var(--red)', 'var(--blue)', 'var(--lav)']);
 });
 
 // handwritten captions: a smooth baseline wave across each word (not random
@@ -879,6 +871,86 @@ contactForm.addEventListener('submit', async (e) => {
     submitBtn.disabled = false;
   }
 });
+
+// pop the cap: the cap detaches from the logo and falls toward the wave
+// divider while the page scrolls to reveal the philosophy section. The
+// divider's position is re-measured every animation frame (not predicted
+// in advance), so the cap correctly lands on it regardless of how fast or
+// slow the browser's smooth-scroll actually runs.
+const popBtn = document.getElementById('popCapBtn');
+const cap = document.getElementById('bottleCap');
+const targetDivider = document.querySelector('.wave-divider');
+let capBusy = false;
+
+function spawnSplash(x, y){
+  for (let i = 0; i < 4; i++) {
+    const ring = document.createElement('div');
+    ring.className = 'splash-ring';
+    ring.style.left = x + 'px';
+    ring.style.top = y + 'px';
+    ring.style.animationDelay = (i * 0.09) + 's';
+    document.body.appendChild(ring);
+    setTimeout(() => ring.remove(), 950);
+  }
+}
+
+function popCap(){
+  if (capBusy || !cap || !targetDivider) return;
+  capBusy = true;
+  popBtn.disabled = true;
+
+  const startRect = cap.getBoundingClientRect();
+  const startX = startRect.left + startRect.width / 2;
+  const startY = startRect.top + startRect.height / 2;
+
+  cap.style.position = 'fixed';
+  cap.style.left = startX + 'px';
+  cap.style.top = startY + 'px';
+  cap.style.margin = '0';
+  cap.style.zIndex = '500';
+  cap.style.transformOrigin = 'center';
+
+  targetDivider.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const duration = 1100;
+  const t0 = performance.now();
+
+  function frame(now){
+    const t = Math.min(1, (now - t0) / duration);
+    const eased = t * t; // ease-in, gravity feel
+    const targetRect = targetDivider.getBoundingClientRect();
+    const targetX = targetRect.left + targetRect.width * 0.5;
+    const targetY = targetRect.top + targetRect.height * 0.5;
+    const curX = startX + (targetX - startX) * eased;
+    const curY = startY + (targetY - startY) * eased;
+    cap.style.left = curX + 'px';
+    cap.style.top = curY + 'px';
+    cap.style.transform = `translate(-50%,-50%) rotate(${eased * 420}deg)`;
+
+    if (t < 1){
+      requestAnimationFrame(frame);
+    } else {
+      spawnSplash(curX, curY);
+      cap.style.transition = 'opacity 0.3s ease';
+      cap.style.opacity = '0';
+      setTimeout(() => {
+        cap.style.position = '';
+        cap.style.left = '';
+        cap.style.top = '';
+        cap.style.margin = '';
+        cap.style.zIndex = '';
+        cap.style.transform = '';
+        cap.style.transition = '';
+        cap.style.opacity = '';
+        capBusy = false;
+        popBtn.disabled = false;
+      }, 350);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+if (popBtn) popBtn.addEventListener('click', popCap);
 </script>
 
 </body>
