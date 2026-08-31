@@ -207,48 +207,50 @@ a{color:inherit;}
 .hero-headline:hover{
   filter: drop-shadow(-8px 0 0 var(--red)) drop-shadow(8px 8px 0 var(--blue));
 }
-/* positioned to sit on the drawn bottle cap in the logo artwork itself,
-   found by overlaying a percentage grid on the source image */
-.bottle-cap{
-  position:absolute;
-  left:85.5%; top:28%;
-  width:30px; height:30px;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-  background:
-    repeating-conic-gradient(var(--gold) 0deg 18deg, #b87d16 18deg 36deg);
-  box-shadow:0 2px 4px rgba(0,0,0,0.4), inset 0 0 0 2px rgba(0,0,0,0.35);
-  pointer-events:none;
-}
 .pop-cap-btn{
+  display:inline-flex; align-items:center; gap:10px;
   margin-top:22px;
   font-family:'Space Mono'; font-weight:700; font-size:0.78rem;
   text-transform:uppercase; letter-spacing:1px;
   background:var(--ink); color:var(--paper);
   border:none; border-radius:30px 8px 30px 8px;
-  padding:12px 22px;
+  padding:10px 22px 10px 14px;
   cursor:pointer;
   transition:background 0.2s ease, transform 0.15s ease;
 }
 .pop-cap-btn:hover{ background:var(--red); }
 .pop-cap-btn:active{ transform:scale(0.96); }
 .pop-cap-btn:disabled{ opacity:0.6; cursor:default; }
-.splash-ring{
+.cap-icon{
+  width:26px; height:26px;
+  flex-shrink:0;
+}
+.cap-icon polygon{
+  fill:var(--paper);
+  stroke:var(--ink);
+  stroke-width:3;
+  stroke-linejoin:round;
+}
+.cap-icon .cap-backing{
+  fill:var(--paper);
+}
+/* ink droplets: cartoony teardrop splash in the same navy as the board,
+   echoing the spray already drawn in the logo artwork */
+.ink-droplet{
   position:fixed;
-  width:14px; height:14px;
-  border:3px solid var(--paper);
-  border-radius:50%;
-  transform:translate(-50%,-50%) scale(0.3);
-  opacity:0.9;
+  background:var(--ink);
+  border-radius:50% 50% 50% 4%;
   pointer-events:none;
   z-index:500;
-  animation:splash-expand 0.75s ease-out forwards;
+  animation:droplet-arc var(--dur,0.75s) cubic-bezier(.3,.7,.4,1) forwards;
 }
-@keyframes splash-expand{
-  to{ transform:translate(-50%,-50%) scale(4.5); opacity:0; }
+@keyframes droplet-arc{
+  0%{ transform:translate(-50%,-50%) rotate(var(--r0,0deg)) scale(0.5); opacity:1; }
+  40%{ transform:translate(calc(-50% + var(--dx)*0.55), calc(-50% + var(--dy-up))) rotate(var(--r1,90deg)) scale(1); opacity:1; }
+  100%{ transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy-down))) rotate(var(--r2,180deg)) scale(0.4); opacity:0; }
 }
 @media (prefers-reduced-motion: reduce){
-  .splash-ring{ animation:none; opacity:0; }
+  .ink-droplet{ animation:none; opacity:0; }
 }
 .hero-tag{
   font-family:'Space Mono'; font-style:italic; font-weight:700;
@@ -605,10 +607,15 @@ footer{
     <span class="hero-tag">your music, your way</span>
     <div class="logo-wrap">
       <img class="hero-headline" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/dive%20bar%20logo%20cropped.png" alt="Dive Bar Records">
-      <div class="bottle-cap" id="bottleCap" aria-hidden="true"></div>
     </div>
     <p class="hero-sub">Grassroots artists actualising their own cultural vision - a platform for the UK alternative scene.</p>
-    <button class="pop-cap-btn" id="popCapBtn" type="button">Pop the cap ↓</button>
+    <button class="pop-cap-btn" id="popCapBtn" type="button">
+      <svg class="cap-icon" id="capIcon" viewBox="0 0 60 60" aria-hidden="true">
+        <circle cx="30" cy="30" r="20" class="cap-backing" />
+        <polygon points="30.0,4.0 33.0,11.2 38.0,5.3 38.6,13.1 45.3,9.0 43.4,16.6 51.0,14.7 46.9,21.4 54.7,22.0 48.8,27.0 56.0,30.0 48.8,33.0 54.7,38.0 46.9,38.6 51.0,45.3 43.4,43.4 45.3,51.0 38.6,46.9 38.0,54.7 33.0,48.8 30.0,56.0 27.0,48.8 22.0,54.7 21.4,46.9 14.7,51.0 16.6,43.4 9.0,45.3 13.1,38.6 5.3,38.0 11.2,33.0 4.0,30.0 11.2,27.0 5.3,22.0 13.1,21.4 9.0,14.7 16.6,16.6 14.7,9.0 21.4,13.1 22.0,5.3 27.0,11.2" />
+      </svg>
+      Pop the cap ↓
+    </button>
   </div>
   <div class="hero-photo-wrap">
     <div class="washi"></div>
@@ -872,79 +879,111 @@ contactForm.addEventListener('submit', async (e) => {
   }
 });
 
-// pop the cap: the cap detaches from the logo and falls toward the wave
-// divider while the page scrolls to reveal the philosophy section. The
-// divider's position is re-measured every animation frame (not predicted
-// in advance), so the cap correctly lands on it regardless of how fast or
-// slow the browser's smooth-scroll actually runs.
+// pop the cap: the cap icon detaches from the button and falls toward the
+// wave divider. Both the scroll AND the fall are driven by the same
+// requestAnimationFrame clock using the same easing curve, rather than
+// letting the browser's own smooth-scroll run on its own uncontrollable
+// timeline — that's what was causing the scroll to finish early and the
+// cap to "catch up" afterward. Landing triggers a handful of ink droplets
+// that arc out and fall back into the water, echoing the splash already
+// drawn in the logo art.
 const popBtn = document.getElementById('popCapBtn');
-const cap = document.getElementById('bottleCap');
+const capIcon = document.getElementById('capIcon');
 const targetDivider = document.querySelector('.wave-divider');
+const NAV_OFFSET = 90;
 let capBusy = false;
 
-function spawnSplash(x, y){
-  for (let i = 0; i < 4; i++) {
-    const ring = document.createElement('div');
-    ring.className = 'splash-ring';
-    ring.style.left = x + 'px';
-    ring.style.top = y + 'px';
-    ring.style.animationDelay = (i * 0.09) + 's';
-    document.body.appendChild(ring);
-    setTimeout(() => ring.remove(), 950);
+function spawnInkSplash(x, y){
+  const dropletCount = 7;
+  const startAngle = -Math.PI * 0.95; // ~-171°, just past straight left
+  const endAngle = -Math.PI * 0.05;   // ~-9°, just past straight right
+  for (let i = 0; i < dropletCount; i++) {
+    const angle = startAngle + (endAngle - startAngle) * (i / (dropletCount - 1));
+    const dist = 40 + Math.random() * 70;
+    const dx = Math.cos(angle) * dist;
+    const dyUp = Math.sin(angle) * dist * 0.9; // negative-ish: arcs upward first
+    const dyDown = dyUp + 30 + Math.random() * 40; // then falls back down past launch point, into the water
+    const size = 10 + Math.random() * 20;
+    const r0 = Math.random() * 40 - 20;
+    const r1 = r0 + 60 + Math.random() * 60;
+    const r2 = r1 + 40 + Math.random() * 60;
+    const dur = (0.6 + Math.random() * 0.35).toFixed(2);
+
+    const drop = document.createElement('div');
+    drop.className = 'ink-droplet';
+    drop.style.left = x + 'px';
+    drop.style.top = y + 'px';
+    drop.style.width = size + 'px';
+    drop.style.height = (size * 1.2) + 'px';
+    drop.style.setProperty('--dx', dx.toFixed(1) + 'px');
+    drop.style.setProperty('--dy-up', dyUp.toFixed(1) + 'px');
+    drop.style.setProperty('--dy-down', dyDown.toFixed(1) + 'px');
+    drop.style.setProperty('--r0', r0.toFixed(0) + 'deg');
+    drop.style.setProperty('--r1', r1.toFixed(0) + 'deg');
+    drop.style.setProperty('--r2', r2.toFixed(0) + 'deg');
+    drop.style.setProperty('--dur', dur + 's');
+    document.body.appendChild(drop);
+    setTimeout(() => drop.remove(), dur * 1000 + 50);
   }
 }
 
 function popCap(){
-  if (capBusy || !cap || !targetDivider) return;
+  if (capBusy || !capIcon || !targetDivider) return;
   capBusy = true;
   popBtn.disabled = true;
 
-  const startRect = cap.getBoundingClientRect();
+  const startRect = capIcon.getBoundingClientRect();
   const startX = startRect.left + startRect.width / 2;
   const startY = startRect.top + startRect.height / 2;
 
-  cap.style.position = 'fixed';
-  cap.style.left = startX + 'px';
-  cap.style.top = startY + 'px';
-  cap.style.margin = '0';
-  cap.style.zIndex = '500';
-  cap.style.transformOrigin = 'center';
+  const dividerStartRect = targetDivider.getBoundingClientRect();
+  const startScrollY = window.scrollY;
+  const targetScrollY = Math.max(0, startScrollY + dividerStartRect.top - NAV_OFFSET);
+  const targetX = dividerStartRect.left + dividerStartRect.width * 0.5;
 
-  targetDivider.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  capIcon.style.position = 'fixed';
+  capIcon.style.left = startX + 'px';
+  capIcon.style.top = startY + 'px';
+  capIcon.style.margin = '0';
+  capIcon.style.zIndex = '500';
+  capIcon.style.transformOrigin = 'center';
 
-  const duration = 1100;
+  const duration = 1200;
   const t0 = performance.now();
 
   function frame(now){
     const t = Math.min(1, (now - t0) / duration);
     const eased = t * t; // ease-in, gravity feel
-    const targetRect = targetDivider.getBoundingClientRect();
-    const targetX = targetRect.left + targetRect.width * 0.5;
-    const targetY = targetRect.top + targetRect.height * 0.5;
+
+    // scroll and fall share the exact same eased progress value, so they
+    // are always in lockstep regardless of frame rate
+    window.scrollTo(0, startScrollY + (targetScrollY - startScrollY) * eased);
+
+    const targetY = NAV_OFFSET + 17; // where the divider will sit once scroll completes
     const curX = startX + (targetX - startX) * eased;
     const curY = startY + (targetY - startY) * eased;
-    cap.style.left = curX + 'px';
-    cap.style.top = curY + 'px';
-    cap.style.transform = `translate(-50%,-50%) rotate(${eased * 420}deg)`;
+    capIcon.style.left = curX + 'px';
+    capIcon.style.top = curY + 'px';
+    capIcon.style.transform = `translate(-50%,-50%) rotate(${eased * 420}deg)`;
 
     if (t < 1){
       requestAnimationFrame(frame);
     } else {
-      spawnSplash(curX, curY);
-      cap.style.transition = 'opacity 0.3s ease';
-      cap.style.opacity = '0';
+      spawnInkSplash(curX, curY);
+      capIcon.style.transition = 'opacity 0.25s ease';
+      capIcon.style.opacity = '0';
       setTimeout(() => {
-        cap.style.position = '';
-        cap.style.left = '';
-        cap.style.top = '';
-        cap.style.margin = '';
-        cap.style.zIndex = '';
-        cap.style.transform = '';
-        cap.style.transition = '';
-        cap.style.opacity = '';
+        capIcon.style.position = '';
+        capIcon.style.left = '';
+        capIcon.style.top = '';
+        capIcon.style.margin = '';
+        capIcon.style.zIndex = '';
+        capIcon.style.transform = '';
+        capIcon.style.transition = '';
+        capIcon.style.opacity = '';
         capBusy = false;
         popBtn.disabled = false;
-      }, 350);
+      }, 300);
     }
   }
   requestAnimationFrame(frame);
