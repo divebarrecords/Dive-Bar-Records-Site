@@ -268,9 +268,25 @@ a{color:inherit;}
   40%{ transform:translate(calc(-50% + var(--dx)*0.55), calc(-50% + var(--dy-up))) rotate(var(--r1,90deg)) scale(1); opacity:1; }
   100%{ transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy-down))) rotate(var(--r2,180deg)) scale(0.4); opacity:0; }
 }
+.impact-ring{
+  position:fixed;
+  width:14px; height:14px;
+  border:3px solid var(--paper);
+  border-radius:50%;
+  pointer-events:none;
+  z-index:499;
+  transform:translate(-50%,-60%) scaleX(0.4) scaleY(0.18);
+  opacity:0.85;
+  animation:ring-expand 0.5s ease-out forwards;
+}
+@keyframes ring-expand{
+  0%{ transform:translate(-50%,-60%) scaleX(0.4) scaleY(0.18); opacity:0.85; }
+  100%{ transform:translate(-50%,-60%) scaleX(3.4) scaleY(0.5); opacity:0; }
+}
 @media (prefers-reduced-motion: reduce){
   .ink-droplet{ animation:none; opacity:0; }
   .drop-layer.revealed{ animation:none; opacity:1; transform:none; }
+  .impact-ring{ animation:none; opacity:0; }
 }
 .hero-tag{
   font-family:'Space Mono'; font-style:italic; font-weight:700;
@@ -397,6 +413,19 @@ a{color:inherit;}
   height:34px;
   margin-bottom:-2px;
   scroll-margin-top:90px;
+  transform-origin:50% 100%;
+}
+.wave-divider.impact{
+  animation:surface-dip 0.34s cubic-bezier(.3,.9,.3,1);
+}
+@keyframes surface-dip{
+  0%{ transform:scaleY(1) translateY(0); }
+  32%{ transform:scaleY(0.7) translateY(5px); }
+  62%{ transform:scaleY(1.14) translateY(-3px); }
+  100%{ transform:scaleY(1) translateY(0); }
+}
+@media (prefers-reduced-motion: reduce){
+  .wave-divider.impact{ animation:none; }
 }
 
 #mission, #roster, #contact{
@@ -920,6 +949,13 @@ const NAV_OFFSET = 90;
 let capBusy = false;
 
 function spawnInkSplash(x, y){
+  const ring = document.createElement('div');
+  ring.className = 'impact-ring';
+  ring.style.left = x + 'px';
+  ring.style.top = y + 'px';
+  document.body.appendChild(ring);
+  setTimeout(() => ring.remove(), 550);
+
   const dropletCount = 7;
   const startAngle = -Math.PI * 0.95;
   const endAngle = -Math.PI * 0.05;
@@ -951,6 +987,24 @@ function spawnInkSplash(x, y){
     document.body.appendChild(drop);
     setTimeout(() => drop.remove(), dur * 1000 + 50);
   }
+}
+
+// finds the point on the wave-divider's SVG path closest to a given
+// x (in the path's own 1200x40 viewBox space), by walking along the
+// path's length. Lets us land the cap exactly on the drawn curve
+// instead of guessing a flat pixel offset that ignores it.
+function waveSurfacePoint(svgEl, fracX){
+  const path = svgEl.querySelector('path');
+  const total = path.getTotalLength();
+  const targetX = fracX * 1200;
+  let lo = 0, hi = total, best = path.getPointAtLength(0);
+  for (let i = 0; i < 24; i++){
+    const mid = (lo + hi) / 2;
+    const p = path.getPointAtLength(mid);
+    best = p;
+    if (p.x < targetX) lo = mid; else hi = mid;
+  }
+  return best;
 }
 
 function resetBottle(){
@@ -988,7 +1042,18 @@ function popCap(){
   const dividerStartRect = targetDivider.getBoundingClientRect();
   const startScrollY = window.scrollY;
   const targetScrollY = Math.max(0, startScrollY + dividerStartRect.top - NAV_OFFSET);
-  const targetX = dividerStartRect.left + dividerStartRect.width * 0.5;
+
+  // sample the actual wave path (in its 1200x40 viewBox) at the x we're
+  // aiming for, then map that point into screen space. Horizontal scroll
+  // never changes, and by construction the divider's top will sit at
+  // exactly NAV_OFFSET once the scroll animation finishes — so this
+  // gives the cap's real final resting point on the drawn curve, not a
+  // flat pixel guess that ignores the wave shape entirely.
+  const wavePoint = waveSurfacePoint(targetDivider, 0.5);
+  const scaleX = dividerStartRect.width / 1200;
+  const scaleY = dividerStartRect.height / 40;
+  const targetX = dividerStartRect.left + wavePoint.x * scaleX;
+  const surfaceY = NAV_OFFSET + wavePoint.y * scaleY;
 
   // move the cap out of .bottle-comp before going fixed: that container
   // has a CSS filter on it, and filter (like transform) makes an element
@@ -1025,21 +1090,28 @@ function popCap(){
     const t0 = performance.now();
     function frame(now){
       const t = Math.min(1, (now - t0) / duration);
-      const eased = t * t;
+      const posEased = t * t;           // gravity: slow to start, accelerating down
+      const rotEased = 1 - (1 - t) * (1 - t); // spin: fast off the flick, settling as it falls
 
-      window.scrollTo(0, startScrollY + (targetScrollY - startScrollY) * eased);
+      window.scrollTo({ top: startScrollY + (targetScrollY - startScrollY) * posEased, left: 0, behavior: 'auto' });
 
-      const targetY = NAV_OFFSET + 17;
-      const curX = startX + (targetX - startX) * eased;
-      const curY = startY + (targetY - startY) * eased;
+      // a light wobble layered on the main arc, damping out as it falls —
+      // reads as a tumbling object catching air rather than a mechanical
+      // straight-line interpolation
+      const wobble = Math.sin(t * Math.PI * 2.4) * 5 * (1 - t);
+
+      const curX = startX + (targetX - startX) * posEased + wobble;
+      const curY = startY + (surfaceY - startY) * posEased;
       capLayer.style.left = curX + 'px';
       capLayer.style.top = curY + 'px';
-      capLayer.style.transform = `translate(-50%,-50%) rotate(${25 + eased * 420}deg)`;
+      capLayer.style.transform = `translate(-50%,-50%) rotate(${25 + rotEased * 395}deg)`;
 
       if (t < 1){
         requestAnimationFrame(frame);
       } else {
-        spawnInkSplash(curX, curY);
+        spawnInkSplash(targetX, surfaceY);
+        targetDivider.classList.add('impact');
+        setTimeout(() => targetDivider.classList.remove('impact'), 340);
         capLayer.style.transition = 'opacity 0.25s ease';
         capLayer.style.opacity = '0';
         setTimeout(() => {
