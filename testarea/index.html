@@ -28,23 +28,6 @@ body{
   position:relative;
 }
 
-/* living grain: drifts very slowly so the page never feels totally inert */
-body::before{
-  content:"";
-  position:fixed; inset:-10px; z-index:9999; pointer-events:none;
-  opacity:0.045;
-  background-image:radial-gradient(circle, var(--ink) 1px, transparent 1.3px);
-  background-size:5px 5px;
-  mix-blend-mode:multiply;
-  animation:grain-drift 9s steps(6) infinite;
-}
-@keyframes grain-drift{
-  0%{transform:translate(0,0);} 20%{transform:translate(-1px,1px);}
-  40%{transform:translate(1px,-1px);} 60%{transform:translate(-1px,-1px);}
-  80%{transform:translate(1px,1px);} 100%{transform:translate(0,0);}
-}
-a{color:inherit;}
-
 /* ---- ambient ink blobs: soft, drifting, never sharp ---- */
 .blob{
   position:absolute;
