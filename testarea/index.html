@@ -1090,21 +1090,19 @@ function popCap(){
     const t0 = performance.now();
     function frame(now){
       const t = Math.min(1, (now - t0) / duration);
-      const posEased = t * t;           // gravity: slow to start, accelerating down
-      const rotEased = 1 - (1 - t) * (1 - t); // spin: fast off the flick, settling as it falls
+      const posEased = t * t; // gravity: slow to start, accelerating down
 
-      window.scrollTo({ top: startScrollY + (targetScrollY - startScrollY) * posEased, left: 0, behavior: 'auto' });
+      window.scrollTo({ top: startScrollY + (targetScrollY - startScrollY) * posEased, left: 0, behavior: 'instant' });
 
-      // a light wobble layered on the main arc, damping out as it falls —
-      // reads as a tumbling object catching air rather than a mechanical
-      // straight-line interpolation
-      const wobble = Math.sin(t * Math.PI * 2.4) * 5 * (1 - t);
-
-      const curX = startX + (targetX - startX) * posEased + wobble;
+      // rotation stays LINEAR in t (constant angular velocity), continuing
+      // straight on from the hop's own spin rate — once the cap leaves the
+      // bottle nothing is torquing it any further, so it should keep
+      // turning at a steady rate rather than speeding up or slowing down
+      const curX = startX + (targetX - startX) * posEased;
       const curY = startY + (surfaceY - startY) * posEased;
       capLayer.style.left = curX + 'px';
       capLayer.style.top = curY + 'px';
-      capLayer.style.transform = `translate(-50%,-50%) rotate(${25 + rotEased * 395}deg)`;
+      capLayer.style.transform = `translate(-50%,-50%) rotate(${25 + t * 395}deg)`;
 
       if (t < 1){
         requestAnimationFrame(frame);
