@@ -28,6 +28,23 @@ body{
   position:relative;
 }
 
+/* living grain: drifts very slowly so the page never feels totally inert */
+body::before{
+  content:"";
+  position:fixed; inset:-10px; z-index:9999; pointer-events:none;
+  opacity:0.045;
+  background-image:radial-gradient(circle, var(--ink) 1px, transparent 1.3px);
+  background-size:5px 5px;
+  mix-blend-mode:multiply;
+  animation:grain-drift 9s steps(6) infinite;
+}
+@keyframes grain-drift{
+  0%{transform:translate(0,0);} 20%{transform:translate(-1px,1px);}
+  40%{transform:translate(1px,-1px);} 60%{transform:translate(-1px,-1px);}
+  80%{transform:translate(1px,1px);} 100%{transform:translate(0,0);}
+}
+a{color:inherit;}
+
 /* ---- ambient ink blobs: soft, drifting, never sharp ---- */
 .blob{
   position:absolute;
@@ -182,16 +199,25 @@ body{
 }
 .logo-text-img{
   display:block;
-  height:clamp(74px, 11.5vw, 132px);
+  height:clamp(100px, 15.5vw, 178px);
   width:auto;
+  filter: drop-shadow(-4px 0 0 var(--red)) drop-shadow(4px 4px 0 var(--blue));
+  transition:filter 0.3s ease;
 }
 .bottle-comp{
   position:relative;
   display:block;
-  height:clamp(92px, 14.2vw, 163px);
+  height:clamp(124px, 19.2vw, 220px);
   aspect-ratio:751 / 1331;
   flex-shrink:0;
   filter: drop-shadow(-3px 0 0 var(--red)) drop-shadow(3px 3px 0 var(--blue));
+  transition:filter 0.3s ease;
+}
+.logo-composition:hover .logo-text-img{
+  filter: drop-shadow(-7px 0 0 var(--red)) drop-shadow(7px 7px 0 var(--blue));
+}
+.logo-composition:hover .bottle-comp{
+  filter: drop-shadow(-5px 0 0 var(--red)) drop-shadow(5px 5px 0 var(--blue));
 }
 .bottle-comp .layer{
   position:absolute;
@@ -887,6 +913,7 @@ contactForm.addEventListener('submit', async (e) => {
 // the cap catching up afterward.
 const popBtn = document.getElementById('popCapBtn');
 const capLayer = document.getElementById('capLayer');
+const bottleComp = document.getElementById('bottleComp');
 const dropLayers = Array.from(document.querySelectorAll('.drop-layer'));
 const targetDivider = document.querySelector('.wave-divider');
 const NAV_OFFSET = 90;
@@ -928,6 +955,9 @@ function spawnInkSplash(x, y){
 
 function resetBottle(){
   dropLayers.forEach(d => d.classList.remove('revealed'));
+  if (capLayer.parentElement !== bottleComp) {
+    bottleComp.appendChild(capLayer);
+  }
   capLayer.style.position = '';
   capLayer.style.left = '';
   capLayer.style.top = '';
@@ -960,6 +990,13 @@ function popCap(){
   const targetScrollY = Math.max(0, startScrollY + dividerStartRect.top - NAV_OFFSET);
   const targetX = dividerStartRect.left + dividerStartRect.width * 0.5;
 
+  // move the cap out of .bottle-comp before going fixed: that container
+  // has a CSS filter on it, and filter (like transform) makes an element
+  // the containing block for fixed-position descendants — so left/top
+  // set below would resolve against the small bottle box instead of the
+  // real viewport if the cap stayed inside it. Position is restored
+  // immediately from the already-measured rect, so there's no visible jump.
+  document.body.appendChild(capLayer);
   capLayer.style.position = 'fixed';
   capLayer.style.left = startX + 'px';
   capLayer.style.top = startY + 'px';
