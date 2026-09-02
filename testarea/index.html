@@ -1112,6 +1112,11 @@ function resetBottle(){
 
 function finishPop(){
   unlockPage();
+  // the cap and spray were only ever meant to show for the duration of
+  // the sequence — without this, the illustration is left looking
+  // permanently mid-pop (cap gone, spray frozen on) until the button is
+  // clicked again, rather than settling back to its resting artwork
+  resetBottle();
   setTimeout(() => {
     capBusy = false;
     popBtn.disabled = false;
