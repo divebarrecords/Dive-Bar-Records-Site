@@ -415,10 +415,8 @@ a{color:inherit;}
   scroll-margin-top:90px;
 }
 
-/* ---- cap-pop cutscene: a self-contained fixed stage, independent of
-   real page scroll, so the fall distance and timing can be tailored to
-   the current viewport rather than however much of the real document
-   happens to be between the bottle and the mission section. ---- */
+/* ---- cap-pop: lock the page and dim the nav for the duration of the
+   sequence, so the fall gets a clean, distraction-free run ---- */
 html.pop-locked, body.pop-locked{
   overflow:hidden !important;
   height:100%;
@@ -428,39 +426,6 @@ html.pop-locked, body.pop-locked{
   opacity:0.28;
   pointer-events:none;
   transition:opacity 0.3s ease;
-}
-.pop-stage{
-  position:fixed;
-  inset:0;
-  z-index:600;
-  pointer-events:none;
-}
-.pop-stage-scrim{
-  position:absolute;
-  inset:0;
-  background:rgba(20,18,30,0);
-  transition:background 0.35s ease;
-}
-.pop-stage.is-active .pop-stage-scrim{
-  background:rgba(20,18,30,0.26);
-}
-.pop-stage-water{
-  position:absolute;
-  left:0; right:0;
-  height:34px;
-  opacity:0;
-  transition:opacity 0.25s ease;
-}
-.pop-stage.is-active .pop-stage-water{
-  opacity:1;
-}
-.pop-stage-wave{
-  display:block;
-  width:100%;
-  height:100%;
-}
-@media (prefers-reduced-motion: reduce){
-  .pop-stage-scrim, .pop-stage-water{ transition:none; }
 }
 
 #mission, #roster, #contact{
@@ -805,15 +770,6 @@ footer{
   <div>© ALL RIGHTS RESERVED</div>
 </footer>
 
-<div class="pop-stage" id="popStage" aria-hidden="true">
-  <div class="pop-stage-scrim"></div>
-  <div class="pop-stage-water" id="popStageWater">
-    <svg class="pop-stage-wave" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true">
-      <path id="popStageWavePath" d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--ink)"></path>
-    </svg>
-  </div>
-</div>
-
 <script>
 // nav scroll state
 const masthead = document.getElementById('masthead');
@@ -981,37 +937,18 @@ contactForm.addEventListener('submit', async (e) => {
 // outward from the bottle's mouth into their correct native positions
 // (each already knows its own resting spot, since all the layer files
 // share one coordinate space). Scroll and fall share a single
-// ---- cap-pop cutscene ----
-// This used to piggyback on real page scroll: scroll the document while
-// the cap fell, and land it on the real .wave-divider element further
-// down the DOM. That coupled the animation's timing to how much vertical
-// space happens to exist between the bottle and the mission section on
-// a given screen — on a short, wide desktop viewport there usually isn't
-// enough of that space to show the spray *and* a readable fall without
-// picking one at the other's expense.
-//
-// Instead this runs as a self-contained cutscene in a fixed overlay:
-// the real page doesn't scroll at all while it plays, so fall distance
-// and duration are computed straight from the current viewport's own
-// dimensions (tailored per-device rather than shared across all of
-// them), and the spray stays visible the whole time because nothing
-// carries it off-screen. Once it resolves, a single deliberate scroll
-// takes the page to the mission section.
+// ---- cap-pop animation ----
+// Lands on the real .wave-divider that borders the mission section —
+// not a synthesized copy — so the splash is always genuinely adjoined
+// to the philosophy div it's meant to sit against. Camera framing is a
+// single instant jump performed once, before the fall starts, so the
+// fall's own motion never has to fight or share timing with a scroll.
 const popBtn = document.getElementById('popCapBtn');
 const capLayer = document.getElementById('capLayer');
 const bottleComp = document.getElementById('bottleComp');
 const dropLayers = Array.from(document.querySelectorAll('.drop-layer'));
-const popStage = document.getElementById('popStage');
-// the real section dividers, further down the document — the hero has
-// no fixed height, so on a short viewport one of these can already be
-// visible before the button is even clicked. Left alone, the ephemeral
-// stage water fading in elsewhere reads as this real one leaping to a
-// new position, so it's hidden for the duration of the cutscene and
-// restored once the page hands control back.
-const realDividers = Array.from(document.querySelectorAll('.wave-divider'));
-const popStageWater = document.getElementById('popStageWater');
-const popStageWavePath = document.getElementById('popStageWavePath');
-const missionSection = document.getElementById('mission');
+const realDivider = document.querySelector('.wave-divider');
+const realDividerPath = realDivider ? realDivider.querySelector('path') : null;
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let capBusy = false;
 
@@ -1039,9 +976,9 @@ function unlockPage(){
   window.removeEventListener('keydown', preventScrollKey);
 }
 
-// samples the wave path into evenly-spaced points along x (viewBox
-// units), by walking its length — used both as the resting shape and
-// as the base that the ripple displaces
+// samples a path into evenly-spaced points along x (viewBox units), by
+// walking its length — used both as the resting shape and as the base
+// the ripple displaces
 function sampleWave(pathEl, count){
   const total = pathEl.getTotalLength();
   const points = [];
@@ -1063,10 +1000,9 @@ function sampleWave(pathEl, count){
 
 // smooth curve through points: each interior point is used as a
 // quadratic control point, with the curve actually passing through the
-// midpoint between consecutive points — the standard "smooth freehand
-// path" construction. Starts exactly at points[0] and ends exactly at
-// the last point, then closes off with the same flat bottom edge as
-// the resting shape.
+// midpoint between consecutive points. Starts exactly at points[0] and
+// ends exactly at the last point, then closes off with the same flat
+// bottom edge as the resting shape.
 function pathFromPoints(points){
   let d = `M${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
   for (let i = 1; i < points.length - 1; i++){
@@ -1080,12 +1016,11 @@ function pathFromPoints(points){
   return d + ' L1200,40 L0,40 Z';
 }
 
-// a localized, propagating ripple: a damped, spreading wave centered on
-// the impact x, built by displacing sampled points and re-drawing the
-// path each frame. Because only the path's `d` changes — never the
-// element's own box or a CSS transform on it — there's no seam between
-// this and neighbouring elements, and the disturbance stays anchored to
-// where the cap actually landed instead of the whole bar reacting at once.
+// a localized, propagating ripple on the real divider's own path: a
+// damped, spreading wave centered on the impact x. Only the path's `d`
+// changes — never the element's own box or a transform on it — so
+// there's no seam with the section it borders, and the disturbance
+// stays anchored to where the cap actually landed.
 function rippleWave(pathEl, basePoints, impactX){
   if (prefersReducedMotion){
     pathEl.setAttribute('d', pathFromPoints(basePoints));
@@ -1176,10 +1111,7 @@ function resetBottle(){
 }
 
 function finishPop(){
-  popStage.classList.remove('is-active');
-  realDividers.forEach(d => { d.style.visibility = ''; });
   unlockPage();
-  if (missionSection) missionSection.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
   setTimeout(() => {
     capBusy = false;
     popBtn.disabled = false;
@@ -1187,44 +1119,67 @@ function finishPop(){
 }
 
 function popCap(){
-  if (capBusy || !capLayer || !popStage) return;
+  if (capBusy || !capLayer || !realDivider || !realDividerPath) return;
   capBusy = true;
   popBtn.disabled = true;
   resetBottle();
   lockPage();
-  realDividers.forEach(d => { d.style.visibility = 'hidden'; });
 
-  // spray reveals immediately at the bottle, and stays fully visible
-  // throughout — nothing scrolls it away mid-animation
+  // spray reveals immediately at the bottle
   dropLayers.forEach(d => d.classList.add('revealed'));
 
+  // --- one-time camera framing, before anything falls ---
+  // bring the real divider into view alongside the bottle if it isn't
+  // already, in a single instant jump. This is the one deliberate
+  // camera move in the whole sequence — the fall itself never touches
+  // scroll, so there's nothing for it to fight against.
+  const bottleRectPre = capLayer.getBoundingClientRect();
+  const dividerRectPre = realDivider.getBoundingClientRect();
+  const scrollYNow = window.scrollY;
+  const dividerDocTop = dividerRectPre.top + scrollYNow;
+  const bottleDocTop = bottleRectPre.top + scrollYNow;
+  const vh = window.innerHeight;
+
+  const desiredDividerViewportY = vh * 0.80;
+  let targetScrollY = dividerDocTop - desiredDividerViewportY;
+  const minBottleViewportY = 20;
+  targetScrollY = Math.min(targetScrollY, bottleDocTop - minBottleViewportY);
+  targetScrollY = Math.max(0, targetScrollY);
+  window.scrollTo({ top: targetScrollY, left: 0, behavior: 'instant' });
+
+  // re-measure fresh now that scroll has actually moved
   const startRect = capLayer.getBoundingClientRect();
   const startX = startRect.left + startRect.width / 2;
   const startY = startRect.top + startRect.height / 2;
   const startW = startRect.width;
   const startH = startRect.height;
 
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  // 0 = tall/narrow viewport (phones), 1 = wide/short viewport (desktop) —
-  // used to blend fall distance, duration and drift so every aspect
-  // ratio in between gets a proportionate result rather than snapping
-  // between hard breakpoints
-  const wideness = Math.min(1, Math.max(0, ((vw / vh) - 0.6) / (1.6 - 0.6)));
-  const landingYFrac = lerp(0.86, 0.66, wideness);
-  const fallDuration = lerp(1150, 700, wideness);
-  const driftX = lerp(50, 110, wideness) * (Math.random() < 0.5 ? -1 : 1);
+  const dividerRect = realDivider.getBoundingClientRect();
+  const basePoints = sampleWave(realDividerPath, 48);
+  realDividerPath.setAttribute('d', pathFromPoints(basePoints));
 
-  let landingY = vh * landingYFrac;
-  if (landingY - startY < vh * 0.16) landingY = startY + vh * 0.16;
-  const targetX = Math.min(vw - 40, Math.max(40, startX + driftX));
+  const fallDistanceGuess = Math.max(40, dividerRect.top + dividerRect.height * 0.5 - startY);
+  // landing x starts roughly below the bottle, then gets a proportional
+  // sideways bias so the arc reads clearly rather than looking like a
+  // near-straight drop
+  const arcBias = (Math.random() < 0.5 ? -1 : 1) * fallDistanceGuess * 0.3;
+  let targetX = startX + arcBias;
+  targetX = Math.min(dividerRect.right - 30, Math.max(dividerRect.left + 30, targetX));
 
-  // position the ephemeral water line at the computed landing point and
-  // hand it the resting wave shape so the ripple has a base to displace
-  popStageWater.style.top = (landingY - 17) + 'px';
-  const basePoints = sampleWave(popStageWavePath, 48);
-  popStageWavePath.setAttribute('d', pathFromPoints(basePoints));
-  popStage.classList.add('is-active');
+  const scaleX = dividerRect.width / 1200;
+  const scaleY = dividerRect.height / 40;
+  const fracX = (targetX - dividerRect.left) / dividerRect.width;
+  const idx = Math.min(48, Math.max(0, Math.round(fracX * 48)));
+  const wavePoint = basePoints[idx];
+  const landingX = dividerRect.left + wavePoint.x * scaleX;
+  const landingY = dividerRect.top + wavePoint.y * scaleY;
+
+  // fall duration derived from actual gravity, not a guessed constant —
+  // short falls are naturally quick, long ones naturally take longer,
+  // with sensible floors/ceilings so it never feels instant or draggy
+  const gravityPxPerSec2 = 2200;
+  const fallDistance = Math.max(20, landingY - startY);
+  const fallDuration = Math.max(380, Math.min(1400, Math.sqrt(2 * fallDistance / gravityPxPerSec2) * 1000));
 
   // move the cap out of .bottle-comp before going fixed: that container
   // has a CSS filter on it, and filter (like transform) makes an element
@@ -1244,18 +1199,19 @@ function popCap(){
 
   if (prefersReducedMotion){
     capLayer.style.opacity = '0';
+    spawnInkSplash(landingX, landingY);
+    rippleWave(realDividerPath, basePoints, wavePoint.x);
     finishPop();
     return;
   }
 
-  // brief pop-hop in place before the plunge begins
-  const hopDuration = 220;
-  const hopRotationDeg = 25;
-  // deg/ms — the fall's rotation continues at exactly this rate, so a
-  // short desktop fall gets a correspondingly small, readable spin
-  // instead of always cramming in a full 1+ turns regardless of how
-  // little time or distance it actually has to work with
-  const angularVelocity = hopRotationDeg / hopDuration;
+  // total rotation is a fixed, modest amount — well under half a turn —
+  // split between the hop and the fall so it never overpowers the arc
+  // by spinning fast relative to how little time/distance it has
+  const hopDuration = 200;
+  const hopRotationDeg = 16;
+  const fallRotationDeg = 96;
+
   const hopT0 = performance.now();
   function hop(now){
     const t = Math.min(1, (now - hopT0) / hopDuration);
@@ -1274,17 +1230,13 @@ function popCap(){
       const t = Math.min(1, (now - t0) / fallDuration);
       // vertical: gravity — accelerates (quadratic ease-in)
       const fallEased = t * t;
-      // horizontal: no horizontal force once it's left the bottle, so it
-      // drifts at a constant rate rather than lagging then rushing —
-      // that mismatch against the fall's acceleration was what read as
-      // "swirling" before
-      const curX = startX + (targetX - startX) * t;
+      // horizontal: constant velocity — no horizontal force once it's
+      // left the bottle
+      const curX = startX + (landingX - startX) * t;
       const curY = startY + (landingY - startY) * fallEased;
-      // rotation: constant angular velocity, genuinely continuing the
-      // hop's own spin rate rather than a fixed total that overshoots on
-      // short falls — the amount of spin now scales with how long the
-      // cap is actually airborne
-      const rot = hopRotationDeg + angularVelocity * (t * fallDuration);
+      // rotation: constant angular velocity, linear in time, continuing
+      // on from the hop
+      const rot = hopRotationDeg + fallRotationDeg * t;
 
       capLayer.style.left = curX + 'px';
       capLayer.style.top = curY + 'px';
@@ -1293,13 +1245,8 @@ function popCap(){
       if (t < 1){
         requestAnimationFrame(frame);
       } else {
-        spawnInkSplash(targetX, landingY);
-        // map the landing screen-x back into the wave path's own
-        // 1200-wide viewBox space, since the ripple runs in path
-        // coordinates, not screen pixels
-        const waterRect = popStageWater.getBoundingClientRect();
-        const impactPathX = ((targetX - waterRect.left) / waterRect.width) * 1200;
-        rippleWave(popStageWavePath, basePoints, impactPathX);
+        spawnInkSplash(landingX, landingY);
+        rippleWave(realDividerPath, basePoints, wavePoint.x);
         capLayer.style.transition = 'opacity 0.25s ease';
         capLayer.style.opacity = '0';
         setTimeout(finishPop, 950);
