@@ -1123,16 +1123,13 @@ function popCap(){
   capBusy = true;
   popBtn.disabled = true;
   resetBottle();
-  lockPage();
 
-  // spray reveals immediately at the bottle
-  dropLayers.forEach(d => d.classList.add('revealed'));
-
-  // --- one-time camera framing, before anything falls ---
+  // --- one-time camera framing, before anything is locked or falls ---
   // bring the real divider into view alongside the bottle if it isn't
-  // already, in a single instant jump. This is the one deliberate
-  // camera move in the whole sequence — the fall itself never touches
-  // scroll, so there's nothing for it to fight against.
+  // already, in a single instant jump. This has to happen BEFORE the
+  // page is scroll-locked: overflow:hidden removes the document's
+  // scrollable area entirely, so a scrollTo call issued after locking
+  // is a silent no-op — which was exactly why nothing was scrolling.
   const bottleRectPre = capLayer.getBoundingClientRect();
   const dividerRectPre = realDivider.getBoundingClientRect();
   const scrollYNow = window.scrollY;
@@ -1147,6 +1144,12 @@ function popCap(){
   targetScrollY = Math.max(0, targetScrollY);
   window.scrollTo({ top: targetScrollY, left: 0, behavior: 'instant' });
 
+  // only lock the page once the camera is already sitting where we want it
+  lockPage();
+
+  // spray reveals immediately at the bottle
+  dropLayers.forEach(d => d.classList.add('revealed'));
+
   // re-measure fresh now that scroll has actually moved
   const startRect = capLayer.getBoundingClientRect();
   const startX = startRect.left + startRect.width / 2;
@@ -1159,10 +1162,10 @@ function popCap(){
   realDividerPath.setAttribute('d', pathFromPoints(basePoints));
 
   const fallDistanceGuess = Math.max(40, dividerRect.top + dividerRect.height * 0.5 - startY);
-  // landing x starts roughly below the bottle, then gets a proportional
-  // sideways bias so the arc reads clearly rather than looking like a
-  // near-straight drop
-  const arcBias = (Math.random() < 0.5 ? -1 : 1) * fallDistanceGuess * 0.3;
+  // drift is always rightward, away from the wordmark that sits to the
+  // bottle's left — a random left/right choice could (and did) send it
+  // sweeping back across the logo itself
+  const arcBias = fallDistanceGuess * 0.3;
   let targetX = startX + arcBias;
   targetX = Math.min(dividerRect.right - 30, Math.max(dividerRect.left + 30, targetX));
 
