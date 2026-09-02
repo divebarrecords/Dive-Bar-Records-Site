@@ -1250,11 +1250,17 @@ function popCap(){
 
   // brief pop-hop in place before the plunge begins
   const hopDuration = 220;
+  const hopRotationDeg = 25;
+  // deg/ms — the fall's rotation continues at exactly this rate, so a
+  // short desktop fall gets a correspondingly small, readable spin
+  // instead of always cramming in a full 1+ turns regardless of how
+  // little time or distance it actually has to work with
+  const angularVelocity = hopRotationDeg / hopDuration;
   const hopT0 = performance.now();
   function hop(now){
     const t = Math.min(1, (now - hopT0) / hopDuration);
     const hopY = -14 * Math.sin(t * Math.PI);
-    capLayer.style.transform = `translate(-50%,-50%) translateY(${hopY}px) rotate(${t * 25}deg)`;
+    capLayer.style.transform = `translate(-50%,-50%) translateY(${hopY}px) rotate(${t * hopRotationDeg}deg)`;
     if (t < 1) {
       requestAnimationFrame(hop);
     } else {
@@ -1274,10 +1280,11 @@ function popCap(){
       // "swirling" before
       const curX = startX + (targetX - startX) * t;
       const curY = startY + (landingY - startY) * fallEased;
-      // rotation: constant angular velocity, linear in real time and
-      // continuing straight on from the hop's own spin rate — entirely
-      // its own clock, not tied to how far it's fallen
-      const rot = 25 + t * 410;
+      // rotation: constant angular velocity, genuinely continuing the
+      // hop's own spin rate rather than a fixed total that overshoots on
+      // short falls — the amount of spin now scales with how long the
+      // cap is actually airborne
+      const rot = hopRotationDeg + angularVelocity * (t * fallDuration);
 
       capLayer.style.left = curX + 'px';
       capLayer.style.top = curY + 'px';
