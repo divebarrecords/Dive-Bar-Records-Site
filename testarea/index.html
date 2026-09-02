@@ -805,6 +805,15 @@ footer{
   <div>© ALL RIGHTS RESERVED</div>
 </footer>
 
+<div class="pop-stage" id="popStage" aria-hidden="true">
+  <div class="pop-stage-scrim"></div>
+  <div class="pop-stage-water" id="popStageWater">
+    <svg class="pop-stage-wave" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true">
+      <path id="popStageWavePath" d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--ink)"></path>
+    </svg>
+  </div>
+</div>
+
 <script>
 // nav scroll state
 const masthead = document.getElementById('masthead');
@@ -1283,15 +1292,6 @@ function popCap(){
 
 if (popBtn) popBtn.addEventListener('click', popCap);
 </script>
-
-<div class="pop-stage" id="popStage" aria-hidden="true">
-  <div class="pop-stage-scrim"></div>
-  <div class="pop-stage-water" id="popStageWater">
-    <svg class="pop-stage-wave" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true">
-      <path id="popStageWavePath" d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--ink)"></path>
-    </svg>
-  </div>
-</div>
 
 </body>
 </html>
