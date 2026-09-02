@@ -949,6 +949,29 @@ const bottleComp = document.getElementById('bottleComp');
 const dropLayers = Array.from(document.querySelectorAll('.drop-layer'));
 const realDivider = document.querySelector('.wave-divider');
 const realDividerPath = realDivider ? realDivider.querySelector('path') : null;
+// a detached geometry reference holding ONLY the wave's top curve — no
+// closing lines. getTotalLength()/getPointAtLength() on the real
+// divider's own path were measuring the ENTIRE closed shape, including
+// the bottom-edge line that runs x backwards from 1200 to 0 — which is
+// comparable in length to the curve itself and breaks the assumption
+// (used by sampleWave's binary search) that x increases monotonically
+// with path length. Sampling from this reference instead keeps x
+// genuinely monotonic, and staying independent of the live divider's
+// current `d` means every run samples the same correct baseline, not
+// whatever the previous run happened to leave behind.
+const waveRefPath = (function(){
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('width', '0');
+  svg.setAttribute('height', '0');
+  svg.style.position = 'absolute';
+  svg.style.overflow = 'hidden';
+  const path = document.createElementNS(svgNS, 'path');
+  path.setAttribute('d', 'M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20');
+  svg.appendChild(path);
+  document.body.appendChild(svg);
+  return path;
+})();
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let capBusy = false;
 
@@ -1112,11 +1135,6 @@ function resetBottle(){
 
 function finishPop(){
   unlockPage();
-  // the cap and spray were only ever meant to show for the duration of
-  // the sequence — without this, the illustration is left looking
-  // permanently mid-pop (cap gone, spray frozen on) until the button is
-  // clicked again, rather than settling back to its resting artwork
-  resetBottle();
   setTimeout(() => {
     capBusy = false;
     popBtn.disabled = false;
@@ -1163,8 +1181,7 @@ function popCap(){
   const startH = startRect.height;
 
   const dividerRect = realDivider.getBoundingClientRect();
-  const basePoints = sampleWave(realDividerPath, 48);
-  realDividerPath.setAttribute('d', pathFromPoints(basePoints));
+  const basePoints = sampleWave(waveRefPath, 48);
 
   const fallDistanceGuess = Math.max(40, dividerRect.top + dividerRect.height * 0.5 - startY);
   // drift is always rightward, away from the wordmark that sits to the
