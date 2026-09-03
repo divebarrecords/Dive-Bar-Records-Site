@@ -195,7 +195,7 @@ a{color:inherit;}
   display:flex;
   align-items:center;
   flex-wrap:wrap;
-  gap:5%;
+  gap:1.5%;
 }
 .logo-text-img{
   display:block;
@@ -1316,8 +1316,14 @@ function popCap(){
     spawnInkSplash(landingX, landingY);
     rippleWave(realDividerPath, basePoints, wavePoint.x);
 
+    // the SVG's fill only exists BELOW the drawn curve — everything
+    // above it, within the same box, is transparent. z-index alone
+    // can't hide the cap behind a transparent pixel, so its resting
+    // position also needs to sit low enough that its whole height is
+    // within the actually-painted ink, not straddling the curve line
     capLayer.style.zIndex = '1';
-    capLayer.style.transition = 'opacity 0.2s ease';
+    capLayer.style.top = (landingY + startH * 0.5 + 6) + 'px';
+    capLayer.style.transition = 'top 0.15s ease-in, opacity 0.2s ease';
     capLayer.style.opacity = '0';
     setTimeout(revealMission, 380);
   }
