@@ -1249,48 +1249,49 @@ function popCap(){
   }
 
   // total rotation is a fixed, modest amount — well under half a turn —
-  // split between the hop and the fall so it never overpowers the arc
-  // by spinning fast relative to how little time/distance it has
-  const hopDuration = 200;
-  const hopRotationDeg = 16;
-  const fallRotationDeg = 96;
+  // constant angular velocity across the whole flight
+  const totalRotationDeg = 112;
 
-  const hopT0 = performance.now();
-  function hop(now){
-    const t = Math.min(1, (now - hopT0) / hopDuration);
-    const hopY = -14 * Math.sin(t * Math.PI);
-    capLayer.style.transform = `translate(-50%,-50%) translateY(${hopY}px) rotate(${t * hopRotationDeg}deg)`;
-    if (t < 1) {
-      requestAnimationFrame(hop);
-    } else {
-      fall();
-    }
-  }
+  // one continuous ballistic arc for the whole flight — no separate
+  // hop-then-fall phases. Two phases with independent easing functions
+  // meant the hop ended already moving downward at a real, non-zero
+  // speed, then the fall phase restarted at zero velocity (t*t has no
+  // slope at t=0) — that mismatch was the "little bounce" stutter right
+  // at the handoff. Solving for a single launch velocity (v0) and
+  // gravity (g) that satisfy both "peaks at hopHeight" and "lands
+  // exactly on target after fallDuration" gives one unbroken curve:
+  // fast off the launch, decelerating smoothly to the crest, then
+  // accelerating continuously down to landing.
+  const hopHeight = 16; // px, how high the cap pops above its start
+  const T = fallDuration;
+  const D = onScreenLandingY - startY;
+  const v0 = (2 * hopHeight / T) * (1 + Math.sqrt(1 + D / hopHeight));
+  const g = (v0 * v0) / (2 * hopHeight);
 
-  function fall(){
+  function flight(){
     const t0 = performance.now();
     function frame(now){
-      const t = Math.min(1, (now - t0) / fallDuration);
-      // vertical: gravity — accelerates (quadratic ease-in)
-      const fallEased = t * t;
-      // horizontal: constant velocity — no horizontal force once it's
-      // left the bottle
+      const elapsed = Math.min(T, now - t0);
+      const t = elapsed / T;
+      // vertical: one continuous quadratic — up fast, decelerating to
+      // the crest, then accelerating down to landing
+      const yOffset = -v0 * elapsed + 0.5 * g * elapsed * elapsed;
+      const curY = startY + yOffset;
+      // horizontal: constant velocity across the whole flight
       const curX = startX + (targetX - startX) * t;
-      const curY = startY + (onScreenLandingY - startY) * fallEased;
-      // rotation: constant angular velocity, linear in time, continuing
-      // on from the hop
-      const rot = hopRotationDeg + fallRotationDeg * t;
-      // the page scrolls on exactly the same clock as the vertical fall,
-      // so the divider always arrives right as the cap does — explicit
-      // 'instant' overrides any CSS scroll-behavior:smooth, which would
-      // otherwise layer its own competing easing on top of this one
-      window.scrollTo({ top: startScrollY + (targetScrollY - startScrollY) * fallEased, left: 0, behavior: 'instant' });
+      // rotation: constant angular velocity across the whole flight
+      const rot = totalRotationDeg * t;
+      // scroll: its own simple ease-in, synced to the same clock —
+      // only ever needs to move forward, not retrace the cap's own
+      // up-then-down path
+      const scrollEased = t * t;
+      window.scrollTo({ top: startScrollY + (targetScrollY - startScrollY) * scrollEased, left: 0, behavior: 'instant' });
 
       capLayer.style.left = curX + 'px';
       capLayer.style.top = curY + 'px';
       capLayer.style.transform = `translate(-50%,-50%) rotate(${rot}deg)`;
 
-      if (t < 1){
+      if (elapsed < T){
         requestAnimationFrame(frame);
       } else {
         submerge();
@@ -1315,13 +1316,13 @@ function popCap(){
     spawnInkSplash(landingX, landingY);
     rippleWave(realDividerPath, basePoints, wavePoint.x);
 
-    capLayer.style.zIndex = '-9999';
+    capLayer.style.zIndex = '1';
     capLayer.style.transition = 'opacity 0.2s ease';
     capLayer.style.opacity = '0';
     setTimeout(revealMission, 380);
   }
 
-  requestAnimationFrame(hop);
+  flight();
 }
 
 if (popBtn) popBtn.addEventListener('click', popCap);
