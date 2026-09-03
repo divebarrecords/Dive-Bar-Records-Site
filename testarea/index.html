@@ -413,15 +413,16 @@ a{color:inherit;}
   height:34px;
   margin-bottom:-2px;
   scroll-margin-top:90px;
+  position:relative;
+  z-index:2;
 }
 
-/* ---- cap-pop: lock the page and dim the nav for the duration of the
-   sequence, so the fall gets a clean, distraction-free run ---- */
-html.pop-locked, body.pop-locked{
-  overflow:hidden !important;
-  height:100%;
-  overscroll-behavior:none;
-}
+/* ---- cap-pop: dim the nav for the duration of the sequence. The page
+   itself is NOT overflow-locked here — the fall now scrolls the real
+   page in sync with the cap (that's how it reaches a divider that may
+   sit well outside the starting viewport, particularly on mobile), so
+   the only thing suppressed is the *user's own* scroll input, not
+   scrolling itself. ---- */
 .masthead.pop-dim{
   opacity:0.28;
   pointer-events:none;
@@ -973,6 +974,7 @@ const waveRefPath = (function(){
   return path;
 })();
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const missionSection = document.getElementById('mission');
 let capBusy = false;
 
 function lerp(a, b, t){ return a + (b - a) * t; }
@@ -983,16 +985,12 @@ function preventScrollKey(e){
 function preventScrollGesture(e){ e.preventDefault(); }
 
 function lockPage(){
-  document.documentElement.classList.add('pop-locked');
-  document.body.classList.add('pop-locked');
   if (masthead) masthead.classList.add('pop-dim');
   window.addEventListener('wheel', preventScrollGesture, { passive: false });
   window.addEventListener('touchmove', preventScrollGesture, { passive: false });
   window.addEventListener('keydown', preventScrollKey);
 }
 function unlockPage(){
-  document.documentElement.classList.remove('pop-locked');
-  document.body.classList.remove('pop-locked');
   if (masthead) masthead.classList.remove('pop-dim');
   window.removeEventListener('wheel', preventScrollGesture, { passive: false });
   window.removeEventListener('touchmove', preventScrollGesture, { passive: false });
@@ -1146,65 +1144,56 @@ function popCap(){
   capBusy = true;
   popBtn.disabled = true;
   resetBottle();
-
-  // --- one-time camera framing, before anything is locked or falls ---
-  // bring the real divider into view alongside the bottle if it isn't
-  // already, in a single instant jump. This has to happen BEFORE the
-  // page is scroll-locked: overflow:hidden removes the document's
-  // scrollable area entirely, so a scrollTo call issued after locking
-  // is a silent no-op — which was exactly why nothing was scrolling.
-  const bottleRectPre = capLayer.getBoundingClientRect();
-  const dividerRectPre = realDivider.getBoundingClientRect();
-  const scrollYNow = window.scrollY;
-  const dividerDocTop = dividerRectPre.top + scrollYNow;
-  const bottleDocTop = bottleRectPre.top + scrollYNow;
-  const vh = window.innerHeight;
-
-  const desiredDividerViewportY = vh * 0.80;
-  let targetScrollY = dividerDocTop - desiredDividerViewportY;
-  const minBottleViewportY = 20;
-  targetScrollY = Math.min(targetScrollY, bottleDocTop - minBottleViewportY);
-  targetScrollY = Math.max(0, targetScrollY);
-  window.scrollTo({ top: targetScrollY, left: 0, behavior: 'instant' });
-
-  // only lock the page once the camera is already sitting where we want it
   lockPage();
 
   // spray reveals immediately at the bottle
   dropLayers.forEach(d => d.classList.add('revealed'));
 
-  // re-measure fresh now that scroll has actually moved
   const startRect = capLayer.getBoundingClientRect();
   const startX = startRect.left + startRect.width / 2;
   const startY = startRect.top + startRect.height / 2;
   const startW = startRect.width;
   const startH = startRect.height;
+  const startScrollY = window.scrollY;
 
-  const dividerRect = realDivider.getBoundingClientRect();
+  const dividerRectPre = realDivider.getBoundingClientRect();
+  const vh = window.innerHeight;
+
+  // the cap's ON-SCREEN motion always targets a fixed, viewport-relative
+  // point (80% down whatever screen this is) — a short, comfortable,
+  // consistent hop-and-fall regardless of device. Separately, the PAGE
+  // scrolls (in document space) by however much is actually needed to
+  // bring the real divider's surface to that same on-screen point. The
+  // two are driven by the same clock below, so they always arrive
+  // together — this is what makes a distant divider on a tall mobile
+  // layout reachable at all, without the cap itself needing to travel
+  // some huge, unreadable distance.
+  const onScreenLandingY = Math.max(startY + vh * 0.18, vh * 0.80);
+  const dividerSurfaceDocY = dividerRectPre.top + startScrollY + dividerRectPre.height * 0.5;
+  let targetScrollY = dividerSurfaceDocY - onScreenLandingY;
+  targetScrollY = Math.max(0, targetScrollY);
+
   const basePoints = sampleWave(waveRefPath, 48);
+  const onScreenFallDistance = Math.max(20, onScreenLandingY - startY);
+  const scrollDistance = Math.max(0, targetScrollY - startScrollY);
 
-  const fallDistanceGuess = Math.max(40, dividerRect.top + dividerRect.height * 0.5 - startY);
-  // drift is always rightward, away from the wordmark that sits to the
-  // bottle's left — a random left/right choice could (and did) send it
-  // sweeping back across the logo itself
-  const arcBias = fallDistanceGuess * 0.3;
+  // horizontal drift is always rightward, away from the wordmark that
+  // sits to the bottle's left, and scaled to the ON-SCREEN fall so it
+  // looks proportionate on any device
+  const arcBias = onScreenFallDistance * 0.3;
   let targetX = startX + arcBias;
-  targetX = Math.min(dividerRect.right - 30, Math.max(dividerRect.left + 30, targetX));
+  targetX = Math.min(dividerRectPre.right - 30, Math.max(dividerRectPre.left + 30, targetX));
 
-  const scaleX = dividerRect.width / 1200;
-  const scaleY = dividerRect.height / 40;
-  const fracX = (targetX - dividerRect.left) / dividerRect.width;
-  const idx = Math.min(48, Math.max(0, Math.round(fracX * 48)));
-  const wavePoint = basePoints[idx];
-  const landingX = dividerRect.left + wavePoint.x * scaleX;
-  const landingY = dividerRect.top + wavePoint.y * scaleY;
-
-  // fall duration derived from actual gravity, not a guessed constant —
-  // short falls are naturally quick, long ones naturally take longer,
-  // with sensible floors/ceilings so it never feels instant or draggy
+  // duration is derived from gravity, driven by whichever distance is
+  // actually dominant: the short on-screen hop on a desktop viewport
+  // where little or no scrolling is needed, or the real scroll distance
+  // on a mobile layout where the divider sits well outside the start
+  // frame — so a longer scroll gets a proportionally longer, smoother
+  // ride instead of the background whipping past at a fixed cap-sized
+  // duration
   const gravityPxPerSec2 = 2200;
-  const fallDistance = Math.max(20, landingY - startY);
-  const fallDuration = Math.max(380, Math.min(1400, Math.sqrt(2 * fallDistance / gravityPxPerSec2) * 1000));
+  const drivingDistance = Math.max(onScreenFallDistance, scrollDistance);
+  const fallDuration = Math.max(450, Math.min(1800, Math.sqrt(2 * drivingDistance / gravityPxPerSec2) * 1000));
 
   // move the cap out of .bottle-comp before going fixed: that container
   // has a CSS filter on it, and filter (like transform) makes an element
@@ -1224,8 +1213,7 @@ function popCap(){
 
   if (prefersReducedMotion){
     capLayer.style.opacity = '0';
-    spawnInkSplash(landingX, landingY);
-    rippleWave(realDividerPath, basePoints, wavePoint.x);
+    if (missionSection) missionSection.scrollIntoView({ behavior: 'auto', block: 'start' });
     finishPop();
     return;
   }
@@ -1257,11 +1245,16 @@ function popCap(){
       const fallEased = t * t;
       // horizontal: constant velocity — no horizontal force once it's
       // left the bottle
-      const curX = startX + (landingX - startX) * t;
-      const curY = startY + (landingY - startY) * fallEased;
+      const curX = startX + (targetX - startX) * t;
+      const curY = startY + (onScreenLandingY - startY) * fallEased;
       // rotation: constant angular velocity, linear in time, continuing
       // on from the hop
       const rot = hopRotationDeg + fallRotationDeg * t;
+      // the page scrolls on exactly the same clock as the vertical fall,
+      // so the divider always arrives right as the cap does — explicit
+      // 'instant' overrides any CSS scroll-behavior:smooth, which would
+      // otherwise layer its own competing easing on top of this one
+      window.scrollTo({ top: startScrollY + (targetScrollY - startScrollY) * fallEased, left: 0, behavior: 'instant' });
 
       capLayer.style.left = curX + 'px';
       capLayer.style.top = curY + 'px';
@@ -1270,14 +1263,35 @@ function popCap(){
       if (t < 1){
         requestAnimationFrame(frame);
       } else {
-        spawnInkSplash(landingX, landingY);
-        rippleWave(realDividerPath, basePoints, wavePoint.x);
-        capLayer.style.transition = 'opacity 0.25s ease';
-        capLayer.style.opacity = '0';
-        setTimeout(finishPop, 950);
+        submerge();
       }
     }
     requestAnimationFrame(frame);
+  }
+
+  // a short tail after the main fall: the splash fires immediately on
+  // contact, then the cap keeps sinking a little further while dropping
+  // BEHIND the divider (a lower z-index than the wave, which now has
+  // its own stacking context) and fading out — so it reads as going
+  // under the surface rather than just disappearing on top of it
+  function submerge(){
+    const dividerRect = realDivider.getBoundingClientRect();
+    const scaleX = dividerRect.width / 1200;
+    const scaleY = dividerRect.height / 40;
+    const fracX = (targetX - dividerRect.left) / dividerRect.width;
+    const idx = Math.min(48, Math.max(0, Math.round(fracX * 48)));
+    const wavePoint = basePoints[idx];
+    const landingX = dividerRect.left + wavePoint.x * scaleX;
+    const landingY = dividerRect.top + wavePoint.y * scaleY;
+
+    spawnInkSplash(landingX, landingY);
+    rippleWave(realDividerPath, basePoints, wavePoint.x);
+
+    capLayer.style.zIndex = '1';
+    capLayer.style.transition = 'top 0.32s ease-in, opacity 0.32s ease-in';
+    capLayer.style.top = (landingY + 18) + 'px';
+    capLayer.style.opacity = '0';
+    setTimeout(finishPop, 900);
   }
 
   requestAnimationFrame(hop);
