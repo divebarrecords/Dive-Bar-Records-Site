@@ -1131,6 +1131,32 @@ function resetBottle(){
   capLayer.style.opacity = '';
 }
 
+// after the splash, a separate smooth glide brings the mission section
+// properly into frame — the fall itself only needs to get the cap to
+// the divider, not do the full job of bringing the philosophy content
+// into focus, which is this phase's job alone
+function revealMission(){
+  if (!missionSection){ finishPop(); return; }
+  const startScroll = window.scrollY;
+  const missionRect = missionSection.getBoundingClientRect();
+  const targetScroll = Math.max(0, startScroll + missionRect.top - 24);
+  if (Math.abs(targetScroll - startScroll) < 4){ finishPop(); return; }
+  const duration = 650;
+  const t0 = performance.now();
+  function frame(now){
+    const t = Math.min(1, (now - t0) / duration);
+    // ease-in-out: gentle glide rather than an abrupt jump
+    const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    window.scrollTo({ top: startScroll + (targetScroll - startScroll) * eased, left: 0, behavior: 'instant' });
+    if (t < 1){
+      requestAnimationFrame(frame);
+    } else {
+      finishPop();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
 function finishPop(){
   unlockPage();
   setTimeout(() => {
@@ -1269,11 +1295,9 @@ function popCap(){
     requestAnimationFrame(frame);
   }
 
-  // a short tail after the main fall: the splash fires immediately on
-  // contact, then the cap keeps sinking a little further while dropping
-  // BEHIND the divider (a lower z-index than the wave, which now has
-  // its own stacking context) and fading out — so it reads as going
-  // under the surface rather than just disappearing on top of it
+  // the splash fires immediately on contact; the cap simply drops
+  // behind the divider's own stacking context from that point on — the
+  // wave now visually covers it, no extra choreographed motion needed
   function submerge(){
     const dividerRect = realDivider.getBoundingClientRect();
     const scaleX = dividerRect.width / 1200;
@@ -1288,10 +1312,9 @@ function popCap(){
     rippleWave(realDividerPath, basePoints, wavePoint.x);
 
     capLayer.style.zIndex = '1';
-    capLayer.style.transition = 'top 0.32s ease-in, opacity 0.32s ease-in';
-    capLayer.style.top = (landingY + 18) + 'px';
+    capLayer.style.transition = 'opacity 0.2s ease';
     capLayer.style.opacity = '0';
-    setTimeout(finishPop, 900);
+    setTimeout(revealMission, 380);
   }
 
   requestAnimationFrame(hop);
