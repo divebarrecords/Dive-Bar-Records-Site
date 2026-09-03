@@ -1136,10 +1136,14 @@ function resetBottle(){
 // the divider, not do the full job of bringing the philosophy content
 // into focus, which is this phase's job alone
 function revealMission(){
-  if (!missionSection){ finishPop(); return; }
+  if (!missionSection || !realDivider){ finishPop(); return; }
   const startScroll = window.scrollY;
-  const missionRect = missionSection.getBoundingClientRect();
-  const targetScroll = Math.max(0, startScroll + missionRect.top - 24);
+  // land the divider itself just below the sticky nav, so it's still
+  // fully visible with the mission content filling the rest of the
+  // screen beneath it — rather than scrolling the divider away entirely
+  const navOffset = masthead ? masthead.getBoundingClientRect().height : 0;
+  const dividerRect = realDivider.getBoundingClientRect();
+  const targetScroll = Math.max(0, startScroll + dividerRect.top - navOffset);
   if (Math.abs(targetScroll - startScroll) < 4){ finishPop(); return; }
   const duration = 650;
   const t0 = performance.now();
