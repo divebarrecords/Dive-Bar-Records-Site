@@ -1315,7 +1315,7 @@ function popCap(){
     spawnInkSplash(landingX, landingY);
     rippleWave(realDividerPath, basePoints, wavePoint.x);
 
-    capLayer.style.zIndex = '1';
+    capLayer.style.zIndex = '-9999';
     capLayer.style.transition = 'opacity 0.2s ease';
     capLayer.style.opacity = '0';
     setTimeout(revealMission, 380);
