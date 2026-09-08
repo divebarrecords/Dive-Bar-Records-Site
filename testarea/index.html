@@ -15,6 +15,7 @@
   --red:#F13C20;
   --blue:#4056A1;
   --lav:#C5CBE3;
+  --green:#2D443E;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -33,7 +34,7 @@ body::before{
   content:"";
   position:fixed; inset:-10px; z-index:9999; pointer-events:none;
   opacity:0.045;
-  background-image:radial-gradient(circle, var(--ink) 1px, transparent 1.3px);
+  background-image:radial-gradient(circle, var(--green) 1px, transparent 1.3px);
   background-size:5px 5px;
   mix-blend-mode:multiply;
   animation:grain-drift 9s steps(6) infinite;
