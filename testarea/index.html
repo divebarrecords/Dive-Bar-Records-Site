@@ -8,14 +8,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#fbf8ef;
+  --paper:#FBF7EC;
   --paper2:#F2EAD2;
   --ink:#232338;
   --gold:#D79922;
   --red:#F13C20;
   --blue:#4056A1;
   --lav:#C5CBE3;
-  --green:#2D443E;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -29,16 +28,16 @@ body{
   position:relative;
 }
 
-/* living grain: drifts very slowly so the page never feels totally inert
+/* living grain: drifts very slowly so the page never feels totally inert */
 body::before{
   content:"";
   position:fixed; inset:-10px; z-index:9999; pointer-events:none;
   opacity:0.045;
-  background-image:radial-gradient(circle, var(--green) 1px, transparent 1.3px);
+  background-image:radial-gradient(circle, var(--ink) 1px, transparent 1.3px);
   background-size:5px 5px;
   mix-blend-mode:multiply;
-  animation:grain-drift 9s steps(6) infinite; 
-} */
+  animation:grain-drift 9s steps(6) infinite;
+}
 @keyframes grain-drift{
   0%{transform:translate(0,0);} 20%{transform:translate(-1px,1px);}
   40%{transform:translate(1px,-1px);} 60%{transform:translate(-1px,-1px);}
@@ -419,7 +418,7 @@ a{color:inherit;}
 }
 
 /* ---- cap-pop: dim the nav for the duration of the sequence. The page
-   itself is NOT overflow-locked here — the fall now scrolls the real
+   itself is NOT overflow-locked here - the fall now scrolls the real
    page in sync with the cap (that's how it reaches a divider that may
    sit well outside the starting viewport, particularly on mobile), so
    the only thing suppressed is the *user's own* scroll input, not
@@ -430,8 +429,118 @@ a{color:inherit;}
   transition:opacity 0.3s ease;
 }
 
-#mission, #roster, #contact{
+#mission, #what-we-do, #roster, #faq, #contact{
   scroll-margin-top:100px;
+}
+
+/* ---- FAQ ---- */
+.faq{ padding:80px 5% 90px; position:relative; isolation:isolate; overflow:hidden; }
+.faq > *:not(.blob){ position:relative; z-index:1; }
+.faq .eyebrow{
+  font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+  letter-spacing:2px; color:var(--red); margin-bottom:30px;
+  text-transform:uppercase;
+}
+.faq-list{
+  display:flex; flex-direction:column; gap:16px;
+  max-width:720px;
+}
+.faq-item{
+  background:var(--paper2);
+  border-radius:24px 8px 24px 8px;
+  overflow:hidden;
+  box-shadow:4px 5px 0 var(--ink);
+}
+.faq-item:nth-child(3n+1){ box-shadow:4px 5px 0 var(--red); }
+.faq-item:nth-child(3n+2){ box-shadow:4px 5px 0 var(--gold); }
+.faq-item:nth-child(3n+3){ box-shadow:4px 5px 0 var(--blue); }
+.faq-q{
+  width:100%;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:18px 22px;
+  background:none; border:none;
+  cursor:pointer;
+  text-align:left;
+  font-family:'Space Mono'; font-weight:700; font-size:0.95rem;
+  color:var(--ink);
+}
+.faq-icon{
+  flex-shrink:0;
+  font-family:'Space Mono'; font-weight:700; font-size:1.3rem;
+  transition:transform 0.25s ease;
+}
+.faq-item.is-open .faq-icon{ transform:rotate(45deg); }
+.faq-a{
+  display:grid;
+  grid-template-rows:0fr;
+  transition:grid-template-rows 0.35s ease;
+}
+.faq-item.is-open .faq-a{ grid-template-rows:1fr; }
+.faq-a-inner{ overflow:hidden; min-height:0; }
+.faq-a p{
+  padding:0 22px 20px;
+  font-size:0.88rem;
+  line-height:1.55;
+  color:var(--ink);
+  opacity:0.85;
+}
+.faq-a a{ color:var(--red); font-weight:700; text-decoration:underline; }
+
+/* ---- WHAT WE DO ---- */
+.services{
+  background:var(--ink); color:var(--paper);
+  padding:80px 5% 90px;
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  z-index:3;
+}
+.services > *:not(.blob){ position:relative; z-index:1; }
+.services .eyebrow{
+  font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+  letter-spacing:2px; color:var(--gold); margin-bottom:16px;
+  text-transform:uppercase;
+}
+.services-lede{
+  max-width:560px;
+  font-size:1rem;
+  color:var(--paper);
+  opacity:0.9;
+  margin-bottom:48px;
+}
+.pillar-grid{
+  display:grid; gap:40px 32px;
+  grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+}
+.pillar-card{
+  position:relative;
+  background:var(--paper2);
+  color:var(--ink);
+  padding:28px 24px;
+  border-radius:36px 12px 32px 16px / 16px 34px 12px 36px;
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+}
+.pillar-card:nth-child(1){ transform:rotate(-2deg); box-shadow:5px 6px 0 var(--red), 0 20px 34px rgba(35,35,56,0.22); }
+.pillar-card:nth-child(2){ transform:rotate(1.5deg); box-shadow:5px 6px 0 var(--gold), 0 20px 34px rgba(35,35,56,0.22); }
+.pillar-card:nth-child(3){ transform:rotate(-1deg); box-shadow:5px 6px 0 var(--blue), 0 20px 34px rgba(35,35,56,0.22); }
+.pillar-card:hover{ transform:rotate(0deg) translateY(-6px); }
+.pillar-num{
+  font-family:"plunct", sans-serif;
+  font-size:2.6rem;
+  color:var(--ink);
+  opacity:0.15;
+  display:block;
+  line-height:1;
+  margin-bottom:-8px;
+}
+.pillar-card h3{
+  font-family:"plunct", sans-serif;
+  font-size:1.4rem;
+  margin-bottom:10px;
+}
+.pillar-card p{
+  font-size:0.88rem;
+  line-height:1.5;
 }
 
 /* ---- CONTACT ---- */
@@ -640,7 +749,9 @@ footer{
   </a>
   <nav>
     <a href="#mission">MISSION</a>
+    <a href="#what-we-do">WHAT WE DO</a>
     <a href="#roster">ROSTER</a>
+    <a href="#faq">FAQ</a>
     <a href="#contact">CONTACT</a>
   </nav>
   <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">
@@ -650,7 +761,9 @@ footer{
 
 <div class="mobile-panel" id="mobilePanel">
   <a href="#mission">MISSION</a>
+  <a href="#what-we-do">WHAT WE DO</a>
   <a href="#roster">ROSTER</a>
+  <a href="#faq">FAQ</a>
   <a href="#contact">CONTACT</a>
 </div>
 
@@ -670,7 +783,7 @@ footer{
         <img class="layer cap-layer" id="capLayer" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/cap.png" alt="">
       </div>
     </div>
-    <p class="hero-sub">Grassroots artists actualising their own cultural vision - a platform for the UK alternative scene.</p>
+    <p class="hero-sub">Grassroots artists actualising their own cultural vision - a safe space for the UK alternative scene, and beyond.</p>
     <button class="pop-cap-btn" id="popCapBtn" type="button">Pop the cap ↓</button>
   </div>
   <div class="hero-photo-wrap">
@@ -720,12 +833,36 @@ footer{
   </div>
   <div class="manifesto-note reveal">
     <div class="washi"></div>
-    <p>Dive Bar Records is the vision of Ben O'Shea, Ruairi McLean, &amp; Freya Millar, born from the North-West alternative scene.</p>
+    <p>Dive Bar Records is the brainchild of Ben O'Shea, Ruairi McLean, &amp; Freya Millar, born from the North-West alternative scene.</p>
     <br>
-    <p>With a combined three decades of experience as creatives working our way up, we know what it's like to be on the wrong side of an industry that's becoming increasingly manufactured.</p>
+    <p>With a combined two decades working our way up the Manchester and London scenes, we know exactly what it's like navigating promoters and venues with nothing but a demo and a dream.</p>
     <p class="sign">- B. O'Shea, R. McLean &amp; F. Millar</p>
   </div>
 </section>
+
+<section class="services" id="what-we-do">
+  <div class="eyebrow reveal">What We Do</div>
+  <p class="services-lede reveal">We put our trusted network to work for you: a creative-led combination of promotion, gigs, and recording, so you're free to make <strong>your art, your way.</strong></p>
+  <div class="pillar-grid">
+    <div class="pillar-card reveal">
+      <span class="pillar-num">01</span>
+      <h3>Promotion</h3>
+      <p>Posters, press, playlists, socials.</p>
+    </div>
+    <div class="pillar-card reveal">
+      <span class="pillar-num">02</span>
+      <h3>Gigs</h3>
+      <p>A network of venues across the country, from Leeds, to Manchester, to London.</p>
+    </div>
+    <div class="pillar-card reveal">
+      <span class="pillar-num">03</span>
+      <h3>Recording</h3>
+      <p>We foster a creative space to help actualise your vision, there in the studio with you.</p>
+    </div>
+  </div>
+</section>
+
+<svg class="wave-divider" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--paper)"></path></svg>
 
 <section class="corkboard" id="roster">
   <div class="eyebrow reveal">Roster</div>
@@ -745,6 +882,67 @@ footer{
       <p>or maybe this</p>
       <div class="go">GET IN TOUCH →</div>
     </a>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="eyebrow reveal">Questions</div>
+  <div class="faq-list">
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button" aria-expanded="false">
+        <span>What kind of artists are you looking for?</span>
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <div class="faq-a-inner">
+          <p>Grassroots, alternative, and anything different - if you're doing something new, we want to hear it.</p>
+        </div>
+      </div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button" aria-expanded="false">
+        <span>Do you use AI anywhere in your release process?</span>
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <div class="faq-a-inner">
+          <p>Never. We're proud advocates for protecting the arts and creatives. Every release we put out is artist-made, start to finish.</p>
+        </div>
+      </div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button" aria-expanded="false">
+        <span>How do I submit my music?</span>
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <div class="faq-a-inner">
+          <p>Use the contact form below, or email us directly at <a href="mailto:info@divebarrecords.co.uk">info@divebarrecords.co.uk</a> with links to your music and a bit about you.</p>
+        </div>
+      </div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button" aria-expanded="false">
+        <span>I'm a promoter or venue, not an artist - can I still reach out?</span>
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <div class="faq-a-inner">
+          <p>Absolutely. The form below isn't just for artists - venues and promoters are welcome too.</p>
+        </div>
+      </div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button" aria-expanded="false">
+        <span>Are you only looking at North-West artists?</span>
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <div class="faq-a-inner">
+          <p>We started in Leeds and Manchester, but we're here to support any and all creatives.</p>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -793,6 +991,15 @@ panel.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
   panel.classList.remove('is-open');
   burger.setAttribute('aria-expanded', false);
 }));
+
+// FAQ accordion - each item toggles independently
+document.querySelectorAll('.faq-item').forEach(item => {
+  const btn = item.querySelector('.faq-q');
+  btn.addEventListener('click', () => {
+    const isOpen = item.classList.toggle('is-open');
+    btn.setAttribute('aria-expanded', String(isOpen));
+  });
+});
 
 // photo carousel
 const slides = document.querySelectorAll('.slide');
@@ -848,6 +1055,7 @@ function scatterBlobs(selector, count, colors){
 }
 window.addEventListener('load', () => {
   scatterBlobs('.manifesto', 4, ['var(--red)', 'var(--lav)', 'var(--gold)']);
+  scatterBlobs('.services', 4, ['var(--gold)', 'var(--red)', 'var(--lav)']);
   scatterBlobs('.contact-section', 4, ['var(--gold)', 'var(--blue)', 'var(--red)']);
 });
 
@@ -941,8 +1149,8 @@ contactForm.addEventListener('submit', async (e) => {
 // (each already knows its own resting spot, since all the layer files
 // share one coordinate space). Scroll and fall share a single
 // ---- cap-pop animation ----
-// Lands on the real .wave-divider that borders the mission section —
-// not a synthesized copy — so the splash is always genuinely adjoined
+// Lands on the real .wave-divider that borders the mission section -
+// not a synthesized copy - so the splash is always genuinely adjoined
 // to the philosophy div it's meant to sit against. Camera framing is a
 // single instant jump performed once, before the fall starts, so the
 // fall's own motion never has to fight or share timing with a scroll.
@@ -952,10 +1160,10 @@ const bottleComp = document.getElementById('bottleComp');
 const dropLayers = Array.from(document.querySelectorAll('.drop-layer'));
 const realDivider = document.querySelector('.wave-divider');
 const realDividerPath = realDivider ? realDivider.querySelector('path') : null;
-// a detached geometry reference holding ONLY the wave's top curve — no
+// a detached geometry reference holding ONLY the wave's top curve - no
 // closing lines. getTotalLength()/getPointAtLength() on the real
 // divider's own path were measuring the ENTIRE closed shape, including
-// the bottom-edge line that runs x backwards from 1200 to 0 — which is
+// the bottom-edge line that runs x backwards from 1200 to 0 - which is
 // comparable in length to the curve itself and breaks the assumption
 // (used by sampleWave's binary search) that x increases monotonically
 // with path length. Sampling from this reference instead keeps x
@@ -1000,7 +1208,7 @@ function unlockPage(){
 }
 
 // samples a path into evenly-spaced points along x (viewBox units), by
-// walking its length — used both as the resting shape and as the base
+// walking its length - used both as the resting shape and as the base
 // the ripple displaces
 function sampleWave(pathEl, count){
   const total = pathEl.getTotalLength();
@@ -1041,7 +1249,7 @@ function pathFromPoints(points){
 
 // a localized, propagating ripple on the real divider's own path: a
 // damped, spreading wave centered on the impact x. Only the path's `d`
-// changes — never the element's own box or a transform on it — so
+// changes - never the element's own box or a transform on it - so
 // there's no seam with the section it borders, and the disturbance
 // stays anchored to where the cap actually landed.
 function rippleWave(pathEl, basePoints, impactX){
@@ -1134,7 +1342,7 @@ function resetBottle(){
 }
 
 // after the splash, a separate smooth glide brings the mission section
-// properly into frame — the fall itself only needs to get the cap to
+// properly into frame - the fall itself only needs to get the cap to
 // the divider, not do the full job of bringing the philosophy content
 // into focus, which is this phase's job alone
 function revealMission(){
@@ -1142,7 +1350,7 @@ function revealMission(){
   const startScroll = window.scrollY;
   // land the divider itself just below the sticky nav, so it's still
   // fully visible with the mission content filling the rest of the
-  // screen beneath it — rather than scrolling the divider away entirely
+  // screen beneath it - rather than scrolling the divider away entirely
   const navOffset = masthead ? masthead.getBoundingClientRect().height : 0;
   const dividerRect = realDivider.getBoundingClientRect();
   const targetScroll = Math.max(0, startScroll + dividerRect.top - navOffset);
@@ -1192,12 +1400,12 @@ function popCap(){
   const vh = window.innerHeight;
 
   // the cap's ON-SCREEN motion always targets a fixed, viewport-relative
-  // point (80% down whatever screen this is) — a short, comfortable,
+  // point (80% down whatever screen this is) - a short, comfortable,
   // consistent hop-and-fall regardless of device. Separately, the PAGE
   // scrolls (in document space) by however much is actually needed to
   // bring the real divider's surface to that same on-screen point. The
   // two are driven by the same clock below, so they always arrive
-  // together — this is what makes a distant divider on a tall mobile
+  // together - this is what makes a distant divider on a tall mobile
   // layout reachable at all, without the cap itself needing to travel
   // some huge, unreadable distance.
   const onScreenLandingY = Math.max(startY + vh * 0.18, vh * 0.80);
@@ -1220,7 +1428,7 @@ function popCap(){
   // actually dominant: the short on-screen hop on a desktop viewport
   // where little or no scrolling is needed, or the real scroll distance
   // on a mobile layout where the divider sits well outside the start
-  // frame — so a longer scroll gets a proportionally longer, smoother
+  // frame - so a longer scroll gets a proportionally longer, smoother
   // ride instead of the background whipping past at a fixed cap-sized
   // duration
   const gravityPxPerSec2 = 2200;
@@ -1229,7 +1437,7 @@ function popCap(){
 
   // move the cap out of .bottle-comp before going fixed: that container
   // has a CSS filter on it, and filter (like transform) makes an element
-  // the containing block for fixed-position descendants — so left/top
+  // the containing block for fixed-position descendants - so left/top
   // set below would resolve against the small bottle box instead of the
   // real viewport if the cap stayed inside it. Position is restored
   // immediately from the already-measured rect, so there's no visible jump.
@@ -1250,15 +1458,15 @@ function popCap(){
     return;
   }
 
-  // total rotation is a fixed, modest amount — well under half a turn —
+  // total rotation is a fixed, modest amount - well under half a turn -
   // constant angular velocity across the whole flight
   const totalRotationDeg = 112;
 
-  // one continuous ballistic arc for the whole flight — no separate
+  // one continuous ballistic arc for the whole flight - no separate
   // hop-then-fall phases. Two phases with independent easing functions
   // meant the hop ended already moving downward at a real, non-zero
   // speed, then the fall phase restarted at zero velocity (t*t has no
-  // slope at t=0) — that mismatch was the "little bounce" stutter right
+  // slope at t=0) - that mismatch was the "little bounce" stutter right
   // at the handoff. Solving for a single launch velocity (v0) and
   // gravity (g) that satisfy both "peaks at hopHeight" and "lands
   // exactly on target after fallDuration" gives one unbroken curve:
@@ -1275,7 +1483,7 @@ function popCap(){
     function frame(now){
       const elapsed = Math.min(T, now - t0);
       const t = elapsed / T;
-      // vertical: one continuous quadratic — up fast, decelerating to
+      // vertical: one continuous quadratic - up fast, decelerating to
       // the crest, then accelerating down to landing
       const yOffset = -v0 * elapsed + 0.5 * g * elapsed * elapsed;
       const curY = startY + yOffset;
@@ -1283,7 +1491,7 @@ function popCap(){
       const curX = startX + (targetX - startX) * t;
       // rotation: constant angular velocity across the whole flight
       const rot = totalRotationDeg * t;
-      // scroll: its own simple ease-in, synced to the same clock —
+      // scroll: its own simple ease-in, synced to the same clock -
       // only ever needs to move forward, not retrace the cap's own
       // up-then-down path
       const scrollEased = t * t;
@@ -1303,7 +1511,7 @@ function popCap(){
   }
 
   // the splash fires immediately on contact; the cap simply drops
-  // behind the divider's own stacking context from that point on — the
+  // behind the divider's own stacking context from that point on - the
   // wave now visually covers it, no extra choreographed motion needed
   function submerge(){
     const dividerRect = realDivider.getBoundingClientRect();
@@ -1318,7 +1526,7 @@ function popCap(){
     spawnInkSplash(landingX, landingY);
     rippleWave(realDividerPath, basePoints, wavePoint.x);
 
-    // the SVG's fill only exists BELOW the drawn curve — everything
+    // the SVG's fill only exists BELOW the drawn curve - everything
     // above it, within the same box, is transparent. z-index alone
     // can't hide the cap behind a transparent pixel, so its resting
     // position also needs to sit low enough that its whole height is
