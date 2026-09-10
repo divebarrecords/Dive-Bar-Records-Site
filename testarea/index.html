@@ -396,6 +396,10 @@ a{color:inherit;}
 
 .logo-composition{
 
+  position:relative;
+
+  cursor:pointer;
+
   display:flex;
 
   align-items:center;
@@ -403,6 +407,12 @@ a{color:inherit;}
   flex-wrap:wrap;
 
   gap:1.5%;
+
+}
+
+.logo-composition:focus-visible{
+
+  outline:3px dashed var(--red); outline-offset:10px; border-radius:12px;
 
 }
 
@@ -490,33 +500,87 @@ a{color:inherit;}
 
 }
 
-.pop-cap-btn{
+/* click prompt: a hand-scrawled nudge toward the bottle, visible only
+   before the cap has been popped. Decorative only (pointer-events:none)
+   - the whole logo composition is the real click target. */
 
-  display:inline-block;
+.click-prompt{
 
-  margin-top:22px;
+  position:absolute;
 
-  font-family:'Space Mono'; font-weight:700; font-size:0.78rem;
+  bottom:-8px; right:-6px;
 
-  text-transform:uppercase; letter-spacing:1px;
+  display:flex; align-items:flex-end; gap:4px;
 
-  background:var(--ink); color:var(--paper);
+  pointer-events:none;
 
-  border:none; border-radius:30px 8px 30px 8px;
+  opacity:0;
 
-  padding:12px 24px;
+  transform:translateY(4px);
 
-  cursor:pointer;
-
-  transition:background 0.2s ease, transform 0.15s ease;
+  transition:opacity 0.4s ease, transform 0.4s ease;
 
 }
 
-.pop-cap-btn:hover{ background:var(--red); }
+body.pre-pop .click-prompt{
 
-.pop-cap-btn:active{ transform:scale(0.96); }
+  opacity:1;
 
-.pop-cap-btn:disabled{ opacity:0.6; cursor:default; }
+  transform:translateY(0);
+
+  animation:prompt-bob 2.2s ease-in-out infinite;
+
+}
+
+.click-arrow{
+
+  width:clamp(38px, 6vw, 58px);
+
+  height:auto;
+
+  flex-shrink:0;
+
+  transform:scaleX(-1) rotate(8deg);
+
+}
+
+.click-prompt span{
+
+  font-family:'Caveat', cursive;
+
+  font-weight:700;
+
+  font-size:clamp(1.3rem, 3vw, 1.9rem);
+
+  color:var(--red);
+
+  transform:rotate(-4deg);
+
+  white-space:nowrap;
+
+  margin-bottom:14px;
+
+}
+
+@keyframes prompt-bob{
+
+  0%, 100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); }
+
+}
+
+
+
+/* ---- pre-pop gate: nothing but the bottle and the prompt above until
+   the cap is actually popped - scrolling is locked (see lockPage() in
+   the script below) and everything else fades in together once it is ---- */
+
+body > *:not(.hero){ transition:opacity 0.6s ease; }
+
+body.pre-pop > *:not(.hero){ visibility:hidden; opacity:0; }
+
+.hero-sub, .hero-photo-wrap{ transition:opacity 0.6s ease; }
+
+body.pre-pop .hero-sub, body.pre-pop .hero-photo-wrap{ visibility:hidden; opacity:0; }
 
 /* ink droplets: cartoony teardrop splash in the same navy as the board,
 
@@ -1596,7 +1660,7 @@ footer{
 
 </head>
 
-<body>
+<body class="pre-pop">
 
 
 
@@ -1658,7 +1722,7 @@ footer{
 
     <span class="hero-tag">your music, your way</span>
 
-    <div class="logo-composition">
+    <div class="logo-composition" id="logoComposition" role="button" tabindex="0" aria-label="Pop the cap to enter the site">
 
       <img class="logo-text-img" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/logo_text_only.png" alt="Dive Bar Records">
 
@@ -1682,11 +1746,17 @@ footer{
 
       </div>
 
+      <div class="click-prompt" aria-hidden="true">
+
+        <svg viewBox="0 0 90 70" class="click-arrow"><path d="M4,8 C10,32 26,46 46,50 C58,52 64,48 68,40" fill="none" stroke="var(--red)" stroke-width="3.5" stroke-linecap="round"/><path d="M52,36 L69,41 L62,58" fill="none" stroke="var(--red)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+
+        <span>pop the cap!</span>
+
+      </div>
+
     </div>
 
     <p class="hero-sub">Grassroots artists actualising their own cultural vision - a safe space for the UK alternative scene, and beyond.</p>
-
-    <button class="pop-cap-btn" id="popCapBtn" type="button">Pop the cap ↓</button>
 
   </div>
 
@@ -2438,7 +2508,7 @@ contactForm.addEventListener('submit', async (e) => {
 
 // fall's own motion never has to fight or share timing with a scroll.
 
-const popBtn = document.getElementById('popCapBtn');
+const logoComposition = document.getElementById('logoComposition');
 
 const capLayer = document.getElementById('capLayer');
 
@@ -2880,8 +2950,6 @@ function finishPop(){
 
     capBusy = false;
 
-    popBtn.disabled = false;
-
   }, 250);
 
 }
@@ -2894,7 +2962,7 @@ function popCap(){
 
   capBusy = true;
 
-  popBtn.disabled = true;
+  document.body.classList.remove('pre-pop');
 
   resetBottle();
 
@@ -3212,7 +3280,29 @@ function popCap(){
 
 
 
-if (popBtn) popBtn.addEventListener('click', popCap);
+// pre-pop gate: scrolling is locked from the very first paint (see the
+// .pre-pop rules above) and only released once the cap has actually
+// been popped, via unlockPage() inside finishPop().
+
+lockPage();
+
+if (logoComposition){
+
+  logoComposition.addEventListener('click', popCap);
+
+  logoComposition.addEventListener('keydown', (e) => {
+
+    if (e.key === 'Enter' || e.key === ' '){
+
+      e.preventDefault();
+
+      popCap();
+
+    }
+
+  });
+
+}
 
 </script>
 
