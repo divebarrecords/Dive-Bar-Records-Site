@@ -18,7 +18,7 @@
 
 :root{
 
-  --paper:#fbf8ef;
+  --paper:#f8f7f3;
 
   --paper2:#F2EAD2;
 
@@ -65,8 +65,10 @@ body{
 
 /* paper grain: a fibrous, irregular noise (not a halftone dot grid) laid
    over the whole page via multiply, so every section - light or dark -
-   reads as a sheet of paper rather than a flat digital block. Drifts
-   very slowly so the page never feels totally inert. */
+   reads as a sheet of paper rather than a flat digital block. Tinted a
+   warm dark brown rather than pure black, so the grain reads as paper
+   shadow, not a grey wash. Drifts very slowly so the page never feels
+   totally inert. */
 
 body::before{
 
@@ -74,11 +76,11 @@ body::before{
 
   position:fixed; inset:-10px; z-index:9999; pointer-events:none;
 
-  opacity:0.06;
+  opacity:0.1;
 
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.16  0 0 0 0 0.11  0 0 0 0 0.05  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
-  background-size:240px 240px;
+  background-size:260px 260px;
 
   mix-blend-mode:multiply;
 
@@ -1318,9 +1320,9 @@ a{color:inherit;}
 
   position:absolute; inset:0; z-index:0; pointer-events:none;
 
-  opacity:0.055;
+  opacity:0.09;
 
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
   background-size:240px 240px;
 
@@ -1458,9 +1460,9 @@ a{color:inherit;}
 
 }
 
-/* a literal corkboard panel behind the pinned flyers - gives Roster its
-   own identity instead of sitting on the same flat paper as everything
-   else nearby */
+/* a genuine cork texture (fine speckle grain + a few darker knots) behind
+   the pinned flyers, not just a tan blur - gives Roster its own material
+   identity instead of sitting on the same flat paper as everything else */
 
 .flyer-grid::before{
 
@@ -1470,23 +1472,27 @@ a{color:inherit;}
 
   border-radius:18px;
 
-  background:
+  background-color:#C09865;
 
-    radial-gradient(circle at 15% 20%, rgba(35,35,56,0.09) 0, transparent 3%),
+  background-image:
 
-    radial-gradient(circle at 78% 15%, rgba(35,35,56,0.08) 0, transparent 2.6%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='70'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.25' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.35  0 0 0 0 0.24  0 0 0 0 0.13  0 0 0 0.8 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E"),
 
-    radial-gradient(circle at 40% 60%, rgba(35,35,56,0.07) 0, transparent 3%),
+    radial-gradient(ellipse at top left, rgba(255,255,255,0.22), transparent 65%),
 
-    radial-gradient(circle at 90% 70%, rgba(35,35,56,0.08) 0, transparent 2.4%),
+    radial-gradient(circle at 18% 22%, rgba(74,48,24,0.28) 0, transparent 5%),
 
-    radial-gradient(circle at 8% 85%, rgba(35,35,56,0.07) 0, transparent 2.8%),
+    radial-gradient(circle at 78% 58%, rgba(74,48,24,0.26) 0, transparent 4.5%),
 
-    radial-gradient(circle at 62% 88%, rgba(35,35,56,0.09) 0, transparent 3%),
+    radial-gradient(circle at 42% 82%, rgba(74,48,24,0.24) 0, transparent 5%),
 
-    radial-gradient(circle at 30% 40%, rgba(35,35,56,0.06) 0, transparent 2.4%),
+    radial-gradient(circle at 88% 18%, rgba(74,48,24,0.22) 0, transparent 4%),
 
-    radial-gradient(ellipse at top left, #C9A876, #B8946A 60%);
+    radial-gradient(circle at 8% 78%, rgba(74,48,24,0.2) 0, transparent 4%);
+
+  background-size:70px 70px, auto, auto, auto, auto, auto, auto;
+
+  background-blend-mode:multiply, soft-light, multiply, multiply, multiply, multiply, multiply;
 
   box-shadow:inset 0 0 0 3px rgba(35,35,56,0.15), inset 0 2px 10px rgba(35,35,56,0.25), 0 10px 24px rgba(35,35,56,0.14);
 
@@ -1784,7 +1790,7 @@ footer{
 
     <br>
 
-    <p>With a combined three decades working our way up, we know exactly what it's like navigating promoters and venues.</p>
+    <p>With a combined three decades of experience as creatives working our way up, we know what it's like to be on the wrong side of an industry that's becoming increasingly manufactured.</p>
 
     <p class="sign">- B. O'Shea, R. McLean &amp; F. Millar</p>
 
