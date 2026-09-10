@@ -1,1548 +1,3217 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>DIVE BAR RECORDS</title>
+
 <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
+
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+
 <style>
+
 :root{
+
   --paper:#fbf8ef;
+
   --paper2:#F2EAD2;
+
   --ink:#232338;
+
   --gold:#D79922;
+
   --red:#F13C20;
+
   --blue:#4056A1;
+
   --lav:#C5CBE3;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{
-  background:var(--paper);
-  color:var(--ink);
-  font-family:'Space Mono', monospace;
-  font-size:1rem;
-  line-height:1.65;
-  overflow-x:hidden;
-  position:relative;
+
 }
 
-/* living grain: drifts very slowly so the page never feels totally inert */
+*{margin:0;padding:0;box-sizing:border-box;}
+
+html{scroll-behavior:smooth;}
+
+body{
+
+  background:
+    radial-gradient(ellipse 620px 480px at 10% 6%, rgba(215,153,34,0.055), transparent 60%),
+    radial-gradient(ellipse 700px 560px at 92% 96%, rgba(64,86,161,0.05), transparent 58%),
+    radial-gradient(ellipse 520px 420px at 68% 18%, rgba(241,60,32,0.03), transparent 55%),
+    radial-gradient(ellipse 480px 600px at 30% 80%, rgba(35,35,56,0.035), transparent 55%),
+    var(--paper);
+
+  color:var(--ink);
+
+  font-family:'Space Mono', monospace;
+
+  font-size:1rem;
+
+  line-height:1.65;
+
+  overflow-x:hidden;
+
+  position:relative;
+
+}
+
+
+
+/* paper grain: a fibrous, irregular noise (not a halftone dot grid) laid
+   over the whole page via multiply, so every section - light or dark -
+   reads as a sheet of paper rather than a flat digital block. Drifts
+   very slowly so the page never feels totally inert. */
+
 body::before{
+
   content:"";
+
   position:fixed; inset:-10px; z-index:9999; pointer-events:none;
-  opacity:0.045;
-  background-image:radial-gradient(circle, var(--ink) 1px, transparent 1.3px);
-  background-size:5px 5px;
+
+  opacity:0.06;
+
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  background-size:240px 240px;
+
   mix-blend-mode:multiply;
+
   animation:grain-drift 9s steps(6) infinite;
+
 }
+
 @keyframes grain-drift{
+
   0%{transform:translate(0,0);} 20%{transform:translate(-1px,1px);}
+
   40%{transform:translate(1px,-1px);} 60%{transform:translate(-1px,-1px);}
+
   80%{transform:translate(1px,1px);} 100%{transform:translate(0,0);}
+
 }
+
 a{color:inherit;}
 
+
+
 /* ---- ambient ink blobs: soft, drifting, never sharp ---- */
+
 .blob{
+
   position:absolute;
+
   z-index:0;
+
   pointer-events:none;
+
   filter:blur(30px);
+
   animation:blob-wander 14s ease-in-out infinite;
+
 }
+
 @keyframes blob-wander{
+
   0%,100%{ transform:translate(0,0) rotate(0deg) scale(1); }
+
   25%{ transform:translate(var(--mx1,60px),var(--my1,-40px)) rotate(8deg) scale(1.08); }
+
   50%{ transform:translate(var(--mx2,-70px),var(--my2,50px)) rotate(-6deg) scale(0.94); }
+
   75%{ transform:translate(var(--mx3,50px),var(--my3,60px)) rotate(5deg) scale(1.04); }
-}
-@media (prefers-reduced-motion: reduce){
-  .blob{ animation:none; }
+
 }
 
 @media (prefers-reduced-motion: reduce){
-  html{scroll-behavior:auto;}
-  body::before{animation:none;}
-  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+
+  .blob{ animation:none; }
+
 }
+
+
+
+@media (prefers-reduced-motion: reduce){
+
+  html{scroll-behavior:auto;}
+
+  body::before{animation:none;}
+
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+
+}
+
+
 
 /* ---- NAV ---- */
+
 .masthead{
+
   position:sticky; top:0; z-index:200;
+
   display:flex; justify-content:space-between; align-items:center;
+
   padding:20px 5%;
+
   background:var(--paper);
+
   border-bottom:2px solid var(--ink);
+
   transition:padding 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+
 }
+
 .masthead.is-scrolled{
+
   padding:12px 5%;
+
   box-shadow:0 6px 0 rgba(35,35,56,0.08);
+
   background:rgba(251,247,236,0.92);
+
   backdrop-filter:blur(6px);
+
 }
+
 .logo-lockup{
+
   display:flex; align-items:center; gap:12px;
+
   text-decoration:none;
+
 }
+
 .logo-mark{
+
   height:clamp(38px, 5vw, 50px);
+
   width:auto;
+
   transition:height 0.25s ease, transform 0.4s ease;
+
   animation:bottle-sway 5s ease-in-out infinite;
+
   transform-origin:70% 90%;
+
 }
+
 .masthead.is-scrolled .logo-mark{ height:clamp(30px,4vw,38px); }
+
 @keyframes bottle-sway{
+
   0%,100%{transform:rotate(0deg);}
+
   50%{transform:rotate(-4deg);}
+
 }
+
 .logo-text{
+
   font-family:"plunct", sans-serif;
+
   font-size:clamp(1.5rem, 3vw, 2rem);
+
   letter-spacing:-1px;
+
   color:var(--ink);
+
   white-space:nowrap;
+
   transition:color 0.2s ease;
+
 }
+
 .logo-lockup:hover .logo-text{
+
   color:var(--red);
+
 }
+
+
 
 .masthead nav{display:flex; gap:22px; flex-wrap:wrap;}
+
 .masthead nav a{
+
   position:relative;
+
   font-family:'Space Mono'; font-weight:700;
+
   font-size:0.72rem;
+
   text-transform:uppercase;
+
   letter-spacing:1.5px;
+
   text-decoration:none;
+
   color:var(--ink);
+
   padding-bottom:4px;
+
 }
+
 .masthead nav a::after{
+
   content:"";
+
   position:absolute; left:0; bottom:0;
+
   width:100%; height:2px;
+
   background:var(--gold);
+
   transform:scaleX(0); transform-origin:left;
+
   transition:transform 0.25s ease;
+
 }
+
 .masthead nav a:hover{ color:var(--gold); }
+
 .masthead nav a:hover::after{ transform:scaleX(1); }
 
+
+
 /* burger, hidden by default (desktop) */
+
 .burger{
+
   display:none;
+
   width:38px; height:32px;
+
   background:none; border:none; padding:0;
+
   flex-direction:column; justify-content:space-between;
+
   z-index:210;
+
 }
+
 .burger span{
+
   display:block; height:3px; width:100%;
+
   background:var(--ink); border-radius:1px;
+
   transition:transform 0.3s ease, opacity 0.3s ease;
+
 }
+
 .burger.is-open span:nth-child(1){ transform:translateY(13px) rotate(45deg); }
+
 .burger.is-open span:nth-child(2){ opacity:0; }
+
 .burger.is-open span:nth-child(3){ transform:translateY(-13px) rotate(-45deg); }
 
+
+
 .mobile-panel{
+
   position:fixed; top:0; left:0; right:0;
+
   background:var(--paper2);
+
   border-bottom:3px solid var(--ink);
+
   box-shadow:0 12px 0 rgba(35,35,56,0.1);
+
   padding:100px 8% 40px;
+
   display:flex; flex-direction:column; gap:26px;
+
   transform:translateY(-100%);
+
   transition:transform 0.35s cubic-bezier(.4,0,.2,1);
+
   z-index:190;
+
 }
+
 .mobile-panel.is-open{ transform:translateY(0); }
+
 .mobile-panel a{
+
   font-family:"plunct", sans-serif;
+
   font-size:2rem;
+
   text-decoration:none;
+
   color:var(--ink);
+
   border-bottom:2px solid rgba(35,35,56,0.15);
+
   padding-bottom:14px;
+
 }
+
+
 
 @media(max-width:760px){
+
   .masthead nav{ display:none; }
+
   .burger{ display:flex; }
+
 }
+
 @media(min-width:761px){
+
   .mobile-panel{ display:none; }
+
 }
+
+
 
 /* ---- HERO ---- */
+
 .hero{
+
   padding:60px 5% 40px;
+
   display:grid;
+
   grid-template-columns:1fr;
+
   gap:40px;
+
   position:relative;
+
   isolation:isolate;
+
   overflow:hidden;
+
 }
+
 .hero > div:not(.blob){ position:relative; z-index:1; }
+
 .logo-composition{
+
   display:flex;
+
   align-items:center;
+
   flex-wrap:wrap;
+
   gap:1.5%;
+
 }
+
 .logo-text-img{
+
   display:block;
+
   height:clamp(100px, 15.5vw, 178px);
+
   width:auto;
+
   filter: drop-shadow(-4px 0 0 var(--red)) drop-shadow(4px 4px 0 var(--blue));
+
   transition:filter 0.3s ease;
+
 }
+
 .bottle-comp{
+
   position:relative;
+
   display:block;
+
   height:clamp(124px, 19.2vw, 220px);
+
   aspect-ratio:751 / 1331;
+
   flex-shrink:0;
+
   filter: drop-shadow(-3px 0 0 var(--red)) drop-shadow(3px 3px 0 var(--blue));
+
   transition:filter 0.3s ease;
+
 }
+
 .logo-composition:hover .logo-text-img{
+
   filter: drop-shadow(-7px 0 0 var(--red)) drop-shadow(7px 7px 0 var(--blue));
+
 }
+
 .logo-composition:hover .bottle-comp{
+
   filter: drop-shadow(-5px 0 0 var(--red)) drop-shadow(5px 5px 0 var(--blue));
+
 }
+
 .bottle-comp .layer{
+
   position:absolute;
+
   top:0; left:0;
+
   width:100%; height:100%;
+
   display:block;
+
 }
+
 .bottle-comp .cap-layer{
+
   transition:opacity 0.15s ease;
+
 }
+
 .bottle-comp .drop-layer{
+
   opacity:0;
+
 }
+
 .bottle-comp .drop-layer.revealed{
+
   animation:drop-in 0.55s cubic-bezier(.3,.75,.3,1.15) forwards;
+
 }
+
 @keyframes drop-in{
+
   0%{ opacity:0; transform:translate(var(--dx),var(--dy)) scale(0.35) rotate(-25deg); }
+
   55%{ opacity:1; }
+
   100%{ opacity:1; transform:translate(0,0) scale(1) rotate(0deg); }
+
 }
+
 .pop-cap-btn{
+
   display:inline-block;
+
   margin-top:22px;
+
   font-family:'Space Mono'; font-weight:700; font-size:0.78rem;
+
   text-transform:uppercase; letter-spacing:1px;
+
   background:var(--ink); color:var(--paper);
+
   border:none; border-radius:30px 8px 30px 8px;
+
   padding:12px 24px;
+
   cursor:pointer;
+
   transition:background 0.2s ease, transform 0.15s ease;
+
 }
+
 .pop-cap-btn:hover{ background:var(--red); }
+
 .pop-cap-btn:active{ transform:scale(0.96); }
+
 .pop-cap-btn:disabled{ opacity:0.6; cursor:default; }
+
 /* ink droplets: cartoony teardrop splash in the same navy as the board,
+
    spawned where the cap lands in the water */
+
 .ink-droplet{
+
   position:fixed;
+
   background:var(--ink);
+
   border-radius:50% 50% 50% 4%;
+
   pointer-events:none;
+
   z-index:500;
+
   animation:droplet-arc var(--dur,0.75s) cubic-bezier(.3,.7,.4,1) forwards;
+
 }
+
 @keyframes droplet-arc{
+
   0%{ transform:translate(-50%,-50%) rotate(var(--r0,0deg)) scale(0.5); opacity:1; }
+
   40%{ transform:translate(calc(-50% + var(--dx)*0.55), calc(-50% + var(--dy-up))) rotate(var(--r1,90deg)) scale(1); opacity:1; }
+
   100%{ transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy-down))) rotate(var(--r2,180deg)) scale(0.4); opacity:0; }
+
 }
+
 .impact-ring{
+
   position:fixed;
+
   width:14px; height:14px;
+
   border:3px solid var(--paper);
+
   border-radius:50%;
+
   pointer-events:none;
+
   z-index:499;
+
   transform:translate(-50%,-60%) scaleX(0.4) scaleY(0.18);
+
   opacity:0.85;
+
   animation:ring-expand 0.5s ease-out forwards;
+
 }
+
 @keyframes ring-expand{
+
   0%{ transform:translate(-50%,-60%) scaleX(0.4) scaleY(0.18); opacity:0.85; }
+
   100%{ transform:translate(-50%,-60%) scaleX(3.4) scaleY(0.5); opacity:0; }
+
 }
+
 @media (prefers-reduced-motion: reduce){
+
   .ink-droplet{ animation:none; opacity:0; }
+
   .drop-layer.revealed{ animation:none; opacity:1; transform:none; }
+
   .impact-ring{ animation:none; opacity:0; }
+
 }
+
 .hero-tag{
+
   font-family:'Space Mono'; font-style:italic; font-weight:700;
+
   font-size:0.95rem;
+
   letter-spacing:1px;
+
   display:inline-block;
+
   margin-bottom:14px;
+
   text-transform:uppercase;
+
   color:var(--ink);
+
 }
+
 .hero-tag::before{content:"» "; color:var(--red);}
+
 .hero-sub{
+
   max-width:520px;
+
   margin-top:26px;
+
   font-size:1rem;
+
   border-left:4px solid var(--gold);
+
   padding-left:20px;
+
   color:var(--ink);
+
   opacity:0.85;
+
 }
+
+
 
 /* ---- photo carousel ---- */
+
 .hero-photo-wrap{
+
   position:relative;
+
   max-width:280px;
+
   justify-self:center;
+
 }
+
 #carousel{
+
   position:relative;
+
   transform:rotate(3deg);
+
   min-height:300px;
+
 }
+
 .slide{
+
   position:absolute; inset:0;
+
   opacity:0;
+
   transition:opacity 0.9s ease;
+
   pointer-events:none;
+
 }
+
 .slide.active{ opacity:1; pointer-events:auto; position:relative; }
+
 .slide-card{
+
   background:var(--paper2);
+
   padding:16px 16px 20px;
+
   border-radius:6px;
+
   overflow:hidden;
+
   box-shadow:5px 7px 0 var(--gold), 0 22px 38px rgba(35,35,56,0.28);
+
 }
+
 .photo-frame{
+
   position:relative;
+
   border-radius:2px;
+
   overflow:hidden;
+
 }
+
 .photo-frame img{
+
   width:100%; display:block;
+
   filter:grayscale(1) contrast(1.1) sepia(0.15);
+
   transition:filter 0.5s ease;
+
 }
+
 .slide-card:hover .photo-frame img{ filter:grayscale(0) contrast(1.05) sepia(0); }
+
 .photo-frame::after{
+
   content:"";
+
   position:absolute; left:0; right:0; bottom:0; height:46%;
+
   z-index:1;
+
   background:linear-gradient(to top, rgba(0,0,0,0.5), rgba(0,0,0,0));
+
   pointer-events:none;
+
 }
+
 .photo-frame figcaption{
+
   position:absolute; left:14px; right:14px; bottom:10px;
+
   z-index:2;
+
   font-family:'Caveat', cursive;
+
   font-weight:700;
+
   font-size:1.3rem;
+
   line-height:1.15;
+
   color:var(--paper);
+
   -webkit-text-stroke:0.4px rgba(0,0,0,0.5);
+
   paint-order:stroke fill;
+
   text-shadow:0 1px 2px rgba(0,0,0,0.4);
+
   transform:rotate(-1.2deg);
+
   display:inline-block;
+
 }
+
 .slide:nth-child(2) .photo-frame figcaption{ transform:rotate(1deg); }
+
 .slide:nth-child(3) .photo-frame figcaption{ transform:rotate(-0.6deg); }
+
 .photo-frame figcaption .letter{
+
   display:inline-block;
+
 }
+
 .ink-splodge{
+
   position:absolute;
+
   background:#fff;
+
   pointer-events:none;
+
 }
+
 .carousel-dots{
+
   display:flex; gap:10px; justify-content:center; margin-top:16px;
+
   transform:rotate(-3deg);
+
 }
+
 .carousel-dots button{
+
   width:10px; height:10px; border-radius:50%;
+
   border:2px solid var(--ink); background:transparent;
+
   padding:0; transition:background 0.2s ease, transform 0.2s ease;
+
 }
+
 .carousel-dots button.active{ background:var(--red); transform:scale(1.2); }
 
+
+
 .washi{
+
   position:absolute; top:-16px; left:36%;
+
   width:96px; height:28px;
+
   border-radius:40% 10% 40% 10% / 50% 50% 50% 50%;
+
   background:repeating-linear-gradient(45deg, var(--lav), var(--lav) 6px, #b3bade 6px, #b3bade 12px);
+
   opacity:0.92;
+
   transform:rotate(-8deg);
+
   box-shadow:0 2px 3px rgba(0,0,0,0.25);
+
   transition:transform 0.25s ease, top 0.25s ease;
+
 }
+
 .hero-photo-wrap:hover .washi{ transform:rotate(-14deg) translateY(-3px); }
 
+
+
 @media(min-width:880px){
+
   .hero{
+
     grid-template-columns:1.3fr 1fr; align-items:center;
+
     padding:30px 5% 40px;
+
   }
+
   .hero-photo-wrap{ justify-self:end; margin-left:-20px; }
+
 }
+
+
 
 /* ---- wave divider: an ink-drip line instead of a jagged tear ---- */
+
 .wave-divider{
+
   display:block;
+
   width:100%;
+
   height:34px;
+
   margin-bottom:-2px;
+
   scroll-margin-top:90px;
+
   position:relative;
+
   z-index:2;
+
 }
+
+
 
 /* ---- cap-pop: dim the nav for the duration of the sequence. The page
+
    itself is NOT overflow-locked here - the fall now scrolls the real
+
    page in sync with the cap (that's how it reaches a divider that may
+
    sit well outside the starting viewport, particularly on mobile), so
+
    the only thing suppressed is the *user's own* scroll input, not
+
    scrolling itself. ---- */
+
 .masthead.pop-dim{
+
   opacity:0.28;
+
   pointer-events:none;
+
   transition:opacity 0.3s ease;
+
 }
+
+
 
 #mission, #what-we-do, #roster, #faq, #contact{
+
   scroll-margin-top:100px;
+
 }
+
+
 
 /* ---- FAQ ---- */
-.faq{ padding:80px 5% 90px; position:relative; isolation:isolate; overflow:hidden; }
-.faq > *:not(.blob){ position:relative; z-index:1; }
+
+.faq{ padding:30px 5% 90px; position:relative; }
+
 .faq .eyebrow{
+
   font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+
   letter-spacing:2px; color:var(--red); margin-bottom:30px;
+
   text-transform:uppercase;
+
 }
+
 .faq-list{
+
+  position:relative;
+
   display:flex; flex-direction:column; gap:16px;
+
   max-width:720px;
+
+  padding:32px 28px 32px 44px;
+
+  border-radius:6px 18px 6px 18px;
+
+  background:rgba(255,255,255,0.4);
+
+  border:2px dashed rgba(35,35,56,0.22);
+
 }
+
+/* a spiral-notepad spine down the left edge - pairs with the corkboard
+   above and gives the FAQ its own identity rather than a plain list */
+
+.faq-list::before{
+
+  content:"";
+
+  position:absolute; left:14px; top:20px; bottom:20px; width:2px;
+
+  background:repeating-linear-gradient(to bottom, rgba(64,86,161,0.35) 0 2px, transparent 2px 20px);
+
+}
+
+.faq-list::after{
+
+  content:"";
+
+  position:absolute; left:10px; top:20px; bottom:20px; width:10px;
+
+  background-image:radial-gradient(circle, var(--paper) 2.6px, rgba(35,35,56,0.3) 2.6px, rgba(35,35,56,0.3) 3.2px, transparent 3.2px);
+
+  background-size:10px 26px;
+
+  background-repeat:repeat-y;
+
+}
+
 .faq-item{
+
   background:var(--paper2);
+
   border-radius:24px 8px 24px 8px;
+
   overflow:hidden;
+
   box-shadow:4px 5px 0 var(--ink);
+
 }
+
 .faq-item:nth-child(3n+1){ box-shadow:4px 5px 0 var(--red); }
+
 .faq-item:nth-child(3n+2){ box-shadow:4px 5px 0 var(--gold); }
+
 .faq-item:nth-child(3n+3){ box-shadow:4px 5px 0 var(--blue); }
+
 .faq-q{
+
   width:100%;
+
   display:flex; align-items:center; justify-content:space-between; gap:16px;
+
   padding:18px 22px;
+
   background:none; border:none;
+
   cursor:pointer;
+
   text-align:left;
+
   font-family:'Space Mono'; font-weight:700; font-size:0.95rem;
+
   color:var(--ink);
+
 }
+
 .faq-icon{
+
   flex-shrink:0;
+
   font-family:'Space Mono'; font-weight:700; font-size:1.3rem;
+
   transition:transform 0.25s ease;
+
 }
+
 .faq-item.is-open .faq-icon{ transform:rotate(45deg); }
+
 .faq-a{
+
   display:grid;
+
   grid-template-rows:0fr;
+
   transition:grid-template-rows 0.35s ease;
+
 }
+
 .faq-item.is-open .faq-a{ grid-template-rows:1fr; }
+
 .faq-a-inner{ overflow:hidden; min-height:0; }
+
 .faq-a p{
+
   padding:0 22px 20px;
+
   font-size:0.88rem;
+
   line-height:1.55;
+
   color:var(--ink);
+
   opacity:0.85;
+
 }
+
 .faq-a a{ color:var(--red); font-weight:700; text-decoration:underline; }
 
+
+
 /* ---- WHAT WE DO ---- */
+
 .services{
-  background:var(--ink); color:var(--paper);
-  padding:80px 5% 90px;
-  position:relative;
-  isolation:isolate;
-  overflow:hidden;
-  z-index:3;
+
+  padding:30px 5% 90px;
+
 }
-.services > *:not(.blob){ position:relative; z-index:1; }
+
 .services .eyebrow{
+
   font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+
   letter-spacing:2px; color:var(--gold); margin-bottom:16px;
+
   text-transform:uppercase;
+
 }
+
 .services-lede{
+
   max-width:560px;
+
   font-size:1rem;
+
   color:var(--paper);
+
   opacity:0.9;
+
   margin-bottom:48px;
+
 }
+
 .pillar-grid{
+
   display:grid; gap:40px 32px;
+
   grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+
 }
+
 .pillar-card{
+
   position:relative;
+
   background:var(--paper2);
+
   color:var(--ink);
+
   padding:28px 24px;
+
   border-radius:36px 12px 32px 16px / 16px 34px 12px 36px;
+
   transition:transform 0.25s ease, box-shadow 0.25s ease;
+
 }
+
 .pillar-card:nth-child(1){ transform:rotate(-2deg); box-shadow:5px 6px 0 var(--red), 0 20px 34px rgba(35,35,56,0.22); }
+
 .pillar-card:nth-child(2){ transform:rotate(1.5deg); box-shadow:5px 6px 0 var(--gold), 0 20px 34px rgba(35,35,56,0.22); }
+
 .pillar-card:nth-child(3){ transform:rotate(-1deg); box-shadow:5px 6px 0 var(--blue), 0 20px 34px rgba(35,35,56,0.22); }
+
 .pillar-card:hover{ transform:rotate(0deg) translateY(-6px); }
+
 .pillar-num{
+
   font-family:"plunct", sans-serif;
+
   font-size:2.6rem;
+
   color:var(--ink);
+
   opacity:0.15;
+
   display:block;
+
   line-height:1;
+
   margin-bottom:-8px;
+
 }
+
 .pillar-card h3{
+
   font-family:"plunct", sans-serif;
+
   font-size:1.4rem;
+
   margin-bottom:10px;
+
 }
+
 .pillar-card p{
+
   font-size:0.88rem;
+
   line-height:1.5;
+
 }
+
+
 
 /* ---- CONTACT ---- */
+
 .contact-section{
+
   background:var(--ink); color:var(--paper);
+
   padding:80px 5% 90px;
+
   display:grid; gap:40px;
+
   position:relative;
+
   isolation:isolate;
+
   overflow:hidden;
+
 }
+
 .contact-section > div:not(.blob), .contact-section > form{ position:relative; z-index:1; }
+
 .contact-section .eyebrow{
+
   font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+
   letter-spacing:2px; color:var(--red); margin-bottom:16px;
+
   text-transform:uppercase;
+
 }
+
 .contact-headline{
+
   font-family:"plunct", sans-serif;
+
   font-size:clamp(1.8rem, 5vw, 3rem);
+
   line-height:1.1;
+
   color:var(--paper);
+
 }
+
 .contact-lede{
+
   max-width:420px;
+
   margin-top:20px;
+
   font-size:0.92rem;
+
   color:var(--paper);
+
   opacity:0.85;
+
 }
+
 .contact-lede a{
+
   color:var(--gold); font-weight:700; text-decoration:underline;
+
 }
+
 .contact-card{
+
   position:relative;
+
   background:var(--paper2);
+
   color:var(--ink);
+
   padding:32px;
+
   border-radius:42px 16px 46px 14px / 14px 44px 16px 42px;
+
   box-shadow:6px 8px 0 var(--gold), 0 24px 42px rgba(0,0,0,0.35);
+
   transform:rotate(1.2deg);
+
   transition:transform 0.25s ease, box-shadow 0.25s ease;
+
 }
+
 .contact-card:hover{
+
   transform:rotate(0deg) translateY(-3px);
+
   box-shadow:8px 10px 0 var(--gold), 0 30px 50px rgba(0,0,0,0.3);
+
 }
+
 .contact-card label{
+
   display:block; font-size:0.7rem; font-weight:700;
+
   text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;
+
 }
+
 .contact-card input, .contact-card textarea{
+
   width:100%;
+
   font-family:'Space Mono';
+
   font-size:0.9rem;
+
   background:var(--paper);
+
   border:2px solid var(--ink);
+
   border-radius:14px;
+
   padding:10px 12px;
+
   margin-bottom:20px;
+
   color:var(--ink);
+
 }
+
 .contact-card textarea{ resize:vertical; min-height:90px; }
+
 .contact-card button{
+
   font-family:'Space Mono'; font-weight:700; font-size:0.8rem;
+
   text-transform:uppercase; letter-spacing:1px;
+
   background:var(--ink); color:var(--paper);
+
   border:none; border-radius:30px 8px 30px 8px;
+
   padding:14px 26px;
+
   cursor:pointer; transition:background 0.2s ease;
+
 }
+
 .contact-card button:hover{ background:var(--red); }
+
 .contact-card button:disabled{ opacity:0.6; cursor:default; }
+
 .contact-status{
+
   margin-top:16px; font-size:0.8rem; font-weight:700;
+
   min-height:1.2em;
+
 }
+
 .contact-status.ok{ color:var(--lav); }
+
 .contact-status.err{ color:var(--red); }
+
 @media(min-width:880px){
+
   .contact-section{grid-template-columns:1fr 1fr; align-items:start;}
+
 }
+
 .reveal{
+
   opacity:0; transform:translateY(28px);
+
   transition:opacity 0.7s ease, transform 0.7s ease;
+
 }
+
 .reveal.in-view{ opacity:1; transform:translateY(0); }
 
-/* ---- MANIFESTO ---- */
-.manifesto{
+
+
+/* ---- shared ink block: manifesto + services are one continuous dark
+   sheet, not two separately-clipped boxes, so the ambient blobs can
+   wander across the join between them instead of stopping dead at a
+   section edge (that hard stop was the "seam"). ---- */
+
+.ink-block{
+
   background:var(--ink); color:var(--paper);
-  padding:70px 5% 90px;
-  display:grid; gap:40px;
+
   position:relative;
+
   isolation:isolate;
+
   overflow:hidden;
+
   z-index:3;
+
 }
-.manifesto > div:not(.blob){ position:relative; z-index:1; }
+
+.ink-block > *:not(.blob){ position:relative; z-index:1; }
+
+.ink-block::before{
+
+  content:"";
+
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+
+  opacity:0.055;
+
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  background-size:240px 240px;
+
+  mix-blend-mode:soft-light;
+
+}
+
+
+
+/* ---- MANIFESTO ---- */
+
+.manifesto{
+
+  padding:70px 5% 50px;
+
+  display:grid; gap:40px;
+
+}
+
 .manifesto .eyebrow{
+
   font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+
   letter-spacing:2px; color:var(--gold); margin-bottom:16px;
+
   text-transform:uppercase;
+
 }
+
 .ransom{
+
   font-family:"plunct", sans-serif;
+
   font-size:clamp(1.8rem, 5vw, 3rem);
+
   line-height:1.15;
+
   color:var(--paper);
+
 }
+
 .ransom span{display:inline-block; margin-right:0.35em; transition:transform 0.2s ease;}
+
 .ransom span:nth-child(3n+1){color:var(--red); transform:rotate(-3deg);}
+
 .ransom span:nth-child(3n+2){color:var(--lav); transform:rotate(2deg);}
+
 .ransom span:hover{ transform:scale(1.15) rotate(0deg) !important; }
 
+
+
 .manifesto-note{
+
   position:relative;
+
   background:var(--paper2);
+
   color:var(--ink);
+
   padding:30px;
+
   border-radius:44px 14px 40px 18px / 18px 42px 16px 44px;
+
   box-shadow:6px 8px 0 var(--red), 0 24px 40px rgba(0,0,0,0.3);
+
   transform:rotate(-1.5deg);
+
   font-size:0.92rem;
+
   transition:transform 0.25s ease, box-shadow 0.25s ease;
+
 }
+
 .manifesto-note:hover{
+
   transform:rotate(0deg) translateY(-3px);
+
   box-shadow:8px 10px 0 var(--red), 0 30px 48px rgba(0,0,0,0.28);
+
 }
+
 .manifesto-note .washi{ left:auto; right:10%; top:-16px; }
+
 .manifesto-note .sign{
+
   margin-top:18px; font-size:0.85rem; text-align:right; font-weight:700;
+
 }
+
 @media(min-width:880px){
+
   .manifesto{grid-template-columns:1.1fr 1fr; align-items:center;}
+
 }
+
+
+
+/* ---- shared paper block: roster + FAQ are one continuous sheet, same
+   reasoning as .ink-block above - lets the ambient blobs cross the join
+   instead of clipping at the section edge. Each section then gets its
+   own distinct backing (cork panel vs. notepad) so the two don't read
+   as one indistinct scroll of cards. ---- */
+
+.paper-block{ position:relative; isolation:isolate; overflow:hidden; }
+
+.paper-block > *:not(.blob){ position:relative; z-index:1; }
+
+
 
 /* ---- ROSTER ---- */
-.corkboard{ padding:80px 5%; position:relative; isolation:isolate; overflow:hidden; }
-.corkboard > div:not(.blob){ position:relative; z-index:1; }
+
+.corkboard{ padding:70px 5% 40px; position:relative; }
+
 .corkboard .eyebrow{
+
   font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+
   letter-spacing:2px; color:var(--blue); margin-bottom:34px;
+
   text-transform:uppercase;
-}
-.flyer-grid{
-  display:grid; gap:40px 36px;
-  grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
-}
-.flyer{
-  background:var(--paper2);
-  color:var(--ink);
-  padding:22px 18px;
-  position:relative;
-  border-radius:40px 12px 36px 16px / 16px 38px 12px 40px;
-  box-shadow:5px 6px 0 var(--blue), 0 20px 34px rgba(35,35,56,0.22);
-  text-decoration:none;
-  transition:transform 0.25s ease, box-shadow 0.25s ease;
-}
-.flyer:nth-child(1){transform:rotate(-2.5deg) translateY(0);}
-.flyer:nth-child(2){transform:rotate(1.5deg) translateY(10px);}
-.flyer:nth-child(3){transform:rotate(-1deg) translateY(-4px);}
-.flyer:hover{
-  transform:rotate(0deg) translateY(-6px);
-  box-shadow:6px 8px 0 var(--blue), 0 26px 40px rgba(35,35,56,0.24);
-}
-.flyer::before{
-  content:"";
-  position:absolute; top:-8px; left:50%; transform:translateX(-50%);
-  width:15px; height:15px; border-radius:50%;
-  border:2px solid var(--ink);
-  transition:transform 0.25s ease;
-}
-.flyer:hover::before{ transform:translateX(-50%) scale(1.3); }
-.flyer:nth-child(3n+1)::before{ background:var(--red); }
-.flyer:nth-child(3n+2)::before{ background:var(--blue); }
-.flyer:nth-child(3n+3)::before{ background:var(--gold); }
-.flyer h3{
-  font-family:"plunct", sans-serif;
-  font-size:1.5rem;
-  margin-bottom:8px;
-}
-.flyer p{font-size:0.78rem; opacity:0.7; font-weight:700; letter-spacing:0.5px;}
-.flyer .go{
-  margin-top:16px; font-size:0.7rem; font-weight:700;
-  letter-spacing:0.5px; color:var(--red);
+
 }
 
-footer{
-  border-top:2px solid var(--ink);
-  padding:40px 5%;
-  display:flex; flex-wrap:wrap; justify-content:space-between; gap:14px;
-  font-family:'Space Mono'; font-weight:700; font-size:0.7rem; letter-spacing:1px;
-  color:var(--ink);
+.flyer-grid{
+
+  position:relative;
+
+  display:grid; gap:40px 36px;
+
+  grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+
+  padding:44px 28px;
+
+  border-radius:18px;
+
 }
+
+/* a literal corkboard panel behind the pinned flyers - gives Roster its
+   own identity instead of sitting on the same flat paper as everything
+   else nearby */
+
+.flyer-grid::before{
+
+  content:"";
+
+  position:absolute; inset:0; z-index:0;
+
+  border-radius:18px;
+
+  background:
+
+    radial-gradient(circle at 15% 20%, rgba(35,35,56,0.09) 0, transparent 3%),
+
+    radial-gradient(circle at 78% 15%, rgba(35,35,56,0.08) 0, transparent 2.6%),
+
+    radial-gradient(circle at 40% 60%, rgba(35,35,56,0.07) 0, transparent 3%),
+
+    radial-gradient(circle at 90% 70%, rgba(35,35,56,0.08) 0, transparent 2.4%),
+
+    radial-gradient(circle at 8% 85%, rgba(35,35,56,0.07) 0, transparent 2.8%),
+
+    radial-gradient(circle at 62% 88%, rgba(35,35,56,0.09) 0, transparent 3%),
+
+    radial-gradient(circle at 30% 40%, rgba(35,35,56,0.06) 0, transparent 2.4%),
+
+    radial-gradient(ellipse at top left, #C9A876, #B8946A 60%);
+
+  box-shadow:inset 0 0 0 3px rgba(35,35,56,0.15), inset 0 2px 10px rgba(35,35,56,0.25), 0 10px 24px rgba(35,35,56,0.14);
+
+}
+
+.flyer-grid > *{ position:relative; z-index:1; }
+
+.flyer{
+
+  background:var(--paper2);
+
+  color:var(--ink);
+
+  padding:22px 18px;
+
+  position:relative;
+
+  border-radius:40px 12px 36px 16px / 16px 38px 12px 40px;
+
+  box-shadow:5px 6px 0 var(--blue), 0 20px 34px rgba(35,35,56,0.22);
+
+  text-decoration:none;
+
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+
+}
+
+.flyer:nth-child(1){transform:rotate(-2.5deg) translateY(0);}
+
+.flyer:nth-child(2){transform:rotate(1.5deg) translateY(10px);}
+
+.flyer:nth-child(3){transform:rotate(-1deg) translateY(-4px);}
+
+.flyer:hover{
+
+  transform:rotate(0deg) translateY(-6px);
+
+  box-shadow:6px 8px 0 var(--blue), 0 26px 40px rgba(35,35,56,0.24);
+
+}
+
+.flyer::before{
+
+  content:"";
+
+  position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+
+  width:15px; height:15px; border-radius:50%;
+
+  border:2px solid var(--ink);
+
+  transition:transform 0.25s ease;
+
+}
+
+.flyer:hover::before{ transform:translateX(-50%) scale(1.3); }
+
+.flyer:nth-child(3n+1)::before{ background:var(--red); }
+
+.flyer:nth-child(3n+2)::before{ background:var(--blue); }
+
+.flyer:nth-child(3n+3)::before{ background:var(--gold); }
+
+.flyer h3{
+
+  font-family:"plunct", sans-serif;
+
+  font-size:1.5rem;
+
+  margin-bottom:8px;
+
+}
+
+.flyer p{font-size:0.78rem; opacity:0.7; font-weight:700; letter-spacing:0.5px;}
+
+.flyer .go{
+
+  margin-top:16px; font-size:0.7rem; font-weight:700;
+
+  letter-spacing:0.5px; color:var(--red);
+
+}
+
+
+
+footer{
+
+  border-top:2px solid var(--ink);
+
+  padding:40px 5%;
+
+  display:flex; flex-wrap:wrap; justify-content:space-between; gap:14px;
+
+  font-family:'Space Mono'; font-weight:700; font-size:0.7rem; letter-spacing:1px;
+
+  color:var(--ink);
+
+}
+
 </style>
+
 </head>
+
 <body>
 
 
+
+
+
 <div class="masthead" id="masthead">
+
   <a href="#" class="logo-lockup">
+
     <img class="logo-mark" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DBR%20BOTTLE.png" alt="">
+
     <span class="logo-text">DIVE BAR RECORDS</span>
+
   </a>
+
   <nav>
+
     <a href="#mission">MISSION</a>
+
     <a href="#what-we-do">WHAT WE DO</a>
+
     <a href="#roster">ROSTER</a>
+
     <a href="#faq">FAQ</a>
+
     <a href="#contact">CONTACT</a>
+
   </nav>
+
   <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">
+
     <span></span><span></span><span></span>
+
   </button>
+
 </div>
+
+
 
 <div class="mobile-panel" id="mobilePanel">
+
   <a href="#mission">MISSION</a>
+
   <a href="#what-we-do">WHAT WE DO</a>
+
   <a href="#roster">ROSTER</a>
+
   <a href="#faq">FAQ</a>
+
   <a href="#contact">CONTACT</a>
+
 </div>
 
+
+
 <section class="hero">
+
   <div>
+
     <span class="hero-tag">your music, your way</span>
+
     <div class="logo-composition">
+
       <img class="logo-text-img" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/logo_text_only.png" alt="Dive Bar Records">
+
       <div class="bottle-comp" id="bottleComp">
+
         <img class="layer bottle-layer" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/bottle.png" alt="">
+
         <img class="layer drop-layer" id="drop1" style="--dx:16.2%; --dy:7.7%; animation-delay:0.02s;" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/drop1.png" alt="">
+
         <img class="layer drop-layer" id="drop2" style="--dx:20.2%; --dy:18.7%; animation-delay:0.08s;" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/drop2.png" alt="">
+
         <img class="layer drop-layer" id="drop3" style="--dx:1.7%; --dy:25.4%; animation-delay:0.14s;" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/drop3.png" alt="">
+
         <img class="layer drop-layer" id="drop4" style="--dx:-18.8%; --dy:18.7%; animation-delay:0.2s;" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/drop4.png" alt="">
+
         <img class="layer drop-layer" id="drop5" style="--dx:-24.3%; --dy:8.9%; animation-delay:0.26s;" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/drop5.png" alt="">
+
         <img class="layer drop-layer" id="drop6" style="--dx:-34.0%; --dy:-2.8%; animation-delay:0.32s;" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/drop6.png" alt="">
+
         <img class="layer cap-layer" id="capLayer" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/cap.png" alt="">
+
       </div>
+
     </div>
+
     <p class="hero-sub">Grassroots artists actualising their own cultural vision - a safe space for the UK alternative scene, and beyond.</p>
+
     <button class="pop-cap-btn" id="popCapBtn" type="button">Pop the cap ↓</button>
+
   </div>
+
   <div class="hero-photo-wrap">
+
     <div class="washi"></div>
+
     <div id="carousel">
+
       <div class="slide active">
+
         <figure class="slide-card">
+
           <div class="photo-frame">
+
             <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/ruairi_cadman.png" alt="Ruairi mixing">
+
             <figcaption>Ruairi, Cadman Music Studios, 18.12.24</figcaption>
+
           </div>
+
         </figure>
+
       </div>
+
       <div class="slide">
+
         <figure class="slide-card">
+
           <div class="photo-frame">
+
             <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/slideshow_images/sharn_playing.png" alt="Sharn playing">
+
             <figcaption>Sharn, Lending Room Leeds, 08.05.25</figcaption>
+
           </div>
+
         </figure>
+
       </div>
+
       <div class="slide">
+
         <figure class="slide-card">
+
           <div class="photo-frame">
+
             <img src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/freya_mixing.jpg" alt="Freya Mixing">
+
             <figcaption>Freya, Tonic House, 22.03.26</figcaption>
+
           </div>
+
         </figure>
+
       </div>
+
     </div>
+
     <div class="carousel-dots" id="carouselDots">
+
       <button class="active" aria-label="Slide 1"></button>
+
       <button aria-label="Slide 2"></button>
+
       <button aria-label="Slide 3"></button>
+
     </div>
+
   </div>
+
 </section>
+
+
 
 <svg class="wave-divider" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--ink)"></path></svg>
 
+
+
+<div class="ink-block">
+
 <section class="manifesto" id="mission">
+
   <div class="reveal">
+
     <div class="eyebrow">The Core Philosophy</div>
+
     <p class="ransom">
+
       <span>ARTIST</span><span>BACK</span><span>IN</span><span>THE</span><span>ART,</span><span>NOT</span><span>THE</span><span>SPREADSHEET.</span>
+
     </p>
+
   </div>
+
   <div class="manifesto-note reveal">
+
     <div class="washi"></div>
-    <p>Dive Bar Records is the brainchild of Ben O'Shea, Ruairi McLean, &amp; Freya Millar, born from the North-West alternative scene.</p>
+
+    <p>Dive Bar Records is the vision of Ben O'Shea, Ruairi McLean, &amp; Freya Millar, born from the North-West alternative scene.</p>
+
     <br>
-    <p>With a combined two decades working our way up the Manchester and London scenes, we know exactly what it's like navigating promoters and venues with nothing but a demo and a dream.</p>
+
+    <p>With a combined three decades working our way up, we know exactly what it's like navigating promoters and venues.</p>
+
     <p class="sign">- B. O'Shea, R. McLean &amp; F. Millar</p>
+
   </div>
+
 </section>
 
+
+
 <section class="services" id="what-we-do">
+
   <div class="eyebrow reveal">What We Do</div>
+
   <p class="services-lede reveal">We put our trusted network to work for you: a creative-led combination of promotion, gigs, and recording, so you're free to make <strong>your art, your way.</strong></p>
+
   <div class="pillar-grid">
+
     <div class="pillar-card reveal">
+
       <span class="pillar-num">01</span>
+
       <h3>Promotion</h3>
+
       <p>Posters, press, playlists, socials.</p>
+
     </div>
+
     <div class="pillar-card reveal">
+
       <span class="pillar-num">02</span>
+
       <h3>Gigs</h3>
+
       <p>A network of venues across the country, from Leeds, to Manchester, to London.</p>
+
     </div>
+
     <div class="pillar-card reveal">
+
       <span class="pillar-num">03</span>
+
       <h3>Recording</h3>
+
       <p>We foster a creative space to help actualise your vision, there in the studio with you.</p>
+
     </div>
+
   </div>
+
 </section>
+
+</div>
+
+
 
 <svg class="wave-divider" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--paper)"></path></svg>
 
+
+
+<div class="paper-block">
+
 <section class="corkboard" id="roster">
+
   <div class="eyebrow reveal">Roster</div>
+
   <div class="flyer-grid">
+
     <a href="#" class="flyer reveal">
+
       <h3>Dirty Word</h3>
+
       <p>LEEDS // ALT-ROCK</p>
+
       <div class="go">VIEW ARTIST →</div>
+
     </a>
+
     <a href="#" class="flyer reveal">
+
       <h3>Artist TBA</h3>
+
       <p>this could be you</p>
+
       <div class="go">GET IN TOUCH →</div>
+
     </a>
+
     <a href="#" class="flyer reveal">
+
       <h3>Artist TBA</h3>
+
       <p>or maybe this</p>
+
       <div class="go">GET IN TOUCH →</div>
+
     </a>
+
   </div>
+
 </section>
 
+
+
 <section class="faq" id="faq">
+
   <div class="eyebrow reveal">Questions</div>
+
   <div class="faq-list">
+
     <div class="faq-item reveal">
+
       <button class="faq-q" type="button" aria-expanded="false">
+
         <span>What kind of artists are you looking for?</span>
+
         <span class="faq-icon" aria-hidden="true">+</span>
+
       </button>
+
       <div class="faq-a">
+
         <div class="faq-a-inner">
+
           <p>Grassroots, alternative, and anything different - if you're doing something new, we want to hear it.</p>
+
         </div>
+
       </div>
+
     </div>
+
     <div class="faq-item reveal">
+
       <button class="faq-q" type="button" aria-expanded="false">
+
         <span>Do you use AI anywhere in your release process?</span>
+
         <span class="faq-icon" aria-hidden="true">+</span>
+
       </button>
+
       <div class="faq-a">
+
         <div class="faq-a-inner">
+
           <p>Never. We're proud advocates for protecting the arts and creatives. Every release we put out is artist-made, start to finish.</p>
+
         </div>
+
       </div>
+
     </div>
+
     <div class="faq-item reveal">
+
       <button class="faq-q" type="button" aria-expanded="false">
+
         <span>How do I submit my music?</span>
+
         <span class="faq-icon" aria-hidden="true">+</span>
+
       </button>
+
       <div class="faq-a">
+
         <div class="faq-a-inner">
+
           <p>Use the contact form below, or email us directly at <a href="mailto:info@divebarrecords.co.uk">info@divebarrecords.co.uk</a> with links to your music and a bit about you.</p>
+
         </div>
+
       </div>
+
     </div>
+
     <div class="faq-item reveal">
+
       <button class="faq-q" type="button" aria-expanded="false">
+
         <span>I'm a promoter or venue, not an artist - can I still reach out?</span>
+
         <span class="faq-icon" aria-hidden="true">+</span>
+
       </button>
+
       <div class="faq-a">
+
         <div class="faq-a-inner">
+
           <p>Absolutely. The form below isn't just for artists - venues and promoters are welcome too.</p>
+
         </div>
+
       </div>
+
     </div>
+
     <div class="faq-item reveal">
+
       <button class="faq-q" type="button" aria-expanded="false">
+
         <span>Are you only looking at North-West artists?</span>
+
         <span class="faq-icon" aria-hidden="true">+</span>
+
       </button>
+
       <div class="faq-a">
+
         <div class="faq-a-inner">
+
           <p>We started in Leeds and Manchester, but we're here to support any and all creatives.</p>
+
         </div>
+
       </div>
+
     </div>
+
   </div>
+
 </section>
+
+</div>
+
+
 
 <svg class="wave-divider" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--ink)"></path></svg>
 
+
+
 <section class="contact-section" id="contact">
+
   <div class="reveal">
+
     <div class="eyebrow">Get In Touch</div>
+
     <h2 class="contact-headline">SEND US<br>YOUR DEMO.</h2>
+
     <p class="contact-lede">Artists, promoters, venues - contact us here, or email us directly at <a href="mailto:info@divebarrecords.co.uk">info@divebarrecords.co.uk</a>.</p>
+
   </div>
+
   <form class="contact-card reveal" id="contact-form" action="https://formspree.io/f/mreowjdq" method="POST">
+
     <label for="c-name">Name</label>
+
     <input id="c-name" type="text" name="name" required>
+
     <label for="c-email">Email</label>
+
     <input id="c-email" type="email" name="email" required>
+
     <label for="c-message">Message</label>
+
     <textarea id="c-message" name="message" required></textarea>
+
     <button type="submit">Send it →</button>
+
     <p class="contact-status" id="contact-status" role="status" aria-live="polite"></p>
+
   </form>
+
 </section>
 
+
+
 <footer>
+
   <div>DIVE BAR RECORDS // EST 2026</div>
+
   <div>© ALL RIGHTS RESERVED</div>
+
 </footer>
 
+
+
 <script>
+
 // nav scroll state
+
 const masthead = document.getElementById('masthead');
+
 window.addEventListener('scroll', () => {
+
   masthead.classList.toggle('is-scrolled', window.scrollY > 40);
+
 }, { passive: true });
 
+
+
 // mobile burger
+
 const burger = document.getElementById('burger');
+
 const panel = document.getElementById('mobilePanel');
+
 burger.addEventListener('click', () => {
+
   const open = burger.classList.toggle('is-open');
+
   panel.classList.toggle('is-open', open);
+
   burger.setAttribute('aria-expanded', open);
+
 });
+
 panel.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+
   burger.classList.remove('is-open');
+
   panel.classList.remove('is-open');
+
   burger.setAttribute('aria-expanded', false);
+
 }));
+
+
 
 // FAQ accordion - each item toggles independently
+
 document.querySelectorAll('.faq-item').forEach(item => {
+
   const btn = item.querySelector('.faq-q');
+
   btn.addEventListener('click', () => {
+
     const isOpen = item.classList.toggle('is-open');
+
     btn.setAttribute('aria-expanded', String(isOpen));
+
   });
+
 });
+
+
 
 // photo carousel
+
 const slides = document.querySelectorAll('.slide');
+
 const dots = document.querySelectorAll('.carousel-dots button');
+
 let current = 0;
+
 function goTo(i){
+
   slides[current].classList.remove('active');
+
   dots[current].classList.remove('active');
+
   current = i;
+
   slides[current].classList.add('active');
+
   dots[current].classList.add('active');
+
 }
+
 let timer = setInterval(() => goTo((current + 1) % slides.length), 6000);
+
 dots.forEach((dot, i) => dot.addEventListener('click', () => {
+
   clearInterval(timer);
+
   goTo(i);
+
   timer = setInterval(() => goTo((current + 1) % slides.length), 6000);
+
 }));
 
+
+
 // scatter several ambient ink blobs per section, randomized in position,
+
 // size, color and timing so the effect reads as a deliberate system rather
+
 // than one decorative shape stuck in a corner
-function scatterBlobs(selector, count, colors){
+
+function scatterBlobs(selector, count, colors, opacityRange){
+
   const rand = (min, max) => Math.random() * (max - min) + min;
+
+  const opMin = opacityRange ? opacityRange[0] : 0.12;
+
+  const opMax = opacityRange ? opacityRange[1] : 0.3;
+
   const blobRadius = () => {
+
     const r = () => Math.round(rand(30, 70));
+
     return `${r()}% ${100 - r()}% ${r()}% ${100 - r()}% / ${r()}% ${r()}% ${100 - r()}% ${100 - r()}%`;
+
   };
+
   document.querySelectorAll(selector).forEach(section => {
+
     const rect = section.getBoundingClientRect();
+
     const rangeX = Math.max(80, rect.width * 0.28);
+
     const rangeY = Math.max(60, rect.height * 0.22);
+
     for (let i = 0; i < count; i++) {
+
       const blob = document.createElement('div');
+
       blob.className = 'blob';
+
       const size = Math.round(rand(90, 230));
+
       const color = colors[Math.floor(Math.random() * colors.length)];
+
       const left = rand(-5, 82);
+
       const top = rand(14, 68);
-      const opacity = rand(0.12, 0.3);
+
+      const opacity = rand(opMin, opMax);
+
       const duration = rand(11, 20);
+
       const delay = -rand(0, 16);
+
       const mx1 = rand(-rangeX, rangeX).toFixed(0);
+
       const my1 = rand(-rangeY, rangeY).toFixed(0);
+
       const mx2 = rand(-rangeX, rangeX).toFixed(0);
+
       const my2 = rand(-rangeY, rangeY).toFixed(0);
+
       const mx3 = rand(-rangeX, rangeX).toFixed(0);
+
       const my3 = rand(-rangeY, rangeY).toFixed(0);
+
       blob.style.cssText = `width:${size}px;height:${size}px;left:${left}%;top:${top}%;background:${color};opacity:${opacity};border-radius:${blobRadius()};animation-duration:${duration}s;animation-delay:${delay}s;--mx1:${mx1}px;--my1:${my1}px;--mx2:${mx2}px;--my2:${my2}px;--mx3:${mx3}px;--my3:${my3}px;`;
+
       section.insertBefore(blob, section.firstChild);
+
     }
+
   });
+
 }
+
 window.addEventListener('load', () => {
-  scatterBlobs('.manifesto', 4, ['var(--red)', 'var(--lav)', 'var(--gold)']);
-  scatterBlobs('.services', 4, ['var(--gold)', 'var(--red)', 'var(--lav)']);
+
+  scatterBlobs('.ink-block', 7, ['var(--red)', 'var(--lav)', 'var(--gold)']);
+
+  scatterBlobs('.paper-block', 5, ['var(--gold)', 'var(--blue)', 'var(--lav)'], [0.07, 0.16]);
+
   scatterBlobs('.contact-section', 4, ['var(--gold)', 'var(--blue)', 'var(--red)']);
+
 });
+
+
 
 // handwritten captions: a smooth baseline wave across each word (not random
+
 // per-letter noise, which breaks a connected script font) plus a hint of
+
 // fine irregularity too small to read as "scattered"
+
 document.querySelectorAll('.slide-card figcaption').forEach(cap => {
+
   const text = cap.textContent;
+
   cap.textContent = '';
+
   const phase = Math.random() * Math.PI * 2;
+
   const dir = Math.random() < 0.5 ? 1 : -1;
+
   let i = 0;
+
   [...text].forEach(ch => {
+
     const span = document.createElement('span');
+
     span.className = 'letter';
+
     span.textContent = ch;
+
     if (ch !== ' ') {
+
       const wave = Math.sin(i * 0.5 + phase) * dir;
+
       const rise = (wave * 1.0).toFixed(2);
+
       const rot = (wave * 0.9 + (Math.random() * 0.35 - 0.175)).toFixed(2);
+
       span.style.transform = `translateY(${rise}px) rotate(${rot}deg)`;
+
       i++;
+
     }
+
     cap.appendChild(span);
+
   });
 
+
+
   // a couple of small stray ink splodges near the caption, like an
+
   // overloaded pen dotting an "i" or resting a beat too long
+
   const splodgeCount = 1 + Math.floor(Math.random() * 2);
+
   for (let i = 0; i < splodgeCount; i++) {
+
     const dot = document.createElement('span');
+
     dot.className = 'ink-splodge';
+
     const size = 2 + Math.random() * 3;
+
     dot.style.width = size + 'px';
+
     dot.style.height = (size * (0.7 + Math.random() * 0.6)) + 'px';
+
     dot.style.borderRadius = `${40 + Math.random()*30}% ${40 + Math.random()*30}% ${40 + Math.random()*30}% ${40 + Math.random()*30}%`;
+
     dot.style.left = (Math.random() * 90) + '%';
+
     dot.style.top = (Math.random() * 70 + 10) + '%';
+
     dot.style.opacity = (0.35 + Math.random() * 0.35).toFixed(2);
+
     cap.appendChild(dot);
+
   }
+
 });
+
+
 
 // scroll reveal
+
 const revealEls = document.querySelectorAll('.reveal');
+
 if ('IntersectionObserver' in window){
+
   const io = new IntersectionObserver((entries) => {
+
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+
   }, { threshold: 0.15 });
+
   revealEls.forEach(el => io.observe(el));
+
 } else {
+
   revealEls.forEach(el => el.classList.add('in-view'));
+
 }
 
+
+
 // contact form -> Formspree, submitted via fetch so the page never navigates away
+
 const contactForm = document.getElementById('contact-form');
+
 const contactStatus = document.getElementById('contact-status');
+
 contactForm.addEventListener('submit', async (e) => {
+
   e.preventDefault();
+
   const submitBtn = contactForm.querySelector('button[type="submit"]');
+
   submitBtn.disabled = true;
+
   contactStatus.textContent = 'Sending...';
+
   contactStatus.className = 'contact-status';
+
   try {
+
     const response = await fetch(contactForm.action, {
+
       method: 'POST',
+
       body: new FormData(contactForm),
+
       headers: { 'Accept': 'application/json' }
+
     });
+
     if (response.ok) {
+
       contactStatus.textContent = "Message received - we'll be in touch.";
+
       contactStatus.className = 'contact-status ok';
+
       contactForm.reset();
+
     } else {
+
       const data = await response.json().catch(() => null);
+
       const message = data && data.errors ? data.errors.map(e => e.message).join(', ') : 'Something went wrong - try again, or email us directly.';
+
       contactStatus.textContent = message;
+
       contactStatus.className = 'contact-status err';
+
     }
+
   } catch (err) {
+
     contactStatus.textContent = 'Something went wrong - try again, or email us directly.';
+
     contactStatus.className = 'contact-status err';
+
   } finally {
+
     submitBtn.disabled = false;
+
   }
+
 });
 
+
+
 // pop the cap: the REAL cap layer detaches from the bottle and plunges
+
 // toward the wave divider, while the six spray droplets simultaneously fly
+
 // outward from the bottle's mouth into their correct native positions
+
 // (each already knows its own resting spot, since all the layer files
+
 // share one coordinate space). Scroll and fall share a single
+
 // ---- cap-pop animation ----
+
 // Lands on the real .wave-divider that borders the mission section -
+
 // not a synthesized copy - so the splash is always genuinely adjoined
+
 // to the philosophy div it's meant to sit against. Camera framing is a
+
 // single instant jump performed once, before the fall starts, so the
+
 // fall's own motion never has to fight or share timing with a scroll.
+
 const popBtn = document.getElementById('popCapBtn');
+
 const capLayer = document.getElementById('capLayer');
+
 const bottleComp = document.getElementById('bottleComp');
+
 const dropLayers = Array.from(document.querySelectorAll('.drop-layer'));
+
 const realDivider = document.querySelector('.wave-divider');
+
 const realDividerPath = realDivider ? realDivider.querySelector('path') : null;
+
 // a detached geometry reference holding ONLY the wave's top curve - no
+
 // closing lines. getTotalLength()/getPointAtLength() on the real
+
 // divider's own path were measuring the ENTIRE closed shape, including
+
 // the bottom-edge line that runs x backwards from 1200 to 0 - which is
+
 // comparable in length to the curve itself and breaks the assumption
+
 // (used by sampleWave's binary search) that x increases monotonically
+
 // with path length. Sampling from this reference instead keeps x
+
 // genuinely monotonic, and staying independent of the live divider's
+
 // current `d` means every run samples the same correct baseline, not
+
 // whatever the previous run happened to leave behind.
+
 const waveRefPath = (function(){
+
   const svgNS = 'http://www.w3.org/2000/svg';
+
   const svg = document.createElementNS(svgNS, 'svg');
+
   svg.setAttribute('width', '0');
+
   svg.setAttribute('height', '0');
+
   svg.style.position = 'absolute';
+
   svg.style.overflow = 'hidden';
+
   const path = document.createElementNS(svgNS, 'path');
+
   path.setAttribute('d', 'M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20');
+
   svg.appendChild(path);
+
   document.body.appendChild(svg);
+
   return path;
+
 })();
+
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 const missionSection = document.getElementById('mission');
+
 let capBusy = false;
+
+
 
 function lerp(a, b, t){ return a + (b - a) * t; }
 
+
+
 function preventScrollKey(e){
+
   if (['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(e.key)) e.preventDefault();
+
 }
+
 function preventScrollGesture(e){ e.preventDefault(); }
 
+
+
 function lockPage(){
+
   if (masthead) masthead.classList.add('pop-dim');
+
   window.addEventListener('wheel', preventScrollGesture, { passive: false });
+
   window.addEventListener('touchmove', preventScrollGesture, { passive: false });
+
   window.addEventListener('keydown', preventScrollKey);
+
 }
+
 function unlockPage(){
+
   if (masthead) masthead.classList.remove('pop-dim');
+
   window.removeEventListener('wheel', preventScrollGesture, { passive: false });
+
   window.removeEventListener('touchmove', preventScrollGesture, { passive: false });
+
   window.removeEventListener('keydown', preventScrollKey);
+
 }
+
+
 
 // samples a path into evenly-spaced points along x (viewBox units), by
+
 // walking its length - used both as the resting shape and as the base
+
 // the ripple displaces
+
 function sampleWave(pathEl, count){
+
   const total = pathEl.getTotalLength();
+
   const points = [];
+
   let searchStart = 0;
+
   for (let i = 0; i <= count; i++){
+
     const targetX = (i / count) * 1200;
+
     let lo = searchStart, hi = total, best = pathEl.getPointAtLength(searchStart);
+
     for (let s = 0; s < 20; s++){
+
       const mid = (lo + hi) / 2;
+
       const p = pathEl.getPointAtLength(mid);
+
       best = p;
+
       if (p.x < targetX) lo = mid; else hi = mid;
+
     }
+
     points.push({ x: best.x, y: best.y });
+
     searchStart = lo;
+
   }
+
   return points;
+
 }
+
+
 
 // smooth curve through points: each interior point is used as a
+
 // quadratic control point, with the curve actually passing through the
+
 // midpoint between consecutive points. Starts exactly at points[0] and
+
 // ends exactly at the last point, then closes off with the same flat
+
 // bottom edge as the resting shape.
+
 function pathFromPoints(points){
+
   let d = `M${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
+
   for (let i = 1; i < points.length - 1; i++){
+
     const midX = (points[i].x + points[i + 1].x) / 2;
+
     const midY = (points[i].y + points[i + 1].y) / 2;
+
     d += ` Q${points[i].x.toFixed(1)},${points[i].y.toFixed(1)} ${midX.toFixed(1)},${midY.toFixed(1)}`;
+
   }
+
   const secondLast = points[points.length - 2];
+
   const last = points[points.length - 1];
+
   d += ` Q${secondLast.x.toFixed(1)},${secondLast.y.toFixed(1)} ${last.x.toFixed(1)},${last.y.toFixed(1)}`;
+
   return d + ' L1200,40 L0,40 Z';
+
 }
+
+
 
 // a localized, propagating ripple on the real divider's own path: a
+
 // damped, spreading wave centered on the impact x. Only the path's `d`
+
 // changes - never the element's own box or a transform on it - so
+
 // there's no seam with the section it borders, and the disturbance
+
 // stays anchored to where the cap actually landed.
+
 function rippleWave(pathEl, basePoints, impactX){
+
   if (prefersReducedMotion){
+
     pathEl.setAttribute('d', pathFromPoints(basePoints));
+
     return;
+
   }
+
   const duration = 900;
+
   const t0 = performance.now();
+
   const amp0 = 7.5;
+
   const wavenumber = 0.052;
+
   const phaseSpeed = 34;
+
   const damping = 3.4;
+
   function frame(now){
+
     const t = (now - t0) / duration;
+
     if (t >= 1){
+
       pathEl.setAttribute('d', pathFromPoints(basePoints));
+
       return;
+
     }
+
     const decay = Math.exp(-damping * t);
+
     const radius = 55 + t * 480;
+
     const points = basePoints.map(p => {
+
       const dist = Math.abs(p.x - impactX);
+
       const envelope = Math.exp(-(dist * dist) / (2 * radius * radius));
+
       const wave = Math.cos(dist * wavenumber - t * phaseSpeed);
+
       return { x: p.x, y: p.y + amp0 * decay * envelope * wave };
+
     });
+
     pathEl.setAttribute('d', pathFromPoints(points));
+
     requestAnimationFrame(frame);
+
   }
+
   requestAnimationFrame(frame);
+
 }
+
+
 
 function spawnInkSplash(x, y){
+
   const ring = document.createElement('div');
+
   ring.className = 'impact-ring';
+
   ring.style.left = x + 'px';
+
   ring.style.top = y + 'px';
+
   document.body.appendChild(ring);
+
   setTimeout(() => ring.remove(), 550);
 
+
+
   const dropletCount = 7;
+
   const startAngle = -Math.PI * 0.95;
+
   const endAngle = -Math.PI * 0.05;
+
   for (let i = 0; i < dropletCount; i++) {
+
     const angle = startAngle + (endAngle - startAngle) * (i / (dropletCount - 1));
+
     const dist = 40 + Math.random() * 70;
+
     const dx = Math.cos(angle) * dist;
+
     const dyUp = Math.sin(angle) * dist * 0.9;
+
     const dyDown = dyUp + 30 + Math.random() * 40;
+
     const size = 10 + Math.random() * 20;
+
     const r0 = Math.random() * 40 - 20;
+
     const r1 = r0 + 60 + Math.random() * 60;
+
     const r2 = r1 + 40 + Math.random() * 60;
+
     const dur = (0.6 + Math.random() * 0.35).toFixed(2);
 
+
+
     const drop = document.createElement('div');
+
     drop.className = 'ink-droplet';
+
     drop.style.left = x + 'px';
+
     drop.style.top = y + 'px';
+
     drop.style.width = size + 'px';
+
     drop.style.height = (size * 1.2) + 'px';
+
     drop.style.setProperty('--dx', dx.toFixed(1) + 'px');
+
     drop.style.setProperty('--dy-up', dyUp.toFixed(1) + 'px');
+
     drop.style.setProperty('--dy-down', dyDown.toFixed(1) + 'px');
+
     drop.style.setProperty('--r0', r0.toFixed(0) + 'deg');
+
     drop.style.setProperty('--r1', r1.toFixed(0) + 'deg');
+
     drop.style.setProperty('--r2', r2.toFixed(0) + 'deg');
+
     drop.style.setProperty('--dur', dur + 's');
+
     document.body.appendChild(drop);
+
     setTimeout(() => drop.remove(), dur * 1000 + 50);
+
   }
+
 }
+
+
 
 function resetBottle(){
+
   dropLayers.forEach(d => d.classList.remove('revealed'));
+
   if (capLayer.parentElement !== bottleComp) {
+
     bottleComp.appendChild(capLayer);
+
   }
+
   capLayer.style.position = '';
+
   capLayer.style.left = '';
+
   capLayer.style.top = '';
+
   capLayer.style.width = '';
+
   capLayer.style.height = '';
+
   capLayer.style.margin = '';
+
   capLayer.style.zIndex = '';
+
   capLayer.style.transform = '';
+
   capLayer.style.transition = '';
+
   capLayer.style.opacity = '';
+
 }
+
+
 
 // after the splash, a separate smooth glide brings the mission section
+
 // properly into frame - the fall itself only needs to get the cap to
+
 // the divider, not do the full job of bringing the philosophy content
+
 // into focus, which is this phase's job alone
+
 function revealMission(){
+
   if (!missionSection || !realDivider){ finishPop(); return; }
+
   const startScroll = window.scrollY;
+
   // land the divider itself just below the sticky nav, so it's still
+
   // fully visible with the mission content filling the rest of the
+
   // screen beneath it - rather than scrolling the divider away entirely
+
   const navOffset = masthead ? masthead.getBoundingClientRect().height : 0;
+
   const dividerRect = realDivider.getBoundingClientRect();
+
   const targetScroll = Math.max(0, startScroll + dividerRect.top - navOffset);
+
   if (Math.abs(targetScroll - startScroll) < 4){ finishPop(); return; }
+
   const duration = 650;
+
   const t0 = performance.now();
+
   function frame(now){
+
     const t = Math.min(1, (now - t0) / duration);
+
     // ease-in-out: gentle glide rather than an abrupt jump
+
     const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
     window.scrollTo({ top: startScroll + (targetScroll - startScroll) * eased, left: 0, behavior: 'instant' });
+
     if (t < 1){
+
       requestAnimationFrame(frame);
+
     } else {
+
       finishPop();
+
     }
+
   }
+
   requestAnimationFrame(frame);
+
 }
+
+
 
 function finishPop(){
+
   unlockPage();
+
   setTimeout(() => {
+
     capBusy = false;
+
     popBtn.disabled = false;
+
   }, 250);
+
 }
+
+
 
 function popCap(){
+
   if (capBusy || !capLayer || !realDivider || !realDividerPath) return;
+
   capBusy = true;
+
   popBtn.disabled = true;
+
   resetBottle();
+
   lockPage();
 
+
+
   // spray reveals immediately at the bottle
+
   dropLayers.forEach(d => d.classList.add('revealed'));
 
+
+
   const startRect = capLayer.getBoundingClientRect();
+
   const startX = startRect.left + startRect.width / 2;
+
   const startY = startRect.top + startRect.height / 2;
+
   const startW = startRect.width;
+
   const startH = startRect.height;
+
   const startScrollY = window.scrollY;
 
+
+
   const dividerRectPre = realDivider.getBoundingClientRect();
+
   const vh = window.innerHeight;
 
+
+
   // the cap's ON-SCREEN motion always targets a fixed, viewport-relative
+
   // point (80% down whatever screen this is) - a short, comfortable,
+
   // consistent hop-and-fall regardless of device. Separately, the PAGE
+
   // scrolls (in document space) by however much is actually needed to
+
   // bring the real divider's surface to that same on-screen point. The
+
   // two are driven by the same clock below, so they always arrive
+
   // together - this is what makes a distant divider on a tall mobile
+
   // layout reachable at all, without the cap itself needing to travel
+
   // some huge, unreadable distance.
+
   const onScreenLandingY = Math.max(startY + vh * 0.18, vh * 0.80);
+
   const dividerSurfaceDocY = dividerRectPre.top + startScrollY + dividerRectPre.height * 0.5;
+
   let targetScrollY = dividerSurfaceDocY - onScreenLandingY;
+
   targetScrollY = Math.max(0, targetScrollY);
 
+
+
   const basePoints = sampleWave(waveRefPath, 48);
+
   const onScreenFallDistance = Math.max(20, onScreenLandingY - startY);
+
   const scrollDistance = Math.max(0, targetScrollY - startScrollY);
 
+
+
   // horizontal drift is always rightward, away from the wordmark that
+
   // sits to the bottle's left, and scaled to the ON-SCREEN fall so it
+
   // looks proportionate on any device
+
   const arcBias = onScreenFallDistance * 0.3;
+
   let targetX = startX + arcBias;
+
   targetX = Math.min(dividerRectPre.right - 30, Math.max(dividerRectPre.left + 30, targetX));
 
+
+
   // duration is derived from gravity, driven by whichever distance is
+
   // actually dominant: the short on-screen hop on a desktop viewport
+
   // where little or no scrolling is needed, or the real scroll distance
+
   // on a mobile layout where the divider sits well outside the start
+
   // frame - so a longer scroll gets a proportionally longer, smoother
+
   // ride instead of the background whipping past at a fixed cap-sized
+
   // duration
+
   const gravityPxPerSec2 = 2200;
+
   const drivingDistance = Math.max(onScreenFallDistance, scrollDistance);
+
   const fallDuration = Math.max(450, Math.min(1800, Math.sqrt(2 * drivingDistance / gravityPxPerSec2) * 1000));
 
+
+
   // move the cap out of .bottle-comp before going fixed: that container
+
   // has a CSS filter on it, and filter (like transform) makes an element
+
   // the containing block for fixed-position descendants - so left/top
+
   // set below would resolve against the small bottle box instead of the
+
   // real viewport if the cap stayed inside it. Position is restored
+
   // immediately from the already-measured rect, so there's no visible jump.
+
   document.body.appendChild(capLayer);
+
   capLayer.style.position = 'fixed';
+
   capLayer.style.left = startX + 'px';
+
   capLayer.style.top = startY + 'px';
+
   capLayer.style.width = startW + 'px';
+
   capLayer.style.height = startH + 'px';
+
   capLayer.style.margin = '0';
+
   capLayer.style.zIndex = '650';
+
   capLayer.style.transformOrigin = 'center';
 
+
+
   if (prefersReducedMotion){
+
     capLayer.style.opacity = '0';
+
     if (missionSection) missionSection.scrollIntoView({ behavior: 'auto', block: 'start' });
+
     finishPop();
+
     return;
+
   }
+
+
 
   // total rotation is a fixed, modest amount - well under half a turn -
+
   // constant angular velocity across the whole flight
+
   const totalRotationDeg = 112;
 
+
+
   // one continuous ballistic arc for the whole flight - no separate
+
   // hop-then-fall phases. Two phases with independent easing functions
+
   // meant the hop ended already moving downward at a real, non-zero
+
   // speed, then the fall phase restarted at zero velocity (t*t has no
+
   // slope at t=0) - that mismatch was the "little bounce" stutter right
+
   // at the handoff. Solving for a single launch velocity (v0) and
+
   // gravity (g) that satisfy both "peaks at hopHeight" and "lands
+
   // exactly on target after fallDuration" gives one unbroken curve:
+
   // fast off the launch, decelerating smoothly to the crest, then
+
   // accelerating continuously down to landing.
+
   const hopHeight = 16; // px, how high the cap pops above its start
+
   const T = fallDuration;
+
   const D = onScreenLandingY - startY;
+
   const v0 = (2 * hopHeight / T) * (1 + Math.sqrt(1 + D / hopHeight));
+
   const g = (v0 * v0) / (2 * hopHeight);
 
+
+
   function flight(){
+
     const t0 = performance.now();
+
     function frame(now){
+
       const elapsed = Math.min(T, now - t0);
+
       const t = elapsed / T;
+
       // vertical: one continuous quadratic - up fast, decelerating to
+
       // the crest, then accelerating down to landing
+
       const yOffset = -v0 * elapsed + 0.5 * g * elapsed * elapsed;
+
       const curY = startY + yOffset;
+
       // horizontal: constant velocity across the whole flight
+
       const curX = startX + (targetX - startX) * t;
+
       // rotation: constant angular velocity across the whole flight
+
       const rot = totalRotationDeg * t;
+
       // scroll: its own simple ease-in, synced to the same clock -
+
       // only ever needs to move forward, not retrace the cap's own
+
       // up-then-down path
+
       const scrollEased = t * t;
+
       window.scrollTo({ top: startScrollY + (targetScrollY - startScrollY) * scrollEased, left: 0, behavior: 'instant' });
 
+
+
       capLayer.style.left = curX + 'px';
+
       capLayer.style.top = curY + 'px';
+
       capLayer.style.transform = `translate(-50%,-50%) rotate(${rot}deg)`;
 
+
+
       if (elapsed < T){
+
         requestAnimationFrame(frame);
+
       } else {
+
         submerge();
+
       }
+
     }
+
     requestAnimationFrame(frame);
+
   }
+
+
 
   // the splash fires immediately on contact; the cap simply drops
+
   // behind the divider's own stacking context from that point on - the
+
   // wave now visually covers it, no extra choreographed motion needed
+
   function submerge(){
+
     const dividerRect = realDivider.getBoundingClientRect();
+
     const scaleX = dividerRect.width / 1200;
+
     const scaleY = dividerRect.height / 40;
+
     const fracX = (targetX - dividerRect.left) / dividerRect.width;
+
     const idx = Math.min(48, Math.max(0, Math.round(fracX * 48)));
+
     const wavePoint = basePoints[idx];
+
     const landingX = dividerRect.left + wavePoint.x * scaleX;
+
     const landingY = dividerRect.top + wavePoint.y * scaleY;
 
+
+
     spawnInkSplash(landingX, landingY);
+
     rippleWave(realDividerPath, basePoints, wavePoint.x);
 
+
+
     // the SVG's fill only exists BELOW the drawn curve - everything
+
     // above it, within the same box, is transparent. z-index alone
+
     // can't hide the cap behind a transparent pixel, so its resting
+
     // position also needs to sit low enough that its whole height is
+
     // within the actually-painted ink, not straddling the curve line
+
     capLayer.style.zIndex = '1';
+
     capLayer.style.top = (landingY + startH * 0.5 + 6) + 'px';
+
     capLayer.style.transition = 'top 0.15s ease-in, opacity 0.2s ease';
+
     capLayer.style.opacity = '0';
+
     setTimeout(revealMission, 380);
+
   }
 
+
+
   flight();
+
 }
 
+
+
 if (popBtn) popBtn.addEventListener('click', popCap);
+
 </script>
 
+
+
 </body>
+
 </html>
