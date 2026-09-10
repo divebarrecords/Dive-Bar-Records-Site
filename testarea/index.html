@@ -430,6 +430,14 @@ a{color:inherit;}
 
 }
 
+.bottle-anchor{
+
+  position:relative;
+
+  flex-shrink:0;
+
+}
+
 .bottle-comp{
 
   position:relative;
@@ -508,7 +516,9 @@ a{color:inherit;}
 
   position:absolute;
 
-  top:4%; right:-8%;
+  top:4%; left:100%;
+
+  margin-left:6px;
 
   display:flex; align-items:center; gap:4px;
 
@@ -516,7 +526,7 @@ a{color:inherit;}
 
   opacity:0;
 
-  transform:translateX(4px);
+  transform:translateX(-4px);
 
   transition:opacity 0.4s ease, transform 0.4s ease;
 
@@ -1724,6 +1734,8 @@ footer{
 
       <img class="logo-text-img" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/logo_text_only.png" alt="Dive Bar Records">
 
+      <div class="bottle-anchor">
+
       <div class="bottle-comp" id="bottleComp">
 
         <img class="layer bottle-layer" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/bottle.png" alt="">
@@ -1742,13 +1754,15 @@ footer{
 
         <img class="layer cap-layer" id="capLayer" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/cap.png" alt="">
 
-        <div class="click-prompt" aria-hidden="true">
+      </div>
 
-          <svg viewBox="0 0 80 60" class="click-arrow"><path d="M72,10 C54,6 34,14 18,30" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round"/><path d="M30,22 L16,32 L24,46" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="click-prompt" aria-hidden="true">
 
-          <span>pop the cap!</span>
+        <svg viewBox="0 0 80 60" class="click-arrow"><path d="M72,10 C54,6 34,14 18,30" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round"/><path d="M30,22 L16,32 L24,46" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
 
-        </div>
+        <span>pop the cap!</span>
+
+      </div>
 
       </div>
 
