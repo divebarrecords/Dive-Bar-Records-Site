@@ -61,6 +61,16 @@ body{
 
 }
 
+body.pre-pop{
+
+  overflow:hidden;
+
+  height:100vh;
+
+  height:100svh;
+
+}
+
 
 
 /* paper grain: a fibrous, irregular noise (not a halftone dot grid) laid
@@ -392,7 +402,23 @@ a{color:inherit;}
 
 }
 
-.hero > div:not(.blob){ position:relative; z-index:1; }
+/* while the pre-pop gate is up, the hero is the entire screen - give it
+   real height and centre its content so it reads as a deliberate first
+   screen instead of content stranded up near the top with dead space
+   below (most noticeable on mobile, where the hero's natural content
+   height is short) */
+
+body.pre-pop .hero{
+
+  min-height:100vh;
+
+  min-height:100svh;
+
+  align-content:center;
+
+}
+
+.hero > div:not(.blob):not(.spotlight){ position:relative; z-index:1; }
 
 .logo-composition{
 
@@ -552,6 +578,64 @@ body.pre-pop .click-prompt{
 
 }
 
+.click-arrow-mobile{ display:none; }
+
+@media(max-width:680px){
+
+  /* not enough room to the side of the bottle on narrow screens - the
+     prompt drops underneath instead, with its own arrow pointing up
+     into the cap rather than sideways at it */
+
+  .click-prompt{
+
+    top:100%; left:0; right:0;
+
+    margin-left:0;
+
+    margin-top:6px;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:2px;
+
+    transform:translateY(-4px);
+
+  }
+
+  body.pre-pop .click-prompt{ transform:translateY(0); }
+
+  .click-arrow{ display:none; }
+
+  .click-arrow-mobile{
+
+    display:block;
+
+    width:clamp(26px, 7vw, 36px);
+
+    height:auto;
+
+  }
+
+  .click-prompt span{
+
+    font-size:clamp(0.95rem, 4vw, 1.25rem);
+
+    white-space:normal;
+
+    text-align:center;
+
+    max-width:34vw;
+
+    line-height:1.2;
+
+  }
+
+}
+
 .click-prompt span{
 
   font-family:'Caveat', cursive;
@@ -571,6 +655,42 @@ body.pre-pop .click-prompt{
 @keyframes prompt-bob{
 
   0%, 100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); }
+
+}
+
+
+
+/* spotlight vignette: while the pre-pop gate is idle, a soft dark edge
+   frames the screen so the bottle reads as the deliberate focal point
+   of a proper first screen, rather than a logo sat on a blank page.
+   position:fixed so it covers the true viewport regardless of where it
+   sits in the DOM; pointer-events:none so it never blocks the click. */
+
+.spotlight{
+
+  position:fixed; inset:0; z-index:0;
+
+  pointer-events:none;
+
+  opacity:0;
+
+  transition:opacity 0.8s ease;
+
+  background:radial-gradient(ellipse 85% 78% at 50% 46%, transparent 45%, rgba(35,35,56,0.06) 65%, rgba(35,35,56,0.3) 100%);
+
+}
+
+body.pre-pop .spotlight{
+
+  opacity:1;
+
+  animation:spotlight-breathe 6s ease-in-out infinite;
+
+}
+
+@keyframes spotlight-breathe{
+
+  0%, 100%{ opacity:1; } 50%{ opacity:0.82; }
 
 }
 
@@ -1724,6 +1844,8 @@ footer{
 
 <section class="hero">
 
+  <div class="spotlight" aria-hidden="true"></div>
+
   <div>
 
     <span class="hero-tag">your music, your way</span>
@@ -1757,6 +1879,8 @@ footer{
       <div class="click-prompt" aria-hidden="true">
 
         <svg viewBox="0 0 100 70" class="click-arrow"><path d="M90,10 C70,4 44,20 24,40" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round"/><path d="M43,35 L24,40 L29,21" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+
+        <svg viewBox="0 0 60 100" class="click-arrow-mobile"><path d="M24,90 C8,62 46,44 34,17" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round"/><path d="M42,29 L34,15 L26,29" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
 
         <span>pop the cap!</span>
 
