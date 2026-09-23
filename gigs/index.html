@@ -599,7 +599,7 @@ continueBtn.addEventListener('click', async () => {
     if (url) { window.location.href = url; return; }
     throw new Error('No checkout URL returned');
   } catch (err) {
-    modalStatus.textContent = "Checkout isn't connected yet — wire up the Supabase Edge Function to enable payment.";
+    modalStatus.textContent = "Checkout isn't connected yet, i still have to wire up the Supabase Edge Function to enable payment.";
   } finally {
     continueBtn.disabled = false;
   }
