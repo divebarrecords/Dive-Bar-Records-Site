@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GIGS - DIVE BAR RECORDS</title>
-<meta name="description" content="Upcoming Dive Bar Records shows. Tickets sold direct - no third-party platform fee.">
+<title>GIGS — DIVE BAR RECORDS</title>
+<meta name="description" content="Upcoming Dive Bar Records shows. Tickets sold direct — no third-party platform fee.">
 <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -100,8 +100,7 @@ body::before{
   transition:color 0.2s ease;
 }
 .logo-lockup:hover .logo-text{ color:var(--red); }
-.masthead nav{display:flex; gap:22px; flex-wrap:wrap;}
-.masthead nav a{
+.back-link{
   position:relative;
   font-family:'Space Mono'; font-weight:700;
   font-size:0.72rem;
@@ -111,7 +110,8 @@ body::before{
   color:var(--ink);
   padding-bottom:4px;
 }
-.masthead nav a::after{
+.back-link::before{ content:"← "; }
+.back-link::after{
   content:"";
   position:absolute; left:0; bottom:0;
   width:100%; height:2px;
@@ -119,49 +119,12 @@ body::before{
   transform:scaleX(0); transform-origin:left;
   transition:transform 0.25s ease;
 }
-.masthead nav a:hover{ color:var(--gold); }
-.masthead nav a:hover::after{ transform:scaleX(1); }
-.masthead nav a.is-current{ color:var(--red); }
-.masthead nav a.is-current::after{ background:var(--red); transform:scaleX(1); }
-
-.burger{
-  display:none; width:38px; height:32px;
-  background:none; border:none; padding:0;
-  flex-direction:column; justify-content:space-between;
-  z-index:210;
-}
-.burger span{ display:block; height:3px; width:100%; background:var(--ink); border-radius:1px; transition:transform 0.3s ease, opacity 0.3s ease; }
-.burger.is-open span:nth-child(1){ transform:translateY(13px) rotate(45deg); }
-.burger.is-open span:nth-child(2){ opacity:0; }
-.burger.is-open span:nth-child(3){ transform:translateY(-13px) rotate(-45deg); }
-
-.mobile-panel{
-  position:fixed; top:0; left:0; right:0;
-  background:var(--paper2);
-  border-bottom:3px solid var(--ink);
-  box-shadow:0 12px 0 rgba(35,35,56,0.1);
-  padding:100px 8% 40px;
-  display:flex; flex-direction:column; gap:26px;
-  transform:translateY(-100%);
-  transition:transform 0.35s cubic-bezier(.4,0,.2,1);
-  z-index:190;
-}
-.mobile-panel.is-open{ transform:translateY(0); }
-.mobile-panel a{
-  font-family:"plunct", sans-serif;
-  font-size:2rem;
-  text-decoration:none;
-  color:var(--ink);
-  border-bottom:2px solid rgba(35,35,56,0.15);
-  padding-bottom:14px;
-}
-.mobile-panel a.is-current{ color:var(--red); }
-@media(max-width:760px){ .masthead nav{ display:none; } .burger{ display:flex; } }
-@media(min-width:761px){ .mobile-panel{ display:none; } }
+.back-link:hover{ color:var(--gold); }
+.back-link:hover::after{ transform:scaleX(1); }
 
 #upcoming, #ticket-faq{ scroll-margin-top:100px; }
 
-/* ---- PAGE HERO (quieter than the homepage - no pre-pop gate, this
+/* ---- PAGE HERO (quieter than the homepage — no pre-pop gate, this
    page has a job to do, not a first impression to make) ---- */
 .page-hero{ padding:64px 5% 40px; position:relative; isolation:isolate; overflow:hidden; }
 .page-hero > *:not(.blob){ position:relative; z-index:1; }
@@ -193,7 +156,7 @@ body::before{
 .paper-block{ position:relative; isolation:isolate; overflow:hidden; }
 .paper-block > *:not(.blob){ position:relative; z-index:1; }
 
-/* ---- UPCOMING GIGS - pinned to the same corkboard texture as Roster ---- */
+/* ---- UPCOMING GIGS — pinned to the same corkboard texture as Roster ---- */
 .gigs-section{ padding:70px 5% 40px; position:relative; }
 .gigs-section .eyebrow, .ticket-faq .eyebrow{
   font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
@@ -324,7 +287,7 @@ body::before{
 .gig-modal button.gig-cta{ margin-bottom:12px; }
 .gig-modal-status{ font-size:0.78rem; min-height:1.3em; color:var(--red); }
 
-/* ---- TICKET FAQ - same accordion as the main site ---- */
+/* ---- TICKET FAQ — same accordion as the main site ---- */
 .ticket-faq{ padding:30px 5% 90px; position:relative; }
 .ticket-faq .eyebrow{ color:var(--red); }
 .faq-list{
@@ -381,26 +344,7 @@ footer{
     <img class="logo-mark" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DBR%20BOTTLE.png" alt="">
     <span class="logo-text">DIVE BAR RECORDS</span>
   </a>
-  <nav>
-    <a href="/#mission">MISSION</a>
-    <a href="/#what-we-do">WHAT WE DO</a>
-    <a href="/#roster">ROSTER</a>
-    <a href="/gigs" class="is-current">GIGS</a>
-    <a href="/#faq">FAQ</a>
-    <a href="/#contact">CONTACT</a>
-  </nav>
-  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">
-    <span></span><span></span><span></span>
-  </button>
-</div>
-
-<div class="mobile-panel" id="mobilePanel">
-  <a href="/#mission">MISSION</a>
-  <a href="/#what-we-do">WHAT WE DO</a>
-  <a href="/#roster">ROSTER</a>
-  <a href="/gigs" class="is-current">GIGS</a>
-  <a href="/#faq">FAQ</a>
-  <a href="/#contact">CONTACT</a>
+  <a href="/" class="back-link">Back to site</a>
 </div>
 
 <section class="page-hero">
@@ -432,7 +376,7 @@ footer{
         <span class="faq-icon" aria-hidden="true">+</span>
       </button>
       <div class="faq-a"><div class="faq-a-inner">
-        <p>No - your confirmation email is your ticket. Bring it up on your phone at the door, or print it if you'd rather.</p>
+        <p>No — your confirmation email is your ticket. Bring it up on your phone at the door, or print it if you'd rather.</p>
       </div></div>
     </div>
     <div class="faq-item reveal">
@@ -441,12 +385,12 @@ footer{
         <span class="faq-icon" aria-hidden="true">+</span>
       </button>
       <div class="faq-a"><div class="faq-a-inner">
-        <p>Varies by show and venue - check the listing above. Some rooms will ID on the door regardless.</p>
+        <p>Varies by show and venue — check the listing above. Some rooms will ID on the door regardless.</p>
       </div></div>
     </div>
     <div class="faq-item reveal">
       <button class="faq-q" type="button" aria-expanded="false">
-        <span>I've lost my confirmation email - what now?</span>
+        <span>I've lost my confirmation email — what now?</span>
         <span class="faq-icon" aria-hidden="true">+</span>
       </button>
       <div class="faq-a"><div class="faq-a-inner">
@@ -459,7 +403,7 @@ footer{
         <span class="faq-icon" aria-hidden="true">+</span>
       </button>
       <div class="faq-a"><div class="faq-a-inner">
-        <p>Only if a show hasn't sold out. Booking ahead guarantees you a spot - follow us for live sell-out updates.</p>
+        <p>Only if a show hasn't sold out. Booking ahead guarantees you a spot — follow us for live sell-out updates.</p>
       </div></div>
     </div>
   </div>
@@ -607,7 +551,7 @@ function openModal(gigId){
   if (!activeGig) return;
   qty = 1;
   modalTitle.textContent = activeGig.headliner;
-  modalVenue.textContent = `${activeGig.venue}, ${activeGig.city} - ${formatDateLong(activeGig.date)}`;
+  modalVenue.textContent = `${activeGig.venue}, ${activeGig.city} — ${formatDateLong(activeGig.date)}`;
   modalStatus.textContent = '';
   updateTotal();
   overlay.classList.add('is-open');
@@ -633,7 +577,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.
 // CHECKOUT
 // This is the one part of the page that needs a real backend.
 // Point CHECKOUT_ENDPOINT at your Supabase Edge Function once
-// it's deployed - it should create a Stripe Checkout Session
+// it's deployed — it should create a Stripe Checkout Session
 // server-side (never in this file) and return { url }, which
 // this redirects the browser to. Until that endpoint exists,
 // this fails gracefully instead of pretending to work.
@@ -655,32 +599,19 @@ continueBtn.addEventListener('click', async () => {
     if (url) { window.location.href = url; return; }
     throw new Error('No checkout URL returned');
   } catch (err) {
-    modalStatus.textContent = "Checkout isn't connected yet - wire up the Supabase Edge Function to enable payment.";
+    modalStatus.textContent = "Checkout isn't connected yet — wire up the Supabase Edge Function to enable payment.";
   } finally {
     continueBtn.disabled = false;
   }
 });
 
 // ============================================================
-// SHARED CHROME - same behaviour as the main site
+// SHARED CHROME — same behaviour as the main site
 // ============================================================
 const masthead = document.getElementById('masthead');
 window.addEventListener('scroll', () => {
   masthead.classList.toggle('is-scrolled', window.scrollY > 40);
 }, { passive: true });
-
-const burger = document.getElementById('burger');
-const panel = document.getElementById('mobilePanel');
-burger.addEventListener('click', () => {
-  const open = burger.classList.toggle('is-open');
-  panel.classList.toggle('is-open', open);
-  burger.setAttribute('aria-expanded', open);
-});
-panel.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
-  burger.classList.remove('is-open');
-  panel.classList.remove('is-open');
-  burger.setAttribute('aria-expanded', false);
-}));
 
 document.addEventListener('click', (e) => {
   const item = e.target.closest('.faq-item');
@@ -692,7 +623,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// scroll reveal - set up first so it's ready for both the static
+// scroll reveal — set up first so it's ready for both the static
 // elements already on the page and the gig cards rendered later
 let io = null;
 if ('IntersectionObserver' in window){
