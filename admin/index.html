@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gigs Admin — DIVE BAR RECORDS</title>
+<title>Gigs Admin - DIVE BAR RECORDS</title>
 <meta name="robots" content="noindex, nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.1"></script>
@@ -86,7 +86,7 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
 <div id="loginView">
   <div class="login-card">
     <h1>GIGS ADMIN</h1>
-    <p class="sub">Dive Bar Records — sign in to manage listings.</p>
+    <p class="sub">Dive Bar Records - sign in to manage listings.</p>
     <form id="loginForm">
       <label for="loginEmail">Email</label>
       <input type="email" id="loginEmail" required autocomplete="username">
@@ -195,7 +195,7 @@ loginForm.addEventListener('submit', async (e) => {
   const { error } = await sb.auth.signInWithPassword({ email, password });
   loginBtn.disabled = false;
   if (error) {
-    loginStatus.textContent = error.message || 'Login failed — check your details.';
+    loginStatus.textContent = error.message || 'Login failed - check your details.';
     return;
   }
   showApp();
@@ -266,7 +266,7 @@ gigForm.addEventListener('submit', async (e) => {
 
   saveBtn.disabled = false;
   if (error) {
-    formStatus.textContent = error.message || 'Could not save — try again.';
+    formStatus.textContent = error.message || 'Could not save - try again.';
     return;
   }
   resetForm();
@@ -282,11 +282,11 @@ async function loadGigs(){
     .order('event_date', { ascending: true });
 
   if (error) {
-    listEl.innerHTML = `<p class="empty-note">Couldn't load gigs — ${error.message}</p>`;
+    listEl.innerHTML = `<p class="empty-note">Couldn't load gigs - ${error.message}</p>`;
     return;
   }
   if (!data || data.length === 0) {
-    listEl.innerHTML = '<p class="empty-note">No gigs yet — add one above.</p>';
+    listEl.innerHTML = '<p class="empty-note">No gigs yet - add one above.</p>';
     return;
   }
 
