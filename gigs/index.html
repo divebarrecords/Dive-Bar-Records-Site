@@ -1,413 +1,711 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIGS // DIVE BAR RECORDS</title>
-    <link rel="shortcut icon" type="image/x-icon" href="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DB%20favicon.ico" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIGS - DIVE BAR RECORDS</title>
+<meta name="description" content="Upcoming Dive Bar Records shows. Tickets sold direct - no third-party platform fee.">
+<link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f8f7f3;
+  --paper2:#F2EAD2;
+  --ink:#232338;
+  --gold:#D79922;
+  --red:#F13C20;
+  --blue:#4056A1;
+  --lav:#C5CBE3;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(ellipse 620px 480px at 10% 6%, rgba(215,153,34,0.055), transparent 60%),
+    radial-gradient(ellipse 700px 560px at 92% 96%, rgba(64,86,161,0.05), transparent 58%),
+    radial-gradient(ellipse 520px 420px at 68% 18%, rgba(241,60,32,0.03), transparent 55%),
+    radial-gradient(ellipse 480px 600px at 30% 80%, rgba(35,35,56,0.035), transparent 55%),
+    var(--paper);
+  color:var(--ink);
+  font-family:'Space Mono', monospace;
+  font-size:1rem;
+  line-height:1.65;
+  overflow-x:hidden;
+  position:relative;
+}
+a{color:inherit;}
+button{font:inherit;}
 
-    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@300;700&family=Special+Elite&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
-
-    <style>
-        :root {
-            --bg: #0f0f0f;
-            --paper: #ecebe4;
-            --accent: #d4af37;
-            --ink: #1a1a1a;
-            --transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-
-        /* Base Reset */
-        * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
-
-        body {
-            background-color: var(--bg);
-            color: var(--paper);
-            font-family: 'Space Grotesk', sans-serif;
-            overflow-x: hidden;
-            line-height: 1.6;
-        }
-
-        /* --- NOISE & TEXTURE OVERLAYS --- */
-        .texture-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9998; pointer-events: none; opacity: 0.05;
-            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            background-size: cover;
-        }
-
-        .fuzzy-overlay {
-            position: fixed; inset: -50%; z-index: -9999; pointer-events: none; opacity: 0.04;
-            background-color: #fff;
-        }
-        .fuzzy-overlay::before {
-            content: ""; position: absolute; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            animation: grain-flicker 0.15s steps(1) infinite;
-        }
-        @keyframes grain-flicker {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(-2%, -3%); }
-            50% { transform: translate(3%, 1%); }
-            75% { transform: translate(-1%, 2%); }
-            100% { transform: translate(2%, -2%); }
-        }
-
-        /* --- HEADER --- */
-        .main-header {
-            position: fixed; top: 0; width: 100%; z-index: 1000;
-            background: rgba(15, 15, 15, 0.85);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 5%;
-        }
-        .header-logo {
-            font-family: "plunct", sans-serif; 
-            font-size: 2rem;
-            color: var(--paper); 
-            text-decoration: none;
-            letter-spacing: -1px;
-        }
-        .nav-links a {
-            text-decoration: none; 
-            color: var(--paper);
-            font-family: 'Special Elite'; 
-            font-size: 0.8rem;
-            padding: 5px 12px; 
-            transition: var(--transition);
-        }
-        .nav-links a:hover { 
-            background: var(--accent); 
-            color: var(--bg); 
-        }
-
-        /* --- GIGS SECTION --- */
-        .gigs-section {
-            padding: 160px 5% 100px;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .label-tape {
-            background: #1a1a1a; 
-            color: var(--accent);
-            padding: 5px 15px; 
-            font-family: 'Special Elite';
-            display: inline-block; 
-            transform: rotate(-1deg);
-            box-shadow: 2px 2px 0px var(--accent);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-        }
-
-        .gigs-header h1 {
-            font-family: 'Syncopate';
-            font-size: clamp(2.5rem, 8vw, 4rem);
-            line-height: 1;
-            margin-bottom: 40px;
-            color: var(--paper);
-        }
-        /* Controls */
-.gigs-controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+/* paper grain, same recipe as the main site */
+body::before{
+  content:"";
+  position:fixed; inset:-10px; z-index:9999; pointer-events:none;
+  opacity:0.1;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.16  0 0 0 0 0.11  0 0 0 0 0.05  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:260px 260px;
+  mix-blend-mode:multiply;
+  animation:grain-drift 9s steps(6) infinite;
+}
+@keyframes grain-drift{
+  0%{transform:translate(0,0);} 20%{transform:translate(-1px,1px);}
+  40%{transform:translate(1px,-1px);} 60%{transform:translate(-1px,-1px);}
+  80%{transform:translate(1px,1px);} 100%{transform:translate(0,0);}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  body::before{animation:none;}
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
 }
 
-.gigs-controls button {
-    background: transparent;
-    border: 1px solid #333;
-    color: var(--paper);
-    padding: 6px 12px;
-    font-family: 'Special Elite';
-    cursor: pointer;
-    transition: var(--transition);
+.blob{position:absolute; z-index:0; pointer-events:none; filter:blur(30px); animation:blob-wander 14s ease-in-out infinite;}
+@keyframes blob-wander{
+  0%,100%{ transform:translate(0,0) rotate(0deg) scale(1); }
+  25%{ transform:translate(var(--mx1,60px),var(--my1,-40px)) rotate(8deg) scale(1.08); }
+  50%{ transform:translate(var(--mx2,-70px),var(--my2,50px)) rotate(-6deg) scale(0.94); }
+  75%{ transform:translate(var(--mx3,50px),var(--my3,60px)) rotate(5deg) scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce){ .blob{ animation:none; } }
+
+/* ---- NAV (identical to the main site, GIGS added + marked current) ---- */
+.masthead{
+  position:sticky; top:0; z-index:200;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:20px 5%;
+  background:var(--paper);
+  border-bottom:2px solid var(--ink);
+  transition:padding 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+.masthead.is-scrolled{
+  padding:12px 5%;
+  box-shadow:0 6px 0 rgba(35,35,56,0.08);
+  background:rgba(251,247,236,0.92);
+  backdrop-filter:blur(6px);
+}
+.logo-lockup{display:flex; align-items:center; gap:12px; text-decoration:none;}
+.logo-mark{
+  height:clamp(38px, 5vw, 50px);
+  width:auto;
+  transition:height 0.25s ease;
+  animation:bottle-sway 5s ease-in-out infinite;
+  transform-origin:70% 90%;
+}
+.masthead.is-scrolled .logo-mark{ height:clamp(30px,4vw,38px); }
+@keyframes bottle-sway{ 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(-4deg);} }
+.logo-text{
+  font-family:"plunct", sans-serif;
+  font-size:clamp(1.5rem, 3vw, 2rem);
+  letter-spacing:-1px;
+  color:var(--ink);
+  white-space:nowrap;
+  transition:color 0.2s ease;
+}
+.logo-lockup:hover .logo-text{ color:var(--red); }
+.masthead nav{display:flex; gap:22px; flex-wrap:wrap;}
+.masthead nav a{
+  position:relative;
+  font-family:'Space Mono'; font-weight:700;
+  font-size:0.72rem;
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+  text-decoration:none;
+  color:var(--ink);
+  padding-bottom:4px;
+}
+.masthead nav a::after{
+  content:"";
+  position:absolute; left:0; bottom:0;
+  width:100%; height:2px;
+  background:var(--gold);
+  transform:scaleX(0); transform-origin:left;
+  transition:transform 0.25s ease;
+}
+.masthead nav a:hover{ color:var(--gold); }
+.masthead nav a:hover::after{ transform:scaleX(1); }
+.masthead nav a.is-current{ color:var(--red); }
+.masthead nav a.is-current::after{ background:var(--red); transform:scaleX(1); }
+
+.burger{
+  display:none; width:38px; height:32px;
+  background:none; border:none; padding:0;
+  flex-direction:column; justify-content:space-between;
+  z-index:210;
+}
+.burger span{ display:block; height:3px; width:100%; background:var(--ink); border-radius:1px; transition:transform 0.3s ease, opacity 0.3s ease; }
+.burger.is-open span:nth-child(1){ transform:translateY(13px) rotate(45deg); }
+.burger.is-open span:nth-child(2){ opacity:0; }
+.burger.is-open span:nth-child(3){ transform:translateY(-13px) rotate(-45deg); }
+
+.mobile-panel{
+  position:fixed; top:0; left:0; right:0;
+  background:var(--paper2);
+  border-bottom:3px solid var(--ink);
+  box-shadow:0 12px 0 rgba(35,35,56,0.1);
+  padding:100px 8% 40px;
+  display:flex; flex-direction:column; gap:26px;
+  transform:translateY(-100%);
+  transition:transform 0.35s cubic-bezier(.4,0,.2,1);
+  z-index:190;
+}
+.mobile-panel.is-open{ transform:translateY(0); }
+.mobile-panel a{
+  font-family:"plunct", sans-serif;
+  font-size:2rem;
+  text-decoration:none;
+  color:var(--ink);
+  border-bottom:2px solid rgba(35,35,56,0.15);
+  padding-bottom:14px;
+}
+.mobile-panel a.is-current{ color:var(--red); }
+@media(max-width:760px){ .masthead nav{ display:none; } .burger{ display:flex; } }
+@media(min-width:761px){ .mobile-panel{ display:none; } }
+
+#upcoming, #ticket-faq{ scroll-margin-top:100px; }
+
+/* ---- PAGE HERO (quieter than the homepage - no pre-pop gate, this
+   page has a job to do, not a first impression to make) ---- */
+.page-hero{ padding:64px 5% 40px; position:relative; isolation:isolate; overflow:hidden; }
+.page-hero > *:not(.blob){ position:relative; z-index:1; }
+.hero-tag{
+  font-family:'Space Mono'; font-style:italic; font-weight:700;
+  font-size:0.95rem; letter-spacing:1px;
+  display:inline-block; margin-bottom:14px;
+  text-transform:uppercase; color:var(--ink);
+}
+.hero-tag::before{content:"» "; color:var(--red);}
+.page-headline{
+  font-family:"plunct", sans-serif;
+  font-size:clamp(2.4rem, 7vw, 4.2rem);
+  line-height:1.05;
+  color:var(--ink);
+  max-width:14ch;
+}
+.page-sub{
+  max-width:520px;
+  margin-top:26px;
+  font-size:1rem;
+  border-left:4px solid var(--gold);
+  padding-left:20px;
+  color:var(--ink);
+  opacity:0.85;
 }
 
-.gigs-controls button.active,
-.gigs-controls button:hover {
-    background: var(--accent);
-    color: var(--bg);
+
+.paper-block{ position:relative; isolation:isolate; overflow:hidden; }
+.paper-block > *:not(.blob){ position:relative; z-index:1; }
+
+/* ---- UPCOMING GIGS - pinned to the same corkboard texture as Roster ---- */
+.gigs-section{ padding:70px 5% 40px; position:relative; }
+.gigs-section .eyebrow, .ticket-faq .eyebrow{
+  font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+  letter-spacing:2px; margin-bottom:34px; text-transform:uppercase;
+}
+.gigs-section .eyebrow{ color:var(--blue); }
+.gig-grid{
+  position:relative;
+  display:grid; gap:44px 36px;
+  grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+  padding:44px 28px;
+  border-radius:18px;
+}
+.gig-grid::before{
+  content:""; position:absolute; inset:0; z-index:0; border-radius:18px;
+  background-color:#C09865;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='70'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.25' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.35  0 0 0 0 0.24  0 0 0 0 0.13  0 0 0 0.8 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at top left, rgba(255,255,255,0.22), transparent 65%),
+    radial-gradient(circle at 18% 22%, rgba(74,48,24,0.28) 0, transparent 5%),
+    radial-gradient(circle at 78% 58%, rgba(74,48,24,0.26) 0, transparent 4.5%),
+    radial-gradient(circle at 42% 82%, rgba(74,48,24,0.24) 0, transparent 5%),
+    radial-gradient(circle at 88% 18%, rgba(74,48,24,0.22) 0, transparent 4%),
+    radial-gradient(circle at 8% 78%, rgba(74,48,24,0.2) 0, transparent 4%);
+  background-size:70px 70px, auto, auto, auto, auto, auto, auto;
+  background-blend-mode:multiply, soft-light, multiply, multiply, multiply, multiply, multiply;
+  box-shadow:inset 0 0 0 3px rgba(35,35,56,0.15), inset 0 2px 10px rgba(35,35,56,0.25), 0 10px 24px rgba(35,35,56,0.14);
+}
+.gig-grid > *{ position:relative; z-index:1; }
+
+.gig-flyer{
+  background:var(--paper2); color:var(--ink);
+  padding:24px 22px; position:relative;
+  border-radius:40px 12px 36px 16px / 16px 38px 12px 40px;
+  box-shadow:5px 6px 0 var(--blue), 0 20px 34px rgba(35,35,56,0.22);
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+}
+.gig-flyer:nth-child(3n+1){ transform:rotate(-2deg); box-shadow:5px 6px 0 var(--red), 0 20px 34px rgba(35,35,56,0.22); }
+.gig-flyer:nth-child(3n+2){ transform:rotate(1.5deg); box-shadow:5px 6px 0 var(--blue), 0 20px 34px rgba(35,35,56,0.22); }
+.gig-flyer:nth-child(3n+3){ transform:rotate(-1deg); box-shadow:5px 6px 0 var(--gold), 0 20px 34px rgba(35,35,56,0.22); }
+.gig-flyer:hover{ transform:rotate(0deg) translateY(-6px); }
+.gig-flyer::before{
+  content:""; position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+  width:15px; height:15px; border-radius:50%; border:2px solid var(--ink);
+}
+.gig-flyer:nth-child(3n+1)::before{ background:var(--red); }
+.gig-flyer:nth-child(3n+2)::before{ background:var(--blue); }
+.gig-flyer:nth-child(3n+3)::before{ background:var(--gold); }
+
+.gig-date{ display:flex; align-items:baseline; gap:8px; margin-bottom:14px; }
+.gig-date .day{ font-family:"plunct", sans-serif; font-size:2.2rem; line-height:1; }
+.gig-date .monyr{ font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:0.75; }
+.gig-flyer h3{ font-family:"plunct", sans-serif; font-size:1.5rem; margin-bottom:4px; line-height:1.15; }
+.gig-venue{ font-size:0.78rem; font-weight:700; letter-spacing:0.5px; opacity:0.7; margin-bottom:10px; }
+.gig-lineup{ font-size:0.85rem; opacity:0.85; margin-bottom:16px; }
+.gig-meta{ display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; font-weight:700; opacity:0.7; margin-bottom:18px; }
+.gig-cta{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:'Space Mono'; font-weight:700; font-size:0.78rem;
+  text-transform:uppercase; letter-spacing:1px;
+  background:var(--ink); color:var(--paper);
+  border:none; border-radius:30px 8px 30px 8px;
+  padding:12px 22px; cursor:pointer;
+  transition:background 0.2s ease;
+  width:100%; justify-content:center;
+}
+.gig-cta:hover{ background:var(--red); }
+.gig-cta:disabled{ background:rgba(35,35,56,0.25); cursor:default; }
+.gig-lowstock{ color:var(--red); }
+
+.stamp{
+  position:absolute; top:18px; right:14px;
+  border:3px solid var(--red); color:var(--red);
+  border-radius:8px;
+  padding:6px 10px;
+  font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+  letter-spacing:1.5px; text-transform:uppercase;
+  transform:rotate(8deg);
+  opacity:0.85;
+  pointer-events:none;
 }
 
-/* Feed */
-#gigs-feed {
-    display: flex;
-    flex-direction: column;
+/* ---- TICKET MODAL ---- */
+.gig-modal-overlay{
+  position:fixed; inset:0; z-index:300;
+  background:rgba(35,35,56,0.55);
+  display:none; align-items:center; justify-content:center;
+  padding:24px;
+}
+.gig-modal-overlay.is-open{ display:flex; }
+.gig-modal{
+  position:relative;
+  width:100%; max-width:400px;
+  background:var(--paper2); color:var(--ink);
+  padding:32px;
+  border-radius:42px 16px 46px 14px / 14px 44px 16px 42px;
+  box-shadow:6px 8px 0 var(--gold), 0 24px 42px rgba(0,0,0,0.35);
+}
+.gig-modal-close{
+  position:absolute; top:16px; right:18px;
+  background:none; border:none; cursor:pointer;
+  font-family:'Space Mono'; font-weight:700; font-size:1.2rem;
+  color:var(--ink); line-height:1;
+}
+.gig-modal .eyebrow{
+  font-family:'Space Mono'; font-weight:700; font-size:0.68rem;
+  letter-spacing:2px; color:var(--red); text-transform:uppercase; margin-bottom:10px;
+}
+.gig-modal h3{ font-family:"plunct", sans-serif; font-size:1.6rem; margin-bottom:4px; }
+.gig-modal .gig-venue{ margin-bottom:20px; }
+.qty-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.qty-label{ font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+.qty-stepper{ display:flex; align-items:center; gap:14px; }
+.qty-stepper button{
+  width:32px; height:32px; border-radius:50%;
+  border:2px solid var(--ink); background:var(--paper);
+  font-family:'Space Mono'; font-weight:700; font-size:1rem;
+  cursor:pointer; color:var(--ink);
+}
+.qty-stepper button:disabled{ opacity:0.35; cursor:default; }
+.qty-stepper span{ font-weight:700; min-width:1.2em; text-align:center; }
+.total-row{
+  display:flex; justify-content:space-between; align-items:baseline;
+  padding:14px 0; margin-bottom:20px;
+  border-top:2px dashed rgba(35,35,56,0.25); border-bottom:2px dashed rgba(35,35,56,0.25);
+}
+.total-row .amount{ font-family:"plunct", sans-serif; font-size:1.5rem; }
+.gig-modal button.gig-cta{ margin-bottom:12px; }
+.gig-modal-status{ font-size:0.78rem; min-height:1.3em; color:var(--red); }
+
+/* ---- TICKET FAQ - same accordion as the main site ---- */
+.ticket-faq{ padding:30px 5% 90px; position:relative; }
+.ticket-faq .eyebrow{ color:var(--red); }
+.faq-list{
+  position:relative;
+  display:flex; flex-direction:column; gap:16px;
+  max-width:720px;
+  padding:32px 28px 32px 44px;
+  border-radius:6px 18px 6px 18px;
+  background:rgba(255,255,255,0.4);
+  border:2px dashed rgba(35,35,56,0.22);
+}
+.faq-list::before{
+  content:""; position:absolute; left:14px; top:20px; bottom:20px; width:2px;
+  background:repeating-linear-gradient(to bottom, rgba(64,86,161,0.35) 0 2px, transparent 2px 20px);
+}
+.faq-list::after{
+  content:""; position:absolute; left:10px; top:20px; bottom:20px; width:10px;
+  background-image:radial-gradient(circle, var(--paper) 2.6px, rgba(35,35,56,0.3) 2.6px, rgba(35,35,56,0.3) 3.2px, transparent 3.2px);
+  background-size:10px 26px; background-repeat:repeat-y;
+}
+.faq-item{ background:var(--paper2); border-radius:24px 8px 24px 8px; overflow:hidden; box-shadow:4px 5px 0 var(--ink); }
+.faq-item:nth-child(3n+1){ box-shadow:4px 5px 0 var(--red); }
+.faq-item:nth-child(3n+2){ box-shadow:4px 5px 0 var(--gold); }
+.faq-item:nth-child(3n+3){ box-shadow:4px 5px 0 var(--blue); }
+.faq-q{
+  width:100%; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:18px 22px; background:none; border:none; cursor:pointer; text-align:left;
+  font-family:'Space Mono'; font-weight:700; font-size:0.95rem; color:var(--ink);
+}
+.faq-icon{ flex-shrink:0; font-family:'Space Mono'; font-weight:700; font-size:1.3rem; transition:transform 0.25s ease; }
+.faq-item.is-open .faq-icon{ transform:rotate(45deg); }
+.faq-a{ display:grid; grid-template-rows:0fr; transition:grid-template-rows 0.35s ease; }
+.faq-item.is-open .faq-a{ grid-template-rows:1fr; }
+.faq-a-inner{ overflow:hidden; min-height:0; }
+.faq-a p{ padding:0 22px 20px; font-size:0.88rem; line-height:1.55; color:var(--ink); opacity:0.85; }
+.faq-a a{ color:var(--red); font-weight:700; text-decoration:underline; }
+
+footer{
+  border-top:2px solid var(--ink);
+  padding:40px 5%;
+  display:flex; flex-wrap:wrap; justify-content:space-between; gap:14px;
+  font-family:'Space Mono'; font-weight:700; font-size:0.7rem; letter-spacing:1px;
+  color:var(--ink);
 }
 
-/* Month grouping */
-.gig-group {
-    margin-top: 25px;
-    margin-bottom: 10px;
-    font-family: 'Syncopate';
-    font-size: 0.8rem;
-    color: var(--accent);
-    opacity: 0.7;
-}
-
-/* Gig card */
-.gig-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid #222;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeSlide 0.5s forwards;
-    transition: var(--transition);
-}
-
-.gig-card:hover {
-    background: rgba(212, 175, 55, 0.08);
-}
-
-/* Animation */
-@keyframes fadeSlide {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Elements */
-.gig-date {
-    font-family: 'Special Elite';
-    color: var(--accent);
-    min-width: 110px;
-}
-
-.gig-info {
-    flex: 1;
-    padding: 0 20px;
-}
-
-.gig-artist {
-    font-weight: 700;
-}
-
-.gig-venue {
-    font-size: 0.85rem;
-    opacity: 0.7;
-}
-
-.gig-link {
-    text-decoration: none;
-    background: var(--accent);
-    color: var(--ink);
-    padding: 6px 12px;
-    font-size: 0.75rem;
-    font-family: 'Special Elite';
-    transition: var(--transition);
-}
-
-.gig-link:hover {
-    background: var(--paper);
-}
-
-        /* The Widget Container */
-        .widget-vessel {
-            border: 1px solid #222;
-            padding: 20px;
-            background: rgba(17, 17, 17, 0.4);
-            min-height: 400px;
-            position: relative;
-        }
-
-        /* --- FOOTER --- */
-        footer { 
-            padding: 80px 5%; 
-            border-top: 1px solid #222; 
-            display: flex; 
-            justify-content: space-between; 
-            font-size: 0.8rem; 
-            opacity: 0.5;
-            font-family: 'Special Elite';
-        }
-
-        @media (max-width: 768px) {
-            .gigs-section { padding-top: 120px; }
-            footer { flex-direction: column; text-align: center; gap: 20px; }
-        }
-    </style>
+.reveal{ opacity:0; transform:translateY(28px); transition:opacity 0.7s ease, transform 0.7s ease; }
+.reveal.in-view{ opacity:1; transform:translateY(0); }
+</style>
 </head>
 <body>
-    <div class="fuzzy-overlay"></div>
-    <div class="texture-overlay"></div>
 
-    <nav class="main-header">
-        <a href="../" class="header-logo">DIVE BAR RECORDS</a>
-        <div class="nav-links">
-            <a href="../">← BACK TO BASE</a>
-        </div>
-    </nav>
-
-    <main class="gigs-section">
-        <div class="label-tape">004 / LIVE EVENTS FEED</div>
-        <div class="gigs-header">
-            <h1>GIGS &<br>EVENTS</h1>
-        </div>
-
-<div class="widget-vessel">
-    <div class="gigs-controls">
-        <button data-filter="upcoming" class="active">UPCOMING</button>
-        <button data-filter="past">PAST</button>
-    </div>
-
-    <div id="gigs-feed"></div>
+<div class="masthead" id="masthead">
+  <a href="/" class="logo-lockup">
+    <img class="logo-mark" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DBR%20BOTTLE.png" alt="">
+    <span class="logo-text">DIVE BAR RECORDS</span>
+  </a>
+  <nav>
+    <a href="/#mission">MISSION</a>
+    <a href="/#what-we-do">WHAT WE DO</a>
+    <a href="/#roster">ROSTER</a>
+    <a href="/gigs" class="is-current">GIGS</a>
+    <a href="/#faq">FAQ</a>
+    <a href="/#contact">CONTACT</a>
+  </nav>
+  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
 </div>
 
-<script> 
-const APP_ID = "dbca326d93e57f64bba2988ed98ac009";
+<div class="mobile-panel" id="mobilePanel">
+  <a href="/#mission">MISSION</a>
+  <a href="/#what-we-do">WHAT WE DO</a>
+  <a href="/#roster">ROSTER</a>
+  <a href="/gigs" class="is-current">GIGS</a>
+  <a href="/#faq">FAQ</a>
+  <a href="/#contact">CONTACT</a>
+</div>
 
-// Use the numeric IDs. The script will add the required "id_" prefix automatically.
-const ARTISTS = [
-  "15642594", // Dirty Word
-  "null"  // Second Artist
+<section class="page-hero">
+  <div class="hero-tag">What's on</div>
+  <h1 class="page-headline">Upcoming gigs</h1>
+  <p class="page-sub">Dates, venues, and tickets for every upcoming Dive Bar Records show.</p>
+</section>
+
+<section class="gigs-section paper-block" id="upcoming">
+  <div class="eyebrow reveal">Upcoming</div>
+  <div class="gig-grid" id="gigGrid"><!-- rendered from gigs[] below --></div>
+</section>
+
+<section class="ticket-faq" id="ticket-faq">
+  <div class="eyebrow reveal">Ticket Questions</div>
+  <div class="faq-list">
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button" aria-expanded="false">
+        <span>Are tickets refundable?</span>
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        <p>If a show's cancelled or rescheduled, you'll get a full refund automatically. Otherwise, get in touch and we'll see what we can do.</p>
+      </div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button" aria-expanded="false">
+        <span>Do I need a printed ticket?</span>
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        <p>No - your confirmation email is your ticket. Bring it up on your phone at the door, or print it if you'd rather.</p>
+      </div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button" aria-expanded="false">
+        <span>Is there an age restriction?</span>
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        <p>Varies by show and venue - check the listing above. Some rooms will ID on the door regardless.</p>
+      </div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button" aria-expanded="false">
+        <span>I've lost my confirmation email - what now?</span>
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        <p>Email <a href="mailto:info@divebarrecords.co.uk">info@divebarrecords.co.uk</a> with your name and the show, and we'll sort you out before doors.</p>
+      </div></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button" aria-expanded="false">
+        <span>Can I just pay on the door?</span>
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a"><div class="faq-a-inner">
+        <p>Only if a show hasn't sold out. Booking ahead guarantees you a spot - follow us for live sell-out updates.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<div class="gig-modal-overlay" id="modalOverlay">
+  <div class="gig-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="gig-modal-close" id="modalClose" aria-label="Close">×</button>
+    <div class="eyebrow">Get Tickets</div>
+    <h3 id="modalTitle"></h3>
+    <div class="gig-venue" id="modalVenue"></div>
+    <div class="qty-row">
+      <span class="qty-label">Tickets</span>
+      <div class="qty-stepper">
+        <button type="button" id="qtyDown" aria-label="Fewer tickets">−</button>
+        <span id="qtyValue">1</span>
+        <button type="button" id="qtyUp" aria-label="More tickets">+</button>
+      </div>
+    </div>
+    <div class="total-row">
+      <span class="qty-label">Total</span>
+      <span class="amount" id="modalTotal">£0</span>
+    </div>
+    <button class="gig-cta" id="modalContinue" type="button">Continue to payment</button>
+    <p class="gig-modal-status" id="modalStatus" role="status" aria-live="polite"></p>
+  </div>
+</div>
+
+<footer>
+  <div>DIVE BAR RECORDS // EST 2026</div>
+  <div>© ALL RIGHTS RESERVED</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.1"></script>
+<script>
+// ============================================================
+// GIG DATA
+// Live from Supabase. If the fetch fails for any reason (offline,
+// project paused, etc.) this falls back to a small static list
+// so the page never shows up empty or broken.
+// ============================================================
+const SUPABASE_URL = 'https://ualutedgenurromgylwz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhbHV0ZWRnZW51cnJvbWd5bHd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMTIwNDEsImV4cCI6MjEwNTY4ODA0MX0.HrCUOmaC2Mjk8pp3Nxax2KNduy0_egW2wuJUmgpbLZg';
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const FALLBACK_GIGS = [
+  { id: 'fallback-1', date: '2026-11-14', doors: '7:30pm', venue: 'The Anchor House', city: 'Manchester',
+    headliner: 'Concrete Wolves', support: 'Static Halo', priceGBP: 8, ticketsRemaining: 46, ageRestriction: '14+' }
 ];
 
-let ALL_EVENTS = [];
+let gigs = [];
 
-// --- 1. HELPER FUNCTIONS
-
-function formatDate(dateStr) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric"
-  });
+function mapRow(row){
+  return {
+    id: row.id,
+    date: row.event_date,
+    doors: row.doors_time,
+    venue: row.venue,
+    city: row.city,
+    headliner: row.headliner,
+    support: row.support,
+    priceGBP: Number(row.price_gbp),
+    ticketsRemaining: row.tickets_remaining,
+    ageRestriction: row.age_restriction
+  };
 }
 
-function getMonthYear(dateStr) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-GB", {
-    month: "long",
-    year: "numeric"
-  }).toUpperCase();
-}
-
-// --- 2. DATA FETCHING ---
-
-async function fetchAllEvents() {
-  const allEvents = [];
-  const activeArtists = ARTISTS.filter(a => a !== "null" && a !== "");
-
-  for (const artist of activeArtists) {
-    try {
-      // 1. First, let's verify WHO this ID belongs to
-      const infoUrl = `https://rest.bandsintown.com/artists/id_${artist}?app_id=${APP_ID}`;
-      const infoRes = await fetch(infoUrl);
-      const artistInfo = await infoRes.json();
-      
-      const realName = artistInfo.name || "Unknown Artist";
-      console.log(`DIALING OUT: ${realName} (ID: ${artist})...`);
-
-      // 2. Fetch ALL events (past and future) to see if data exists at all
-      const eventsUrl = `https://rest.bandsintown.com/artists/id_${artist}/events?app_id=${APP_ID}&date=all`;
-      const res = await fetch(eventsUrl);
-      const data = await res.json();
-
-      console.log(`DATA RECEIVED for ${realName}: Found ${data.length} total events in the vault.`);
-
-      if (Array.isArray(data) && data.length > 0) {
-        data.forEach(event => {
-          // Use the verified name from the artist info if lineup is missing
-          event.display_artist = realName;
-          allEvents.push(event);
-        });
-      } else {
-        console.warn(`EMPTY ARRAY - NO EVENTS: ${realName} has 0 events registered in the API.`);
-      }
-      
-    } catch (err) {
-      console.error(`CRITICAL ERROR for ${artist}:`, err);
-    }
+async function loadGigs(){
+  const todayISO = new Date().toISOString().slice(0, 10);
+  try {
+    if (!sb) throw new Error('Supabase client failed to load');
+    const { data, error } = await sb
+      .from('gigs')
+      .select('*')
+      .gte('event_date', todayISO)
+      .order('event_date', { ascending: true });
+    if (error) throw error;
+    gigs = (data || []).map(mapRow);
+  } catch (err) {
+    gigs = FALLBACK_GIGS;
   }
-  return allEvents;
+  renderGigs();
 }
 
-// --- 3. RENDERING LOGIC ---
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+function formatDateParts(iso){
+  const d = new Date(iso + 'T00:00:00');
+  return { day: d.getDate(), monyr: MONTHS[d.getMonth()] + ' ' + d.getFullYear() };
+}
+function formatDateLong(iso){
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
+}
 
-function renderEvents(filter = "upcoming") {
-  const container = document.getElementById("gigs-feed");
-  if (!container) return;
-  
-  container.innerHTML = "";
-  const now = new Date();
-
-  let events = ALL_EVENTS.filter(e => {
-    const eventDate = new Date(e.datetime);
-    return filter === "upcoming" ? eventDate >= now : eventDate < now;
-  });
-
-  // Sort: Upcoming (closest first), Past (most recent first)
-  events.sort((a, b) => {
-    return filter === "upcoming" 
-      ? new Date(a.datetime) - new Date(b.datetime)
-      : new Date(b.datetime) - new Date(a.datetime);
-  });
-
-  if (events.length === 0) {
-    container.innerHTML = `<p style="padding:20px; font-family:'Special Elite'; opacity:0.5;">[ NO ${filter.toUpperCase()} TRANSMISSIONS FOUND ]</p>`;
-    return;
-  }
-
-  let currentGroup = "";
-
-  events.forEach((event, i) => {
-    const group = getMonthYear(event.datetime);
-
-    if (group !== currentGroup) {
-      const header = document.createElement("div");
-      header.classList.add("gig-group");
-      header.textContent = group;
-      container.appendChild(header);
-      currentGroup = group;
-    }
-
-    const el = document.createElement("div");
-    el.classList.add("gig-card");
-    el.style.animationDelay = `${i * 0.05}s`;
-    el.innerHTML = `
-      <div class="gig-date">${formatDate(event.datetime)}</div>
-      <div class="gig-info">
-        <div class="gig-artist">${event.display_artist}</div>
-        <div class="gig-venue">${event.venue.name} // ${event.venue.city}</div>
-      </div>
-      <a class="gig-link" href="${event.url}" target="_blank">TICKETS</a>
+function renderGigs(){
+  const grid = document.getElementById('gigGrid');
+  grid.innerHTML = gigs.map(g => {
+    const { day, monyr } = formatDateParts(g.date);
+    const soldOut = g.ticketsRemaining <= 0;
+    const lowStock = !soldOut && g.ticketsRemaining <= 10;
+    return `
+      <article class="gig-flyer reveal">
+        ${soldOut ? '<div class="stamp">Sold out</div>' : ''}
+        <div class="gig-date"><span class="day">${day}</span><span class="monyr">${monyr}</span></div>
+        <h3>${g.headliner}</h3>
+        <div class="gig-venue">${g.venue.toUpperCase()} // ${g.city.toUpperCase()}</div>
+        <div class="gig-lineup">w/ ${g.support} · Doors ${g.doors} · ${g.ageRestriction}</div>
+        <div class="gig-meta">
+          <span>£${g.priceGBP} adv</span>
+          <span class="${lowStock ? 'gig-lowstock' : ''}">${soldOut ? '' : (lowStock ? g.ticketsRemaining + ' left' : '')}</span>
+        </div>
+        <button class="gig-cta" type="button" data-gig-id="${g.id}" ${soldOut ? 'disabled' : ''}>
+          ${soldOut ? 'Sold out' : 'Get tickets →'}
+        </button>
+      </article>
     `;
-    container.appendChild(el);
+  }).join('');
+
+  grid.querySelectorAll('.reveal').forEach(observeReveal);
+
+  grid.querySelectorAll('.gig-cta[data-gig-id]').forEach(btn => {
+    btn.addEventListener('click', () => openModal(btn.dataset.gigId));
   });
 }
 
-// --- 4. INITIALIZATION ---
+// ============================================================
+// TICKET MODAL
+// ============================================================
+const overlay = document.getElementById('modalOverlay');
+const modalTitle = document.getElementById('modalTitle');
+const modalVenue = document.getElementById('modalVenue');
+const modalTotal = document.getElementById('modalTotal');
+const modalStatus = document.getElementById('modalStatus');
+const qtyValue = document.getElementById('qtyValue');
+const qtyDown = document.getElementById('qtyDown');
+const qtyUp = document.getElementById('qtyUp');
+const continueBtn = document.getElementById('modalContinue');
 
-document.querySelectorAll(".gigs-controls button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".gigs-controls button").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    renderEvents(btn.dataset.filter);
-  });
+let activeGig = null;
+let qty = 1;
+const MAX_QTY = 6;
+
+function openModal(gigId){
+  activeGig = gigs.find(g => g.id === gigId);
+  if (!activeGig) return;
+  qty = 1;
+  modalTitle.textContent = activeGig.headliner;
+  modalVenue.textContent = `${activeGig.venue}, ${activeGig.city} - ${formatDateLong(activeGig.date)}`;
+  modalStatus.textContent = '';
+  updateTotal();
+  overlay.classList.add('is-open');
+  document.getElementById('modalClose').focus();
+}
+function closeModal(){
+  overlay.classList.remove('is-open');
+  activeGig = null;
+}
+function updateTotal(){
+  qtyValue.textContent = qty;
+  qtyDown.disabled = qty <= 1;
+  qtyUp.disabled = qty >= MAX_QTY;
+  if (activeGig) modalTotal.textContent = '£' + (activeGig.priceGBP * qty);
+}
+qtyDown.addEventListener('click', () => { if (qty > 1){ qty--; updateTotal(); } });
+qtyUp.addEventListener('click', () => { if (qty < MAX_QTY){ qty++; updateTotal(); } });
+document.getElementById('modalClose').addEventListener('click', closeModal);
+overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('is-open')) closeModal(); });
+
+// ------------------------------------------------------------
+// CHECKOUT
+// This is the one part of the page that needs a real backend.
+// Point CHECKOUT_ENDPOINT at your Supabase Edge Function once
+// it's deployed - it should create a Stripe Checkout Session
+// server-side (never in this file) and return { url }, which
+// this redirects the browser to. Until that endpoint exists,
+// this fails gracefully instead of pretending to work.
+// ------------------------------------------------------------
+const CHECKOUT_ENDPOINT = 'https://ualutedgenurromgylwz.supabase.co/functions/v1/create-checkout-session';
+
+continueBtn.addEventListener('click', async () => {
+  if (!activeGig) return;
+  continueBtn.disabled = true;
+  modalStatus.textContent = '';
+  try {
+    const res = await fetch(CHECKOUT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gigId: activeGig.id, quantity: qty })
+    });
+    if (!res.ok) throw new Error('Checkout request failed');
+    const { url } = await res.json();
+    if (url) { window.location.href = url; return; }
+    throw new Error('No checkout URL returned');
+  } catch (err) {
+    modalStatus.textContent = "Checkout isn't connected yet - wire up the Supabase Edge Function to enable payment.";
+  } finally {
+    continueBtn.disabled = false;
+  }
 });
 
-(async function init() {
-  const feed = document.getElementById("gigs-feed");
-  feed.innerHTML = "<p style='padding:20px; font-family:\"Special Elite\";'>LOADING DATES...</p>";
-  
-  ALL_EVENTS = await fetchAllEvents();
-  renderEvents("upcoming");
-})();
-</script>
-    </main>
+// ============================================================
+// SHARED CHROME - same behaviour as the main site
+// ============================================================
+const masthead = document.getElementById('masthead');
+window.addEventListener('scroll', () => {
+  masthead.classList.toggle('is-scrolled', window.scrollY > 40);
+}, { passive: true });
 
-    <footer>
-        <div>DIVE BAR RECORDS // LIVE DEPT</div>
-        <div>YOUR MUSIC, YOUR WAY.</div>
-        <div>© ALL RIGHTS RESERVED</div>
-    </footer>
+const burger = document.getElementById('burger');
+const panel = document.getElementById('mobilePanel');
+burger.addEventListener('click', () => {
+  const open = burger.classList.toggle('is-open');
+  panel.classList.toggle('is-open', open);
+  burger.setAttribute('aria-expanded', open);
+});
+panel.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  burger.classList.remove('is-open');
+  panel.classList.remove('is-open');
+  burger.setAttribute('aria-expanded', false);
+}));
+
+document.addEventListener('click', (e) => {
+  const item = e.target.closest('.faq-item');
+  if (!item) return;
+  const btn = item.querySelector('.faq-q');
+  if (e.target.closest('.faq-q')) {
+    const isOpen = item.classList.toggle('is-open');
+    btn.setAttribute('aria-expanded', String(isOpen));
+  }
+});
+
+// scroll reveal - set up first so it's ready for both the static
+// elements already on the page and the gig cards rendered later
+let io = null;
+if ('IntersectionObserver' in window){
+  io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+  }, { threshold: 0.15 });
+}
+function observeReveal(el){
+  if (io) io.observe(el); else el.classList.add('in-view');
+}
+document.querySelectorAll('.reveal').forEach(observeReveal);
+
+loadGigs();
+</script>
 </body>
 </html>
