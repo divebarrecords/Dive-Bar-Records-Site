@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gigs Admin — DIVE BAR RECORDS</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.1"></script>
+<style>
+:root{
+  --paper:#f8f7f3; --paper2:#F2EAD2; --ink:#232338;
+  --gold:#D79922; --red:#F13C20; --blue:#4056A1;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'Space Mono', monospace; font-size:0.92rem; line-height:1.5;
+  min-height:100vh;
+}
+a{color:var(--red);}
+h1{font-size:1.3rem; letter-spacing:-0.5px;}
+h2{font-size:1rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;}
+
+/* ---- login gate ---- */
+#loginView{
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.login-card{
+  width:100%; max-width:340px; background:var(--paper2);
+  border-radius:12px; padding:32px; box-shadow:4px 5px 0 var(--ink);
+}
+.login-card h1{ margin-bottom:6px; }
+.login-card p.sub{ opacity:0.7; font-size:0.8rem; margin-bottom:22px; }
+label{ display:block; font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+input, select{
+  width:100%; font:inherit; padding:10px 12px; margin-bottom:16px;
+  border:2px solid var(--ink); border-radius:6px; background:var(--paper); color:var(--ink);
+  color-scheme: light;
+}
+button{
+  font:inherit; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;
+  background:var(--ink); color:var(--paper); border:none; border-radius:6px;
+  padding:11px 18px; cursor:pointer; transition:background 0.2s ease;
+}
+button:hover{ background:var(--red); }
+button:disabled{ opacity:0.4; cursor:default; }
+button.secondary{ background:none; color:var(--ink); border:2px solid var(--ink); }
+button.secondary:hover{ background:var(--ink); color:var(--paper); }
+button.danger{ background:none; color:var(--red); border:2px solid var(--red); padding:6px 12px; font-size:0.72rem; }
+button.danger:hover{ background:var(--red); color:var(--paper); }
+.form-status{ font-size:0.78rem; min-height:1.2em; margin-top:-8px; margin-bottom:14px; color:var(--red); }
+
+/* ---- app shell ---- */
+#appView{ display:none; min-height:100vh; }
+#appView.is-visible{ display:block; }
+.admin-header{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:20px 5%; border-bottom:2px solid var(--ink); background:var(--paper2);
+}
+.admin-main{ padding:36px 5% 80px; max-width:820px; margin:0 auto; }
+
+.panel{ background:var(--paper2); border-radius:12px; padding:26px; margin-bottom:32px; box-shadow:4px 5px 0 var(--gold); }
+.field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0 16px; }
+.field-grid .full{ grid-column:1 / -1; }
+@media(max-width:560px){ .field-grid{ grid-template-columns:1fr; } }
+
+.gig-row{
+  display:flex; justify-content:space-between; align-items:center; gap:16px;
+  background:var(--paper); border:2px solid var(--ink); border-radius:8px;
+  padding:14px 16px; margin-bottom:10px; flex-wrap:wrap;
+}
+.gig-row-main{ flex:1; min-width:200px; }
+.gig-row-main strong{ display:block; font-size:0.95rem; }
+.gig-row-main span{ display:block; font-size:0.75rem; opacity:0.7; margin-top:2px; }
+.gig-row-actions{ display:flex; gap:8px; align-items:center; }
+.gig-row-actions button{ padding:7px 12px; font-size:0.72rem; }
+.tag{ font-size:0.68rem; font-weight:700; text-transform:uppercase; padding:3px 8px; border-radius:10px; }
+.tag.soldout{ background:var(--red); color:var(--paper); }
+.tag.low{ background:var(--gold); color:var(--ink); }
+.empty-note{ opacity:0.6; font-size:0.85rem; padding:10px 0; }
+</style>
+</head>
+<body>
+
+<div id="loginView">
+  <div class="login-card">
+    <h1>GIGS ADMIN</h1>
+    <p class="sub">Dive Bar Records — sign in to manage listings.</p>
+    <form id="loginForm">
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" required autocomplete="username">
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" required autocomplete="current-password">
+      <p class="form-status" id="loginStatus" role="status" aria-live="polite"></p>
+      <button type="submit" id="loginBtn">Log in</button>
+    </form>
+  </div>
+</div>
+
+<div id="appView">
+  <div class="admin-header">
+    <h1>GIGS ADMIN</h1>
+    <button class="secondary" id="logoutBtn">Log out</button>
+  </div>
+
+  <div class="admin-main">
+    <div class="panel">
+      <h2 id="formTitle">Add a gig</h2>
+      <form id="gigForm">
+        <input type="hidden" id="gigId">
+        <div class="field-grid">
+          <div class="full">
+            <label for="fHeadliner">Headliner</label>
+            <input type="text" id="fHeadliner" required>
+          </div>
+          <div class="full">
+            <label for="fSupport">Support / details</label>
+            <input type="text" id="fSupport" placeholder="e.g. Static Halo + guests">
+          </div>
+          <div>
+            <label for="fDate">Date</label>
+            <input type="date" id="fDate" required>
+          </div>
+          <div>
+            <label for="fDoors">Doors</label>
+            <input type="text" id="fDoors" placeholder="e.g. 7:30pm">
+          </div>
+          <div>
+            <label for="fVenue">Venue</label>
+            <input type="text" id="fVenue" required>
+          </div>
+          <div>
+            <label for="fCity">City</label>
+            <input type="text" id="fCity" required>
+          </div>
+          <div>
+            <label for="fPrice">Price (£)</label>
+            <input type="number" id="fPrice" min="0" step="0.5" required>
+          </div>
+          <div>
+            <label for="fTickets">Tickets available</label>
+            <input type="number" id="fTickets" min="0" step="1" required>
+          </div>
+          <div class="full">
+            <label for="fAge">Age restriction</label>
+            <input type="text" id="fAge" placeholder="e.g. 14+, 18+, All ages">
+          </div>
+        </div>
+        <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+        <button type="submit" id="saveBtn">Save gig</button>
+        <button type="button" class="secondary" id="cancelEditBtn" style="display:none; margin-left:8px;">Cancel edit</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Upcoming gigs</h2>
+      <div id="gigList"><p class="empty-note">Loading…</p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://ualutedgenurromgylwz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhbHV0ZWRnZW51cnJvbWd5bHd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMTIwNDEsImV4cCI6MjEwNTY4ODA0MX0.HrCUOmaC2Mjk8pp3Nxax2KNduy0_egW2wuJUmgpbLZg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const loginView = document.getElementById('loginView');
+const appView = document.getElementById('appView');
+const loginForm = document.getElementById('loginForm');
+const loginStatus = document.getElementById('loginStatus');
+const loginBtn = document.getElementById('loginBtn');
+
+function showApp(){
+  loginView.style.display = 'none';
+  appView.classList.add('is-visible');
+  loadGigs();
+}
+function showLogin(){
+  appView.classList.remove('is-visible');
+  loginView.style.display = 'flex';
+}
+
+// Restore session on load (so a refresh doesn't boot you back to login)
+sb.auth.getSession().then(({ data }) => {
+  if (data.session) showApp(); else showLogin();
+});
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginBtn.disabled = true;
+  loginStatus.textContent = '';
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  loginBtn.disabled = false;
+  if (error) {
+    loginStatus.textContent = error.message || 'Login failed — check your details.';
+    return;
+  }
+  showApp();
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  showLogin();
+});
+
+// ---- gig form (shared by add + edit) ----
+const gigForm = document.getElementById('gigForm');
+const formTitle = document.getElementById('formTitle');
+const formStatus = document.getElementById('formStatus');
+const saveBtn = document.getElementById('saveBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+const fIds = ['fHeadliner','fSupport','fDate','fDoors','fVenue','fCity','fPrice','fTickets','fAge'];
+
+function resetForm(){
+  document.getElementById('gigId').value = '';
+  fIds.forEach(id => document.getElementById(id).value = '');
+  formTitle.textContent = 'Add a gig';
+  saveBtn.textContent = 'Save gig';
+  cancelEditBtn.style.display = 'none';
+  formStatus.textContent = '';
+}
+cancelEditBtn.addEventListener('click', resetForm);
+
+function fillForm(gig){
+  document.getElementById('gigId').value = gig.id;
+  document.getElementById('fHeadliner').value = gig.headliner;
+  document.getElementById('fSupport').value = gig.support || '';
+  document.getElementById('fDate').value = gig.event_date;
+  document.getElementById('fDoors').value = gig.doors_time || '';
+  document.getElementById('fVenue').value = gig.venue;
+  document.getElementById('fCity').value = gig.city;
+  document.getElementById('fPrice').value = gig.price_gbp;
+  document.getElementById('fTickets').value = gig.tickets_remaining;
+  document.getElementById('fAge').value = gig.age_restriction || '';
+  formTitle.textContent = 'Edit gig';
+  saveBtn.textContent = 'Update gig';
+  cancelEditBtn.style.display = 'inline-block';
+  formStatus.textContent = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+gigForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  saveBtn.disabled = true;
+  formStatus.textContent = '';
+
+  const id = document.getElementById('gigId').value;
+  const payload = {
+    headliner: document.getElementById('fHeadliner').value.trim(),
+    support: document.getElementById('fSupport').value.trim() || null,
+    event_date: document.getElementById('fDate').value,
+    doors_time: document.getElementById('fDoors').value.trim() || null,
+    venue: document.getElementById('fVenue').value.trim(),
+    city: document.getElementById('fCity').value.trim(),
+    price_gbp: Number(document.getElementById('fPrice').value),
+    tickets_remaining: Number(document.getElementById('fTickets').value),
+    age_restriction: document.getElementById('fAge').value.trim() || null
+  };
+
+  const { error } = id
+    ? await sb.from('gigs').update(payload).eq('id', id)
+    : await sb.from('gigs').insert(payload);
+
+  saveBtn.disabled = false;
+  if (error) {
+    formStatus.textContent = error.message || 'Could not save — try again.';
+    return;
+  }
+  resetForm();
+  loadGigs();
+});
+
+// ---- gig list ----
+async function loadGigs(){
+  const listEl = document.getElementById('gigList');
+  const { data, error } = await sb
+    .from('gigs')
+    .select('*')
+    .order('event_date', { ascending: true });
+
+  if (error) {
+    listEl.innerHTML = `<p class="empty-note">Couldn't load gigs — ${error.message}</p>`;
+    return;
+  }
+  if (!data || data.length === 0) {
+    listEl.innerHTML = '<p class="empty-note">No gigs yet — add one above.</p>';
+    return;
+  }
+
+  listEl.innerHTML = data.map(g => {
+    const soldOut = g.tickets_remaining <= 0;
+    const lowStock = !soldOut && g.tickets_remaining <= 10;
+    const dateStr = new Date(g.event_date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    return `
+      <div class="gig-row" data-id="${g.id}">
+        <div class="gig-row-main">
+          <strong>${g.headliner}</strong>
+          <span>${dateStr} · ${g.venue}, ${g.city} · £${Number(g.price_gbp).toFixed(2)}
+            ${soldOut ? '<span class="tag soldout">Sold out</span>' : (lowStock ? `<span class="tag low">${g.tickets_remaining} left</span>` : `· ${g.tickets_remaining} tickets left`)}
+          </span>
+        </div>
+        <div class="gig-row-actions">
+          <button type="button" class="secondary" data-edit="${g.id}">Edit</button>
+          <button type="button" class="danger" data-delete="${g.id}">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  listEl.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const gig = data.find(g => g.id === btn.dataset.edit);
+      if (gig) fillForm(gig);
+    });
+  });
+  listEl.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const gig = data.find(g => g.id === btn.dataset.delete);
+      if (!gig) return;
+      if (!confirm(`Delete "${gig.headliner}"? This can't be undone.`)) return;
+      const { error } = await sb.from('gigs').delete().eq('id', gig.id);
+      if (error) { alert('Could not delete: ' + error.message); return; }
+      loadGigs();
+    });
+  });
+}
+</script>
+</body>
+</html>
