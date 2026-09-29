@@ -10,6 +10,22 @@
 
 <title>DIVE BAR RECORDS</title>
 
+<meta name="description" content="Dive Bar Records - a grassroots record label and promotions company giving alternative UK artists promotion, gigs and recording, their way.">
+
+<meta name="theme-color" content="#f8f7f3">
+
+<meta property="og:title" content="Dive Bar Records">
+
+<meta property="og:description" content="Grassroots artists actualising their own cultural vision - a safe space for the UK alternative scene, and beyond.">
+
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link rel="preconnect" href="https://raw.githubusercontent.com">
+
 <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
 
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
@@ -36,7 +52,7 @@
 
 *{margin:0;padding:0;box-sizing:border-box;}
 
-html{scroll-behavior:smooth;}
+html{scroll-behavior:smooth; scrollbar-gutter:stable;}
 
 body{
 
@@ -332,7 +348,9 @@ a{color:inherit;}
 
   border-bottom:3px solid var(--ink);
 
-  box-shadow:0 12px 0 rgba(35,35,56,0.1);
+  box-shadow:none;
+
+  visibility:hidden;
 
   padding:100px 8% 40px;
 
@@ -340,13 +358,13 @@ a{color:inherit;}
 
   transform:translateY(-100%);
 
-  transition:transform 0.35s cubic-bezier(.4,0,.2,1);
+  transition:transform 0.35s cubic-bezier(.4,0,.2,1), visibility 0s linear 0.35s, box-shadow 0.35s ease;
 
   z-index:190;
 
 }
 
-.mobile-panel.is-open{ transform:translateY(0); }
+.mobile-panel.is-open{ transform:translateY(0); visibility:visible; box-shadow:0 12px 0 rgba(35,35,56,0.1); transition-delay:0s; }
 
 .mobile-panel a{
 
@@ -408,7 +426,17 @@ a{color:inherit;}
    below (most noticeable on mobile, where the hero's natural content
    height is short) */
 
-body.pre-pop .hero{
+/* keyed to .hero-lock, not .pre-pop: .pre-pop is removed the instant the
+   cap is clicked (it has to be, so the page can scroll for the fall), but
+   there's no transition on min-height/align-content, so if the hero's
+   full-screen sizing were tied to that same class it would collapse to
+   its natural (much shorter) height in the same frame as the click -
+   a visible page-wide jump before the pop animation even starts.
+   .hero-lock instead persists for the whole pop sequence and is only
+   dropped in finishPop(), once the page has already scrolled past the
+   hero, so the collapse happens off-screen and unseen. */
+
+body.hero-lock .hero{
 
   min-height:100vh;
 
@@ -421,6 +449,8 @@ body.pre-pop .hero{
 .hero > div:not(.blob):not(.spotlight){ position:relative; z-index:1; }
 
 .logo-composition{
+
+  --bottle-h:clamp(124px, 19.2vw, 220px);
 
   position:relative;
 
@@ -470,7 +500,7 @@ body.pre-pop .hero{
 
   display:block;
 
-  height:clamp(124px, 19.2vw, 220px);
+  height:var(--bottle-h);
 
   aspect-ratio:751 / 1331;
 
@@ -582,59 +612,49 @@ body.pre-pop .click-prompt{
 
 @media(max-width:680px){
 
-  /* not enough room to the side of the bottle on narrow screens - the
-     prompt drops underneath instead, with its own arrow pointing up
-     into the cap rather than sideways at it */
+  /* there is no room beside the bottle on a phone, but there is plenty of
+     empty space above it (the hero is vertically centred while the gate
+     is up). So the note sits up there, top-right of the bottle, with a
+     short arrow dropping down onto the cap. It is absolutely positioned
+     off the bottle, so it adds nothing to the layout flow and can never
+     push into the subheading. */
 
   .click-prompt{
-
-    top:100%; left:0; right:0;
-
-    margin-left:0;
-
-    margin-top:6px;
-
-    flex-direction:column;
-
-    align-items:center;
-
-    justify-content:center;
-
-    gap:2px;
-
-    transform:translateY(-4px);
-
+    top:auto; left:0; right:auto;
+    /* the bottle image has transparent headroom above the cap (it holds
+       the spray), so the arrow's tip is dropped ~27% down the box to
+       land on the cap itself */
+    bottom:calc(100% - var(--bottle-h) * 0.27);
+    width:100%; height:0;
+    margin:0;
+    display:block;
   }
-
-  body.pre-pop .click-prompt{ transform:translateY(0); }
 
   .click-arrow{ display:none; }
 
   .click-arrow-mobile{
-
     display:block;
-
-    width:clamp(26px, 7vw, 36px);
-
-    height:auto;
-
+    position:absolute;
+    bottom:0;
+    left:calc(var(--bottle-h) * 0.384 - 8px);
+    height:46px; width:auto;
   }
 
+  /* two short lines so the note stays clear of the tagline to its left */
+  .logo-composition .click-prompt br{ display:inline; }
+
   .click-prompt span{
-
-    font-size:clamp(0.95rem, 4vw, 1.25rem);
-
-    white-space:normal;
-
+    position:absolute;
+    bottom:48px; right:-22px;
     text-align:center;
-
-    max-width:34vw;
-
-    line-height:1.2;
-
+    font-size:clamp(1.15rem, 5vw, 1.4rem);
+    white-space:nowrap;
+    line-height:1.05;
   }
 
 }
+
+.click-prompt br{ display:none; }
 
 .click-prompt span{
 
@@ -670,6 +690,8 @@ body.pre-pop .click-prompt{
 
   position:fixed; inset:0; z-index:0;
 
+  width:100%; height:100vh; height:100dvh;
+
   pointer-events:none;
 
   opacity:0;
@@ -700,9 +722,9 @@ body.pre-pop .spotlight{
    the cap is actually popped - scrolling is locked (see lockPage() in
    the script below) and everything else fades in together once it is ---- */
 
-body > *:not(.hero){ transition:opacity 0.6s ease; }
+body > *:not(.hero):not(.spotlight){ transition:opacity 0.6s ease; }
 
-body.pre-pop > *:not(.hero){ visibility:hidden; opacity:0; }
+body.pre-pop > *:not(.hero):not(.spotlight){ visibility:hidden; opacity:0; }
 
 .hero-photo-wrap{ transition:opacity 0.6s ease; }
 
@@ -817,6 +839,21 @@ body.pre-pop .hero-photo-wrap{ visibility:hidden; opacity:0; }
 }
 
 
+
+/* on phones the subheading steps back so the wordmark and bottle are
+   clearly the focus, with the tagline and this as supporting text */
+
+@media(max-width:680px){
+
+  .hero-sub{
+    font-size:0.8rem;
+    line-height:1.6;
+    margin-top:22px;
+    padding-left:14px;
+    border-left-width:3px;
+  }
+
+}
 
 /* ---- photo carousel ---- */
 
@@ -1036,6 +1073,41 @@ body.pre-pop .hero-photo-wrap{ visibility:hidden; opacity:0; }
 
 
 
+/* ---- wave-grain: only the divider directly above .ink-block needs
+   this. .ink-block has its own extra grain texture (::before, further
+   down) on top of the flat var(--ink) fill, which the page-wide
+   body::before grain doesn't fully account for - so its surface reads
+   very slightly lighter than the divider's flat fill, a visible seam
+   at the join. This is the SAME texture, sized to sit over just the
+   divider's own box (not ink-block's - that already has its own copy),
+   so the two read as one continuous surface. paper-block and
+   contact-section have no such extra layer of their own, so their
+   dividers don't need this. */
+
+.wave-grain{
+
+  position:absolute;
+
+  top:0; left:0; right:0;
+
+  height:34px;
+
+  z-index:2;
+
+  pointer-events:none;
+
+  opacity:0.09;
+
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  background-size:240px 240px;
+
+  mix-blend-mode:soft-light;
+
+}
+
+
+
 /* ---- cap-pop: dim the nav for the duration of the sequence. The page
 
    itself is NOT overflow-locked here - the fall now scrolls the real
@@ -1055,6 +1127,34 @@ body.pre-pop .hero-photo-wrap{ visibility:hidden; opacity:0; }
   pointer-events:none;
 
   transition:opacity 0.3s ease;
+
+}
+
+
+
+/* ---- seam wrappers: each wave-divider is grouped with the block it
+   visually caps (ink-seam/paper-seam/contact-seam), rather than sitting
+   as a bare, separately-faded sibling. This does two things: (1) it's
+   what's actually opacity-faded on cap-pop (see the body > * rule below)
+   instead of the SVG and its block fading in independently - since they
+   deliberately overlap by 2px (the wave-divider's negative margin), two
+   *separately* semi-transparent overlapping layers show a doubled/darker
+   seam mid-fade where a single flat color should be. Fading the pair as
+   one composited unit removes that seam entirely. (2) overflow:hidden
+   now clips at the wrapper, not at the block itself, so it reaches up
+   through the wave-divider's own box - combined with the block outranking
+   its wave-divider in z-index (ink-block/paper-block/contact-section are
+   all z-index:3 against the divider's z-index:2), a blob seeded near the
+   top of the block can now bleed its glow up across the wave instead of
+   being hard-clipped exactly at the seam. */
+
+.ink-seam, .paper-seam, .contact-seam{
+
+  position:relative;
+
+  isolation:isolate;
+
+  overflow:hidden;
 
 }
 
@@ -1325,7 +1425,7 @@ body.pre-pop .hero-photo-wrap{ visibility:hidden; opacity:0; }
 
   isolation:isolate;
 
-  overflow:hidden;
+  z-index:3;
 
 }
 
@@ -1496,8 +1596,6 @@ body.pre-pop .hero-photo-wrap{ visibility:hidden; opacity:0; }
 
   isolation:isolate;
 
-  overflow:hidden;
-
   z-index:3;
 
 }
@@ -1616,7 +1714,7 @@ body.pre-pop .hero-photo-wrap{ visibility:hidden; opacity:0; }
    own distinct backing (cork panel vs. notepad) so the two don't read
    as one indistinct scroll of cards. ---- */
 
-.paper-block{ position:relative; isolation:isolate; overflow:hidden; }
+.paper-block{ position:relative; isolation:isolate; z-index:3; }
 
 .paper-block > *:not(.blob){ position:relative; z-index:1; }
 
@@ -1786,7 +1884,7 @@ footer{
 
 </head>
 
-<body class="pre-pop">
+<body class="pre-pop hero-lock">
 
 
 
@@ -1846,9 +1944,9 @@ footer{
 
 
 
-<section class="hero">
+<div class="spotlight" aria-hidden="true"></div>
 
-  <div class="spotlight" aria-hidden="true"></div>
+<section class="hero">
 
   <div>
 
@@ -1884,9 +1982,9 @@ footer{
 
         <svg viewBox="0 0 100 70" class="click-arrow"><path d="M90,10 C70,4 44,20 24,40" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round"/><path d="M43,35 L24,40 L29,21" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
 
-        <svg viewBox="0 0 60 100" class="click-arrow-mobile"><path d="M24,90 C8,62 46,44 34,17" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round"/><path d="M42,29 L34,15 L26,29" fill="none" stroke="var(--red)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 34 50" class="click-arrow-mobile"><path d="M27,3 C29,20 22,33 9,41" fill="none" stroke="var(--red)" stroke-width="3.5" stroke-linecap="round"/><path d="M20,41.7 L9,41 L13.4,30.9" fill="none" stroke="var(--red)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
 
-        <span>pop the cap!</span>
+        <span>pop the<br>cap!</span>
 
       </div>
 
@@ -1970,7 +2068,11 @@ footer{
 
 
 
+<div class="ink-seam">
+
 <svg class="wave-divider" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--ink)"></path></svg>
+
+<div class="wave-grain" aria-hidden="true"></div>
 
 
 
@@ -2052,7 +2154,11 @@ footer{
 
 </div>
 
+</div>
 
+
+
+<div class="paper-seam">
 
 <svg class="wave-divider" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--paper)"></path></svg>
 
@@ -2224,7 +2330,11 @@ footer{
 
 </div>
 
+</div>
 
+
+
+<div class="contact-seam">
 
 <svg class="wave-divider" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,22 C120,42 220,2 340,18 C460,34 560,6 680,20 C800,34 900,4 1020,18 C1100,28 1160,26 1200,20 L1200,40 L0,40 Z" style="fill:var(--ink)"></path></svg>
 
@@ -2264,6 +2374,8 @@ footer{
 
 </section>
 
+</div>
+
 
 
 <footer>
@@ -2281,6 +2393,8 @@ footer{
 // nav scroll state
 
 const masthead = document.getElementById('masthead');
+
+const hero = document.querySelector('.hero');
 
 window.addEventListener('scroll', () => {
 
@@ -2303,6 +2417,20 @@ burger.addEventListener('click', () => {
   panel.classList.toggle('is-open', open);
 
   burger.setAttribute('aria-expanded', open);
+
+});
+
+document.addEventListener('keydown', (e) => {
+
+  if (e.key === 'Escape' && panel.classList.contains('is-open')){
+
+    burger.classList.remove('is-open');
+
+    panel.classList.remove('is-open');
+
+    burger.setAttribute('aria-expanded', false);
+
+  }
 
 });
 
@@ -3083,6 +3211,28 @@ function revealMission(){
 function finishPop(){
 
   unlockPage();
+
+  // hero is well above the viewport by now, but its box still shrinks
+  // the instant hero-lock lifts - and that shrink moves everything
+  // after it (the divider, mission content...) up in document space.
+  // scrollY itself doesn't get adjusted automatically for a change
+  // that far above the viewport, so without compensating, the exact
+  // same scrollY now points at a different, lower point in the page -
+  // this is what was landing the masthead mid-content instead of
+  // cleanly above the divider.
+  if (document.body.classList.contains('hero-lock') && hero){
+
+    const heroBefore = hero.getBoundingClientRect().height;
+
+    document.body.classList.remove('hero-lock');
+
+    const heroAfter = hero.getBoundingClientRect().height;
+
+    const shrink = heroBefore - heroAfter;
+
+    if (shrink){ window.scrollTo({ top: Math.max(0, window.scrollY - shrink), left: 0, behavior: 'instant' }); }
+
+  }
 
   setTimeout(() => {
 
