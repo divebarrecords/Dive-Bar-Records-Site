@@ -287,6 +287,14 @@ body::before{
 .gig-modal button.gig-cta{ margin-bottom:12px; }
 .gig-modal-status{ font-size:0.78rem; min-height:1.3em; color:var(--red); }
 
+.status-banner{
+  max-width:520px; margin-top:22px; padding:14px 18px;
+  font-weight:700; font-size:0.85rem;
+  background:var(--paper2); border:2px solid var(--ink);
+  border-radius:24px 8px 24px 8px; box-shadow:4px 5px 0 var(--gold);
+}
+.status-banner[hidden]{ display:none; }
+
 /* ---- TICKET FAQ — same accordion as the main site ---- */
 .ticket-faq{ padding:30px 5% 90px; position:relative; }
 .ticket-faq .eyebrow{ color:var(--red); }
@@ -351,6 +359,7 @@ footer{
   <div class="hero-tag">What's on</div>
   <h1 class="page-headline">Upcoming gigs</h1>
   <p class="page-sub">Dates, venues, and tickets for every upcoming Dive Bar Records show.</p>
+<div class="status-banner" id="statusBanner" role="status" hidden></div>
 </section>
 
 <section class="gigs-section paper-block" id="upcoming">
@@ -498,6 +507,10 @@ function formatDateLong(iso){
   return d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
 }
 
+function esc(v){
+  return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 function renderGigs(){
   const grid = document.getElementById('gigGrid');
   grid.innerHTML = gigs.map(g => {
@@ -508,14 +521,14 @@ function renderGigs(){
       <article class="gig-flyer reveal">
         ${soldOut ? '<div class="stamp">Sold out</div>' : ''}
         <div class="gig-date"><span class="day">${day}</span><span class="monyr">${monyr}</span></div>
-        <h3>${g.headliner}</h3>
-        <div class="gig-venue">${g.venue.toUpperCase()} // ${g.city.toUpperCase()}</div>
-        <div class="gig-lineup">w/ ${g.support} · Doors ${g.doors} · ${g.ageRestriction}</div>
+        <h3>${esc(g.headliner)}</h3>
+        <div class="gig-venue">${esc(g.venue.toUpperCase())} // ${esc(g.city.toUpperCase())}</div>
+        <div class="gig-lineup">${g.support ? 'w/ ' + esc(g.support) + ' · ' : ''}Doors ${esc(g.doors)} · ${esc(g.ageRestriction)}</div>
         <div class="gig-meta">
           <span>£${g.priceGBP} adv</span>
           <span class="${lowStock ? 'gig-lowstock' : ''}">${soldOut ? '' : (lowStock ? g.ticketsRemaining + ' left' : '')}</span>
         </div>
-        <button class="gig-cta" type="button" data-gig-id="${g.id}" ${soldOut ? 'disabled' : ''}>
+        <button class="gig-cta" type="button" data-gig-id="${esc(g.id)}" ${soldOut ? 'disabled' : ''}>
           ${soldOut ? 'Sold out' : 'Get tickets →'}
         </button>
       </article>
@@ -575,33 +588,47 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.
 
 // ------------------------------------------------------------
 // CHECKOUT
-// This is the one part of the page that needs a real backend.
-// Point CHECKOUT_ENDPOINT at your Supabase Edge Function once
-// it's deployed — it should create a Stripe Checkout Session
-// server-side (never in this file) and return { url }, which
-// this redirects the browser to. Until that endpoint exists,
-// this fails gracefully instead of pretending to work.
+// Sends only { gigId, quantity }. Price, stock and validation are all
+// decided server-side by the create-checkout-session edge function,
+// which returns a Stripe Checkout URL to redirect to.
 // ------------------------------------------------------------
-const CHECKOUT_ENDPOINT = 'https://ualutedgenurromgylwz.supabase.co/functions/v1/create-checkout-session';
+const CHECKOUT_ENDPOINT = SUPABASE_URL + '/functions/v1/create-checkout-session';
 
 continueBtn.addEventListener('click', async () => {
   if (!activeGig) return;
+  if (String(activeGig.id).startsWith('fallback-')) {
+    modalStatus.textContent = "Tickets can't be booked right now — please try again shortly.";
+    return;
+  }
   continueBtn.disabled = true;
+  continueBtn.textContent = 'One moment…';
   modalStatus.textContent = '';
+  let redirecting = false;
   try {
     const res = await fetch(CHECKOUT_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+      },
       body: JSON.stringify({ gigId: activeGig.id, quantity: qty })
     });
-    if (!res.ok) throw new Error('Checkout request failed');
-    const { url } = await res.json();
-    if (url) { window.location.href = url; return; }
-    throw new Error('No checkout URL returned');
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.url) {
+      modalStatus.textContent = data.error || 'Something went wrong — please try again.';
+      if (res.status === 409) loadGigs(); // stock changed, refresh the cards
+      return;
+    }
+    redirecting = true;
+    window.location.href = data.url;
   } catch (err) {
-    modalStatus.textContent = "Checkout isn't connected yet, i still have to wire up the Supabase Edge Function to enable payment.";
+    modalStatus.textContent = 'Something went wrong — please check your connection and try again.';
   } finally {
-    continueBtn.disabled = false;
+    if (!redirecting) {
+      continueBtn.disabled = false;
+      continueBtn.textContent = 'Continue to payment';
+    }
   }
 });
 
@@ -635,6 +662,23 @@ function observeReveal(el){
   if (io) io.observe(el); else el.classList.add('in-view');
 }
 document.querySelectorAll('.reveal').forEach(observeReveal);
+
+(function(){
+  const status = new URLSearchParams(location.search).get('status');
+  const el = document.getElementById('statusBanner');
+  if (!status || !el) return;
+  if (status === 'success') {
+    el.textContent = "You're in! Your tickets are on their way — check your inbox (and spam) for the confirmation email.";
+    el.hidden = false;
+  } else if (status === 'cancelled') {
+    el.textContent = "No worries — you haven't been charged. Any held tickets are released shortly.";
+    el.hidden = false;
+  }
+  history.replaceState(null, '', location.pathname);
+})();
+
+// coming back from Stripe via the back button: refresh stock
+window.addEventListener('pageshow', (e) => { if (e.persisted) loadGigs(); });
 
 loadGigs();
 </script>
