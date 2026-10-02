@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GIGS - DIVE BAR RECORDS</title>
-<meta name="description" content="Upcoming Dive Bar Records shows. Tickets sold direct - no third-party platform fee.">
+<title>GIGS — DIVE BAR RECORDS</title>
+<meta name="description" content="Upcoming Dive Bar Records shows. Tickets sold direct — no third-party platform fee.">
 <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
@@ -124,7 +124,7 @@ body::before{
 
 #upcoming, #ticket-faq{ scroll-margin-top:100px; }
 
-/* ---- PAGE HERO (quieter than the homepage - no pre-pop gate, this
+/* ---- PAGE HERO (quieter than the homepage — no pre-pop gate, this
    page has a job to do, not a first impression to make) ---- */
 .page-hero{ padding:64px 5% 40px; position:relative; isolation:isolate; overflow:hidden; }
 .page-hero > *:not(.blob){ position:relative; z-index:1; }
@@ -156,7 +156,7 @@ body::before{
 .paper-block{ position:relative; isolation:isolate; overflow:hidden; }
 .paper-block > *:not(.blob){ position:relative; z-index:1; }
 
-/* ---- UPCOMING GIGS - pinned to the same corkboard texture as Roster ---- */
+/* ---- UPCOMING GIGS — pinned to the same corkboard texture as Roster ---- */
 .gigs-section{ padding:70px 5% 40px; position:relative; }
 .gigs-section .eyebrow, .ticket-faq .eyebrow{
   font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
@@ -295,7 +295,7 @@ body::before{
 }
 .status-banner[hidden]{ display:none; }
 
-/* ---- TICKET FAQ - same accordion as the main site ---- */
+/* ---- TICKET FAQ — same accordion as the main site ---- */
 .ticket-faq{ padding:30px 5% 90px; position:relative; }
 .ticket-faq .eyebrow{ color:var(--red); }
 .faq-list{
@@ -385,7 +385,7 @@ footer{
         <span class="faq-icon" aria-hidden="true">+</span>
       </button>
       <div class="faq-a"><div class="faq-a-inner">
-        <p>No - your confirmation email is your ticket. Bring it up on your phone at the door, or print it if you'd rather.</p>
+        <p>No — your confirmation email is your ticket. Bring it up on your phone at the door, or print it if you'd rather.</p>
       </div></div>
     </div>
     <div class="faq-item reveal">
@@ -394,12 +394,12 @@ footer{
         <span class="faq-icon" aria-hidden="true">+</span>
       </button>
       <div class="faq-a"><div class="faq-a-inner">
-        <p>Varies by show and venue - check the listing above. Some rooms will ID on the door regardless.</p>
+        <p>Varies by show and venue — check the listing above. Some rooms will ID on the door regardless.</p>
       </div></div>
     </div>
     <div class="faq-item reveal">
       <button class="faq-q" type="button" aria-expanded="false">
-        <span>I've lost my confirmation email - what now?</span>
+        <span>I've lost my confirmation email — what now?</span>
         <span class="faq-icon" aria-hidden="true">+</span>
       </button>
       <div class="faq-a"><div class="faq-a-inner">
@@ -412,7 +412,7 @@ footer{
         <span class="faq-icon" aria-hidden="true">+</span>
       </button>
       <div class="faq-a"><div class="faq-a-inner">
-        <p>Only if a show hasn't sold out. Booking ahead guarantees you a spot - follow us for live sell-out updates.</p>
+        <p>Only if a show hasn't sold out. Booking ahead guarantees you a spot — follow us for live sell-out updates.</p>
       </div></div>
     </div>
   </div>
@@ -460,7 +460,7 @@ const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE
 
 const FALLBACK_GIGS = [
   { id: 'fallback-1', date: '2026-11-14', doors: '7:30pm', venue: 'The Anchor House', city: 'Manchester',
-    headliner: 'Concrete Wolves', support: 'Static Halo', priceGBP: 8, ticketsRemaining: 46, ageRestriction: '14+' }
+    headliner: 'Concrete Wolves', support: 'Static Halo', priceGBP: 8, availability: 'available', ageRestriction: '14+' }
 ];
 
 let gigs = [];
@@ -475,7 +475,7 @@ function mapRow(row){
     headliner: row.headliner,
     support: row.support,
     priceGBP: Number(row.price_gbp),
-    ticketsRemaining: row.tickets_remaining,
+    availability: row.availability, // 'available' | 'low' | 'sold_out' (stock counts are not public)
     ageRestriction: row.age_restriction
   };
 }
@@ -486,7 +486,7 @@ async function loadGigs(){
     if (!sb) throw new Error('Supabase client failed to load');
     const { data, error } = await sb
       .from('gigs')
-      .select('*')
+      .select('id, headliner, support, event_date, doors_time, venue, city, price_gbp, age_restriction, availability')
       .gte('event_date', todayISO)
       .order('event_date', { ascending: true });
     if (error) throw error;
@@ -515,8 +515,8 @@ function renderGigs(){
   const grid = document.getElementById('gigGrid');
   grid.innerHTML = gigs.map(g => {
     const { day, monyr } = formatDateParts(g.date);
-    const soldOut = g.ticketsRemaining <= 0;
-    const lowStock = !soldOut && g.ticketsRemaining <= 10;
+    const soldOut = g.availability === 'sold_out';
+    const lowStock = g.availability === 'low';
     return `
       <article class="gig-flyer reveal">
         ${soldOut ? '<div class="stamp">Sold out</div>' : ''}
@@ -526,7 +526,7 @@ function renderGigs(){
         <div class="gig-lineup">${g.support ? 'w/ ' + esc(g.support) + ' · ' : ''}Doors ${esc(g.doors)} · ${esc(g.ageRestriction)}</div>
         <div class="gig-meta">
           <span>£${g.priceGBP} adv</span>
-          <span class="${lowStock ? 'gig-lowstock' : ''}">${soldOut ? '' : (lowStock ? g.ticketsRemaining + ' left' : '')}</span>
+          <span class="${lowStock ? 'gig-lowstock' : ''}">${soldOut ? '' : (lowStock ? 'Low tickets' : '')}</span>
         </div>
         <button class="gig-cta" type="button" data-gig-id="${esc(g.id)}" ${soldOut ? 'disabled' : ''}>
           ${soldOut ? 'Sold out' : 'Get tickets →'}
@@ -564,7 +564,7 @@ function openModal(gigId){
   if (!activeGig) return;
   qty = 1;
   modalTitle.textContent = activeGig.headliner;
-  modalVenue.textContent = `${activeGig.venue}, ${activeGig.city} - ${formatDateLong(activeGig.date)}`;
+  modalVenue.textContent = `${activeGig.venue}, ${activeGig.city} — ${formatDateLong(activeGig.date)}`;
   modalStatus.textContent = '';
   updateTotal();
   overlay.classList.add('is-open');
@@ -597,7 +597,7 @@ const CHECKOUT_ENDPOINT = SUPABASE_URL + '/functions/v1/create-checkout-session'
 continueBtn.addEventListener('click', async () => {
   if (!activeGig) return;
   if (String(activeGig.id).startsWith('fallback-')) {
-    modalStatus.textContent = "Tickets can't be booked right now - please try again shortly.";
+    modalStatus.textContent = "Tickets can't be booked right now — please try again shortly.";
     return;
   }
   continueBtn.disabled = true;
@@ -616,14 +616,14 @@ continueBtn.addEventListener('click', async () => {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.url) {
-      modalStatus.textContent = data.error || 'Something went wrong - please try again.';
+      modalStatus.textContent = data.error || 'Something went wrong — please try again.';
       if (res.status === 409) loadGigs(); // stock changed, refresh the cards
       return;
     }
     redirecting = true;
     window.location.href = data.url;
   } catch (err) {
-    modalStatus.textContent = 'Something went wrong - please check your connection and try again.';
+    modalStatus.textContent = 'Something went wrong — please check your connection and try again.';
   } finally {
     if (!redirecting) {
       continueBtn.disabled = false;
@@ -633,7 +633,7 @@ continueBtn.addEventListener('click', async () => {
 });
 
 // ============================================================
-// SHARED CHROME - same behaviour as the main site
+// SHARED CHROME — same behaviour as the main site
 // ============================================================
 const masthead = document.getElementById('masthead');
 window.addEventListener('scroll', () => {
@@ -650,7 +650,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// scroll reveal - set up first so it's ready for both the static
+// scroll reveal — set up first so it's ready for both the static
 // elements already on the page and the gig cards rendered later
 let io = null;
 if ('IntersectionObserver' in window){
@@ -668,10 +668,10 @@ document.querySelectorAll('.reveal').forEach(observeReveal);
   const el = document.getElementById('statusBanner');
   if (!status || !el) return;
   if (status === 'success') {
-    el.textContent = "You're in! Your tickets are on their way - check your inbox (and spam) for the confirmation email.";
+    el.textContent = "You're in! Your tickets are on their way — check your inbox (and spam) for the confirmation email.";
     el.hidden = false;
   } else if (status === 'cancelled') {
-    el.textContent = "No worries - you haven't been charged. Any held tickets are released shortly.";
+    el.textContent = "No worries — you haven't been charged. Any held tickets are released shortly.";
     el.hidden = false;
   }
   history.replaceState(null, '', location.pathname);
