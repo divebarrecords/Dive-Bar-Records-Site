@@ -139,7 +139,7 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
             <input type="number" id="fPrice" min="0" step="0.5" required>
           </div>
           <div>
-            <label for="fTickets">Tickets available</label>
+            <label for="fTickets">Capacity (total tickets)</label>
             <input type="number" id="fTickets" min="0" step="1" required>
           </div>
           <div class="full">
@@ -233,7 +233,7 @@ function fillForm(gig){
   document.getElementById('fVenue').value = gig.venue;
   document.getElementById('fCity').value = gig.city;
   document.getElementById('fPrice').value = gig.price_gbp;
-  document.getElementById('fTickets').value = gig.tickets_remaining;
+  document.getElementById('fTickets').value = gig.capacity ?? gig.tickets_remaining;
   document.getElementById('fAge').value = gig.age_restriction || '';
   formTitle.textContent = 'Edit gig';
   saveBtn.textContent = 'Update gig';
@@ -256,13 +256,15 @@ gigForm.addEventListener('submit', async (e) => {
     venue: document.getElementById('fVenue').value.trim(),
     city: document.getElementById('fCity').value.trim(),
     price_gbp: Number(document.getElementById('fPrice').value),
-    tickets_remaining: Number(document.getElementById('fTickets').value),
+    capacity: Number(document.getElementById('fTickets').value),
     age_restriction: document.getElementById('fAge').value.trim() || null
   };
 
+  // Stock (tickets_remaining) is managed by the database: it starts equal to
+  // capacity and only moves with sales or when capacity is changed.
   const { error } = id
     ? await sb.from('gigs').update(payload).eq('id', id)
-    : await sb.from('gigs').insert(payload);
+    : await sb.from('gigs').insert({ ...payload, tickets_remaining: payload.capacity });
 
   saveBtn.disabled = false;
   if (error) {
@@ -292,14 +294,14 @@ async function loadGigs(){
 
   listEl.innerHTML = data.map(g => {
     const soldOut = g.tickets_remaining <= 0;
-    const lowStock = !soldOut && g.tickets_remaining <= 10;
+    const lowStock = g.availability === 'low';
     const dateStr = new Date(g.event_date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
     return `
       <div class="gig-row" data-id="${g.id}">
         <div class="gig-row-main">
           <strong>${g.headliner}</strong>
           <span>${dateStr} · ${g.venue}, ${g.city} · £${Number(g.price_gbp).toFixed(2)}
-            ${soldOut ? '<span class="tag soldout">Sold out</span>' : (lowStock ? `<span class="tag low">${g.tickets_remaining} left</span>` : `· ${g.tickets_remaining} tickets left`)}
+            ${soldOut ? '<span class="tag soldout">Sold out</span>' : (lowStock ? `<span class="tag low">${g.tickets_remaining} of ${g.capacity ?? '?'} left</span>` : `· ${g.tickets_remaining} of ${g.capacity ?? '?'} tickets left`)}
           </span>
         </div>
         <div class="gig-row-actions">
