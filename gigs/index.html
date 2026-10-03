@@ -284,6 +284,16 @@ body::before{
   border-top:2px dashed rgba(35,35,56,0.25); border-bottom:2px dashed rgba(35,35,56,0.25);
 }
 .total-row .amount{ font-family:"plunct", sans-serif; font-size:1.5rem; }
+.email-block{ margin-bottom:18px; }
+.email-block .qty-label{ display:block; margin:0 0 6px; }
+.email-block input{
+  width:100%; padding:10px 12px; margin-bottom:12px;
+  font-family:'Space Mono', monospace; font-size:0.9rem; color:var(--ink);
+  background:var(--paper); border:2px solid var(--ink); border-radius:10px;
+}
+.email-block input:focus{ outline:3px solid var(--gold); outline-offset:1px; }
+.email-hint{ font-size:0.76rem; line-height:1.4; margin:-4px 0 0; }
+.email-hint button{ font:inherit; font-weight:700; text-decoration:underline; background:none; border:0; color:var(--ink); cursor:pointer; padding:0; }
 .gig-modal button.gig-cta{ margin-bottom:12px; }
 .gig-modal-status{ font-size:0.78rem; min-height:1.3em; color:var(--red); }
 
@@ -436,6 +446,13 @@ footer{
       <span class="qty-label">Total</span>
       <span class="amount" id="modalTotal">£0</span>
     </div>
+    <div class="email-block">
+      <label class="qty-label" for="buyerEmail">Email for your tickets</label>
+      <input type="email" id="buyerEmail" autocomplete="email" inputmode="email" maxlength="254" spellcheck="false" autocapitalize="off" required>
+      <label class="qty-label" for="buyerEmail2">Confirm email</label>
+      <input type="email" id="buyerEmail2" autocomplete="off" inputmode="email" maxlength="254" spellcheck="false" autocapitalize="off" required>
+      <p class="email-hint" id="emailHint" role="status" aria-live="polite">Your tickets are emailed here, so double-check it.</p>
+    </div>
     <button class="gig-cta" id="modalContinue" type="button">Continue to payment</button>
     <p class="gig-modal-status" id="modalStatus" role="status" aria-live="polite"></p>
   </div>
@@ -559,6 +576,52 @@ let activeGig = null;
 let qty = 1;
 const MAX_QTY = 6;
 
+// ---- email checks (the server repeats all of these; this is just fast feedback) ----
+const EMAIL_RE = /^[A-Za-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\.[A-Za-z]{2,24}$/;
+const DOMAIN_FIXES = {
+  'gmail.con':'gmail.com','gmail.co':'gmail.com','gmail.cm':'gmail.com','gmail.om':'gmail.com',
+  'gmial.com':'gmail.com','gmai.com':'gmail.com','gmal.com':'gmail.com','gnail.com':'gmail.com',
+  'hotmial.com':'hotmail.com','hotmai.com':'hotmail.com','hotmail.con':'hotmail.com',
+  'yahoo.con':'yahoo.com','yaho.com':'yahoo.com','outlook.con':'outlook.com','icloud.con':'icloud.com'
+};
+const buyerEmail = document.getElementById('buyerEmail');
+const buyerEmail2 = document.getElementById('buyerEmail2');
+const emailHint = document.getElementById('emailHint');
+const EMAIL_HINT_DEFAULT = 'Your tickets are emailed here, so double-check it.';
+
+function setEmailHint(msg, suggestion){
+  emailHint.textContent = msg;
+  if (suggestion){
+    emailHint.append(' ');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = 'Use ' + suggestion;
+    b.addEventListener('click', () => {
+      buyerEmail.value = suggestion;
+      buyerEmail2.value = '';
+      emailHint.textContent = 'Now confirm it below.';
+      buyerEmail2.focus();
+    });
+    emailHint.append(b);
+  }
+}
+// returns the cleaned email, or null after showing a message
+function validateEmailFields(){
+  const email = buyerEmail.value.trim().toLowerCase();
+  if (!EMAIL_RE.test(email) || email.length > 254){
+    setEmailHint('That email address doesn\u2019t look right.'); buyerEmail.focus(); return null;
+  }
+  const [local, domain] = email.split('@');
+  if (DOMAIN_FIXES[domain]){
+    setEmailHint('Did you mean ' + local + '@' + DOMAIN_FIXES[domain] + '?', local + '@' + DOMAIN_FIXES[domain]);
+    buyerEmail.focus(); return null;
+  }
+  if (buyerEmail2.value.trim().toLowerCase() !== email){
+    setEmailHint('The two email addresses don\u2019t match.'); buyerEmail2.focus(); return null;
+  }
+  return email;
+}
+
 function openModal(gigId){
   activeGig = gigs.find(g => g.id === gigId);
   if (!activeGig) return;
@@ -566,6 +629,8 @@ function openModal(gigId){
   modalTitle.textContent = activeGig.headliner;
   modalVenue.textContent = `${activeGig.venue}, ${activeGig.city} - ${formatDateLong(activeGig.date)}`;
   modalStatus.textContent = '';
+  buyerEmail.value = ''; buyerEmail2.value = '';
+  emailHint.textContent = EMAIL_HINT_DEFAULT;
   updateTotal();
   overlay.classList.add('is-open');
   document.getElementById('modalClose').focus();
@@ -600,6 +665,8 @@ continueBtn.addEventListener('click', async () => {
     modalStatus.textContent = "Tickets can't be booked right now - please try again shortly.";
     return;
   }
+  const email = validateEmailFields();
+  if (!email) return;
   continueBtn.disabled = true;
   continueBtn.textContent = 'One moment…';
   modalStatus.textContent = '';
@@ -612,11 +679,12 @@ continueBtn.addEventListener('click', async () => {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
       },
-      body: JSON.stringify({ gigId: activeGig.id, quantity: qty })
+      body: JSON.stringify({ gigId: activeGig.id, quantity: qty, email })
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.url) {
-      modalStatus.textContent = data.error || 'Something went wrong - please try again.';
+      if (data.field === 'email') setEmailHint(data.error, data.suggestion);
+      else modalStatus.textContent = data.error || 'Something went wrong - please try again.';
       if (res.status === 409) loadGigs(); // stock changed, refresh the cards
       return;
     }
