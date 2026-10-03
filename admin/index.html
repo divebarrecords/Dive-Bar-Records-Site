@@ -51,6 +51,18 @@ button.danger{ background:none; color:var(--red); border:2px solid var(--red); p
 button.danger:hover{ background:var(--red); color:var(--paper); }
 .form-status{ font-size:0.78rem; min-height:1.2em; margin-top:-8px; margin-bottom:14px; color:var(--red); }
 
+.ord{ border:2px solid var(--ink); border-radius:8px; padding:12px 14px; margin-bottom:12px; background:var(--paper); }
+.ord.refunded{ opacity:0.6; }
+.ord-top{ display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.ord small{ opacity:0.7; }
+.ord-actions{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+.ord-actions button, .tk button{ padding:5px 10px; font-size:0.7rem; }
+.tk{ display:flex; align-items:center; gap:10px; margin-top:6px; font-size:0.82rem; flex-wrap:wrap; }
+.tk code{ letter-spacing:1px; font-weight:700; }
+.badge{ display:inline-block; font-size:0.68rem; font-weight:700; text-transform:uppercase; padding:2px 8px; border-radius:20px; border:2px solid var(--ink); }
+.badge.good{ background:#d9efd5; } .badge.bad{ background:var(--red); color:var(--paper); border-color:var(--red); } .badge.wait{ background:var(--paper2); }
+.ord-tools{ display:flex; gap:10px; align-items:flex-start; } .ord-tools input{ margin-bottom:0; }
+
 /* ---- app shell ---- */
 #appView{ display:none; min-height:100vh; }
 #appView.is-visible{ display:block; }
@@ -157,6 +169,16 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
       <h2>Upcoming gigs</h2>
       <div id="gigList"><p class="empty-note">Loading…</p></div>
     </div>
+
+    <div class="panel">
+      <h2>Orders &amp; tickets</h2>
+      <div class="ord-tools">
+        <input type="search" id="orderSearch" placeholder="Search email, name, gig or ticket code" autocomplete="off">
+        <button type="button" class="secondary" id="ordersRefresh">Refresh</button>
+      </div>
+      <p class="form-status" id="orderMsg" role="status" aria-live="polite" style="margin-top:10px"></p>
+      <div id="orderList"><p class="empty-note">Loading…</p></div>
+    </div>
   </div>
 </div>
 
@@ -175,6 +197,7 @@ function showApp(){
   loginView.style.display = 'none';
   appView.classList.add('is-visible');
   loadGigs();
+  loadOrders();
 }
 function showLogin(){
   appView.classList.remove('is-visible');
@@ -273,6 +296,112 @@ gigForm.addEventListener('submit', async (e) => {
   }
   resetForm();
   loadGigs();
+});
+
+// ---- orders & tickets (talks to the admin-orders edge function) ----
+const ADMIN_API = SUPABASE_URL + '/functions/v1/admin-orders';
+let orders = [];
+const orderMsg = document.getElementById('orderMsg');
+function esc(v){
+  return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+async function adminCall(body){
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) throw new Error('Please log in again.');
+  const res = await fetch(ADMIN_API, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'apikey':SUPABASE_ANON_KEY, 'Authorization':'Bearer ' + session.access_token },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || ('Request failed (' + res.status + ')'));
+  return data;
+}
+async function loadOrders(){
+  const el = document.getElementById('orderList');
+  orderMsg.textContent = '';
+  try {
+    orders = (await adminCall({ action:'list' })).orders || [];
+    renderOrders();
+  } catch (err) {
+    el.innerHTML = '<p class="empty-note">Couldn\u2019t load orders \u2014 ' + esc(err.message) + '</p>';
+  }
+}
+function emailBadge(o){
+  if (o.status !== 'paid') return '';
+  const st = o.email_status;
+  if (st === 'delivered') return '<span class="badge good">Email delivered</span>';
+  if (st === 'bounced') return '<span class="badge bad">Email BOUNCED</span>';
+  if (st === 'complained') return '<span class="badge bad">Marked as spam</span>';
+  if (st === 'delivery_delayed') return '<span class="badge wait">Email delayed</span>';
+  if (st) return '<span class="badge wait">Email sent</span>';
+  return '<span class="badge wait">Email not tracked</span>';
+}
+function renderOrders(){
+  const el = document.getElementById('orderList');
+  const q = document.getElementById('orderSearch').value.trim().toLowerCase();
+  const list = orders.filter(o => !q || [o.customer_email, o.customer_name, o.gigs?.headliner, ...(o.tickets||[]).map(t => t.code)]
+    .some(v => String(v || '').toLowerCase().includes(q)));
+  if (!list.length){ el.innerHTML = '<p class="empty-note">' + (orders.length ? 'No matching orders.' : 'No orders yet.') + '</p>'; return; }
+  el.innerHTML = list.map(o => {
+    const g = o.gigs || {};
+    const total = ((o.unit_price_pence * o.quantity) / 100).toFixed(2);
+    const when = new Date(o.paid_at || o.created_at).toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+    const tickets = (o.tickets || []).map(t => {
+      const state = t.voided_at ? '<span class="badge">Void</span>'
+        : t.checked_in_at ? '<span class="badge good">Checked in</span> <button type="button" class="secondary" data-act="undo" data-ticket="' + esc(t.id) + '">Undo</button>'
+        : '<button type="button" class="secondary" data-act="checkin" data-ticket="' + esc(t.id) + '">Check in</button>';
+      return '<div class="tk"><code>' + esc(t.code) + '</code> ' + state + '</div>';
+    }).join('');
+    const actions = o.status === 'paid'
+      ? '<div class="ord-actions">'
+        + '<button type="button" class="secondary" data-act="resend" data-order="' + esc(o.id) + '">Resend email</button>'
+        + '<button type="button" class="secondary" data-act="fix" data-order="' + esc(o.id) + '">Change email &amp; resend</button>'
+        + '<button type="button" class="danger" data-act="refund" data-order="' + esc(o.id) + '">Refund</button></div>'
+      : '';
+    return '<div class="ord ' + esc(o.status) + '">'
+      + '<div class="ord-top"><div><strong>' + esc(g.headliner || 'Gig') + '</strong> <small>\u00b7 ' + esc(o.quantity) + ' \u00d7 \u00a3' + esc((o.unit_price_pence/100).toFixed(2)) + ' = \u00a3' + esc(total) + '</small><br>'
+      + esc(o.customer_name || '') + ' \u00b7 <strong>' + esc(o.customer_email || 'no email') + '</strong><br><small>' + esc(when) + ' \u00b7 ref ' + esc(o.id.slice(0,8).toUpperCase()) + '</small></div>'
+      + '<div>' + (o.status === 'refunded' ? '<span class="badge">Refunded</span>' : emailBadge(o)) + '</div></div>'
+      + tickets + actions + '</div>';
+  }).join('');
+}
+document.getElementById('orderSearch').addEventListener('input', renderOrders);
+document.getElementById('ordersRefresh').addEventListener('click', loadOrders);
+document.getElementById('orderList').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const act = btn.dataset.act;
+  const order = orders.find(o => o.id === btn.dataset.order);
+  let body;
+  if (act === 'resend'){
+    if (!confirm('Resend the ticket email to ' + order.customer_email + '?')) return;
+    body = { action:'resend', orderId:order.id };
+  } else if (act === 'fix'){
+    const next = prompt('Correct email address for this order:', order.customer_email || '');
+    if (!next || next.trim().toLowerCase() === (order.customer_email || '').toLowerCase()) return;
+    if (!confirm('Change the email to ' + next.trim() + ' and send the tickets there?')) return;
+    body = { action:'resend', orderId:order.id, email:next.trim() };
+  } else if (act === 'refund'){
+    const amt = ((order.unit_price_pence * order.quantity) / 100).toFixed(2);
+    if (!confirm('Refund \u00a3' + amt + ' to ' + order.customer_email + '?\n\nThis voids their tickets and puts them back on sale. It can\u2019t be undone.')) return;
+    body = { action:'refund', orderId:order.id };
+  } else if (act === 'checkin' || act === 'undo'){
+    body = { action:'checkin', ticketId:btn.dataset.ticket, undo: act === 'undo' };
+  } else return;
+
+  document.querySelectorAll('#orderList button').forEach(b => b.disabled = true);
+  orderMsg.style.color = '';
+  try {
+    await adminCall(body);
+    orderMsg.textContent = 'Done.';
+    await loadOrders();
+    if (act === 'refund') loadGigs();
+  } catch (err) {
+    orderMsg.textContent = err.message;
+    orderMsg.style.color = 'var(--red)';
+    document.querySelectorAll('#orderList button').forEach(b => b.disabled = false);
+  }
 });
 
 // ---- gig list ----
