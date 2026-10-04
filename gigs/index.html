@@ -6,8 +6,14 @@
 <title>GIGS - DIVE BAR RECORDS</title>
 <meta name="description" content="Upcoming Dive Bar Records shows. Tickets sold direct - no third-party platform fee.">
 <link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
+@font-face{
+  font-family:'Freya';
+  src:url('/freya.ttf') format('truetype');
+  font-weight:400; font-style:normal; font-display:swap;
+  size-adjust:120%;
+}
 :root{
   --paper:#f8f7f3;
   --paper2:#F2EAD2;
@@ -27,7 +33,7 @@ body{
     radial-gradient(ellipse 480px 600px at 30% 80%, rgba(35,35,56,0.035), transparent 55%),
     var(--paper);
   color:var(--ink);
-  font-family:'Space Mono', monospace;
+  font-family:'Freya', system-ui, sans-serif;
   font-size:1rem;
   line-height:1.65;
   overflow-x:hidden;
@@ -102,7 +108,7 @@ body::before{
 .logo-lockup:hover .logo-text{ color:var(--red); }
 .back-link{
   position:relative;
-  font-family:'Space Mono'; font-weight:700;
+  font-family:'Freya', system-ui, sans-serif; font-weight:700;
   font-size:0.72rem;
   text-transform:uppercase;
   letter-spacing:1.5px;
@@ -129,7 +135,7 @@ body::before{
 .page-hero{ padding:64px 5% 40px; position:relative; isolation:isolate; overflow:hidden; }
 .page-hero > *:not(.blob){ position:relative; z-index:1; }
 .hero-tag{
-  font-family:'Space Mono'; font-style:italic; font-weight:700;
+  font-family:'Freya', system-ui, sans-serif; font-style:italic; font-weight:700;
   font-size:0.95rem; letter-spacing:1px;
   display:inline-block; margin-bottom:14px;
   text-transform:uppercase; color:var(--ink);
@@ -159,7 +165,7 @@ body::before{
 /* ---- UPCOMING GIGS - pinned to the same corkboard texture as Roster ---- */
 .gigs-section{ padding:70px 5% 40px; position:relative; }
 .gigs-section .eyebrow, .ticket-faq .eyebrow{
-  font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.72rem;
   letter-spacing:2px; margin-bottom:34px; text-transform:uppercase;
 }
 .gigs-section .eyebrow{ color:var(--blue); }
@@ -215,7 +221,7 @@ body::before{
 .gig-meta{ display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; font-weight:700; opacity:0.7; margin-bottom:18px; }
 .gig-cta{
   display:inline-flex; align-items:center; gap:8px;
-  font-family:'Space Mono'; font-weight:700; font-size:0.78rem;
+  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.78rem;
   text-transform:uppercase; letter-spacing:1px;
   background:var(--ink); color:var(--paper);
   border:none; border-radius:30px 8px 30px 8px;
@@ -232,7 +238,7 @@ body::before{
   border:3px solid var(--red); color:var(--red);
   border-radius:8px;
   padding:6px 10px;
-  font-family:'Space Mono'; font-weight:700; font-size:0.72rem;
+  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.72rem;
   letter-spacing:1.5px; text-transform:uppercase;
   transform:rotate(8deg);
   opacity:0.85;
@@ -258,11 +264,11 @@ body::before{
 .gig-modal-close{
   position:absolute; top:16px; right:18px;
   background:none; border:none; cursor:pointer;
-  font-family:'Space Mono'; font-weight:700; font-size:1.2rem;
+  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:1.2rem;
   color:var(--ink); line-height:1;
 }
 .gig-modal .eyebrow{
-  font-family:'Space Mono'; font-weight:700; font-size:0.68rem;
+  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.68rem;
   letter-spacing:2px; color:var(--red); text-transform:uppercase; margin-bottom:10px;
 }
 .gig-modal h3{ font-family:"plunct", sans-serif; font-size:1.6rem; margin-bottom:4px; }
@@ -273,7 +279,7 @@ body::before{
 .qty-stepper button{
   width:32px; height:32px; border-radius:50%;
   border:2px solid var(--ink); background:var(--paper);
-  font-family:'Space Mono'; font-weight:700; font-size:1rem;
+  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:1rem;
   cursor:pointer; color:var(--ink);
 }
 .qty-stepper button:disabled{ opacity:0.35; cursor:default; }
@@ -288,7 +294,7 @@ body::before{
 .email-block .qty-label{ display:block; margin:0 0 6px; }
 .email-block input{
   width:100%; padding:10px 12px; margin-bottom:12px;
-  font-family:'Space Mono', monospace; font-size:0.9rem; color:var(--ink);
+  font-family:'Freya', system-ui, sans-serif; font-size:0.9rem; color:var(--ink);
   background:var(--paper); border:2px solid var(--ink); border-radius:10px;
 }
 .email-block input:focus{ outline:3px solid var(--gold); outline-offset:1px; }
@@ -333,9 +339,9 @@ body::before{
 .faq-q{
   width:100%; display:flex; align-items:center; justify-content:space-between; gap:16px;
   padding:18px 22px; background:none; border:none; cursor:pointer; text-align:left;
-  font-family:'Space Mono'; font-weight:700; font-size:0.95rem; color:var(--ink);
+  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.95rem; color:var(--ink);
 }
-.faq-icon{ flex-shrink:0; font-family:'Space Mono'; font-weight:700; font-size:1.3rem; transition:transform 0.25s ease; }
+.faq-icon{ flex-shrink:0; font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:1.3rem; transition:transform 0.25s ease; }
 .faq-item.is-open .faq-icon{ transform:rotate(45deg); }
 .faq-a{ display:grid; grid-template-rows:0fr; transition:grid-template-rows 0.35s ease; }
 .faq-item.is-open .faq-a{ grid-template-rows:1fr; }
@@ -347,7 +353,7 @@ footer{
   border-top:2px solid var(--ink);
   padding:40px 5%;
   display:flex; flex-wrap:wrap; justify-content:space-between; gap:14px;
-  font-family:'Space Mono'; font-weight:700; font-size:0.7rem; letter-spacing:1px;
+  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.7rem; letter-spacing:1px;
   color:var(--ink);
 }
 
