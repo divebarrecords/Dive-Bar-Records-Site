@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 - DIVE BAR RECORDS</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f8f7f3">
+<link rel="preconnect" href="https://raw.githubusercontent.com">
+<link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
+<style>
+@font-face{
+  font-family:'Freya';
+  src:url('/freya.ttf') format('truetype');
+  font-weight:400; font-style:normal; font-display:swap;
+  size-adjust:150%;
+}
+:root{
+  --paper:#f8f7f3;
+  --paper2:#F2EAD2;
+  --ink:#232338;
+  --gold:#D79922;
+  --red:#F13C20;
+  --blue:#4056A1;
+  --lav:#C5CBE3;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  background:
+    radial-gradient(ellipse 620px 480px at 10% 6%, rgba(215,153,34,0.07), transparent 60%),
+    radial-gradient(ellipse 700px 560px at 92% 96%, rgba(64,86,161,0.06), transparent 58%),
+    var(--paper);
+  color:var(--ink);
+  font-family:'Freya', system-ui, sans-serif;
+  font-size:1rem;
+  line-height:1.65;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+  min-height:100svh;
+}
+main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:clamp(32px,8vw,80px) 24px;
+}
+.logo{
+  height:clamp(72px,14vw,110px);
+  width:auto;
+  margin-bottom:clamp(16px,3vw,28px);
+  transform:rotate(-8deg);
+}
+.code{
+  font-family:"plunct", sans-serif;
+  font-size:clamp(5rem,22vw,11rem);
+  line-height:0.95;
+  color:var(--red);
+  letter-spacing:2px;
+}
+h1{
+  font-family:"plunct", sans-serif;
+  font-weight:400;
+  font-size:clamp(1.6rem,5vw,2.6rem);
+  line-height:1.15;
+  margin:10px 0 14px;
+}
+p{
+  max-width:34ch;
+  font-size:0.95rem;
+  margin-bottom:28px;
+}
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  justify-content:center;
+}
+.btn{
+  display:inline-block;
+  padding:12px 22px;
+  border:2px solid var(--ink);
+  color:var(--ink);
+  text-decoration:none;
+  font-size:0.8rem;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  transition:background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.btn.primary{ background:var(--ink); color:var(--paper); }
+.btn:hover,.btn:focus-visible{ background:var(--gold); border-color:var(--gold); color:var(--ink); }
+.btn:focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
+footer{
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:18px 24px;
+  font-size:0.7rem;
+  letter-spacing:1px;
+  border-top:1px solid rgba(35,35,56,0.15);
+}
+</style>
+</head>
+<body>
+<main>
+  <!-- absolute URLs on purpose: this page is served from whatever path was mistyped -->
+  <img class="logo" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DBR%20BOTTLE.png" alt="">
+  <div class="code">404</div>
+  <h1>Nothing on tap here.</h1>
+  <p>That page has gone missing, or it never existed. Let's get you back to the bar.</p>
+  <div class="actions">
+    <a class="btn primary" href="/">Back to home</a>
+    <a class="btn" href="/gigs">See gigs</a>
+  </div>
+</main>
+<footer>
+  <div>DIVE BAR RECORDS // EST 2026</div>
+  <div>© ALL RIGHTS RESERVED</div>
+</footer>
+</body>
+</html>
