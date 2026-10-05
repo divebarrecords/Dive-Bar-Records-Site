@@ -1,2 +1,4 @@
 User-agent: *
 Disallow: /testarea/
+
+Sitemap: https://divebarrecords.co.uk/sitemap.xml
