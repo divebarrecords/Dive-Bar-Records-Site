@@ -16,21 +16,19 @@
 }
 :root{
   --paper:#f8f7f3;
-  --paper2:#F2EAD2;
-  --ink:#232338;
+  --paper2:#ede7bc;
+  --ink:#2d443e;
   --gold:#D79922;
-  --red:#F13C20;
-  --blue:#4056A1;
-  --lav:#C5CBE3;
+  --red:#9a050b;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{
   background:
     radial-gradient(ellipse 620px 480px at 10% 6%, rgba(215,153,34,0.055), transparent 60%),
-    radial-gradient(ellipse 700px 560px at 92% 96%, rgba(64,86,161,0.05), transparent 58%),
+    radial-gradient(ellipse 700px 560px at 92% 96%, rgba(45,68,62,0.05), transparent 58%),
     radial-gradient(ellipse 520px 420px at 68% 18%, rgba(241,60,32,0.03), transparent 55%),
-    radial-gradient(ellipse 480px 600px at 30% 80%, rgba(35,35,56,0.035), transparent 55%),
+    radial-gradient(ellipse 480px 600px at 30% 80%, rgba(24,38,34,0.035), transparent 55%),
     var(--paper);
   color:var(--ink);
   font-family:'Freya', system-ui, sans-serif;
@@ -83,7 +81,7 @@ body::before{
 }
 .masthead.is-scrolled{
   padding:12px 5%;
-  box-shadow:0 6px 0 rgba(35,35,56,0.08);
+  box-shadow:0 6px 0 rgba(24,38,34,0.08);
   background:rgba(251,247,236,0.92);
   backdrop-filter:blur(6px);
 }
@@ -168,7 +166,7 @@ body::before{
   font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.72rem;
   letter-spacing:2px; margin-bottom:34px; text-transform:uppercase;
 }
-.gigs-section .eyebrow{ color:var(--blue); }
+.gigs-section .eyebrow{ color:var(--ink); }
 .gig-grid{
   position:relative;
   display:grid; gap:44px 36px;
@@ -189,7 +187,7 @@ body::before{
     radial-gradient(circle at 8% 78%, rgba(74,48,24,0.2) 0, transparent 4%);
   background-size:70px 70px, auto, auto, auto, auto, auto, auto;
   background-blend-mode:multiply, soft-light, multiply, multiply, multiply, multiply, multiply;
-  box-shadow:inset 0 0 0 3px rgba(35,35,56,0.15), inset 0 2px 10px rgba(35,35,56,0.25), 0 10px 24px rgba(35,35,56,0.14);
+  box-shadow:inset 0 0 0 3px rgba(24,38,34,0.15), inset 0 2px 10px rgba(24,38,34,0.25), 0 10px 24px rgba(24,38,34,0.14);
 }
 .gig-grid > *{ position:relative; z-index:1; }
 
@@ -197,19 +195,19 @@ body::before{
   background:var(--paper2); color:var(--ink);
   padding:24px 22px; position:relative;
   border-radius:40px 12px 36px 16px / 16px 38px 12px 40px;
-  box-shadow:5px 6px 0 var(--blue), 0 20px 34px rgba(35,35,56,0.22);
+  box-shadow:5px 6px 0 var(--ink), 0 20px 34px rgba(24,38,34,0.22);
   transition:transform 0.25s ease, box-shadow 0.25s ease;
 }
-.gig-flyer:nth-child(3n+1){ transform:rotate(-2deg); box-shadow:5px 6px 0 var(--red), 0 20px 34px rgba(35,35,56,0.22); }
-.gig-flyer:nth-child(3n+2){ transform:rotate(1.5deg); box-shadow:5px 6px 0 var(--blue), 0 20px 34px rgba(35,35,56,0.22); }
-.gig-flyer:nth-child(3n+3){ transform:rotate(-1deg); box-shadow:5px 6px 0 var(--gold), 0 20px 34px rgba(35,35,56,0.22); }
+.gig-flyer:nth-child(3n+1){ transform:rotate(-2deg); box-shadow:5px 6px 0 var(--red), 0 20px 34px rgba(24,38,34,0.22); }
+.gig-flyer:nth-child(3n+2){ transform:rotate(1.5deg); box-shadow:5px 6px 0 var(--ink), 0 20px 34px rgba(24,38,34,0.22); }
+.gig-flyer:nth-child(3n+3){ transform:rotate(-1deg); box-shadow:5px 6px 0 var(--gold), 0 20px 34px rgba(24,38,34,0.22); }
 .gig-flyer:hover{ transform:rotate(0deg) translateY(-6px); }
 .gig-flyer::before{
   content:""; position:absolute; top:-8px; left:50%; transform:translateX(-50%);
   width:15px; height:15px; border-radius:50%; border:2px solid var(--ink);
 }
 .gig-flyer:nth-child(3n+1)::before{ background:var(--red); }
-.gig-flyer:nth-child(3n+2)::before{ background:var(--blue); }
+.gig-flyer:nth-child(3n+2)::before{ background:var(--ink); }
 .gig-flyer:nth-child(3n+3)::before{ background:var(--gold); }
 
 .gig-date{ display:flex; align-items:baseline; gap:8px; margin-bottom:14px; }
@@ -230,7 +228,7 @@ body::before{
   width:100%; justify-content:center;
 }
 .gig-cta:hover{ background:var(--red); }
-.gig-cta:disabled{ background:rgba(35,35,56,0.25); cursor:default; }
+.gig-cta:disabled{ background:rgba(24,38,34,0.25); cursor:default; }
 .gig-lowstock{ color:var(--red); }
 
 .stamp{
@@ -248,7 +246,7 @@ body::before{
 /* ---- TICKET MODAL ---- */
 .gig-modal-overlay{
   position:fixed; inset:0; z-index:300;
-  background:rgba(35,35,56,0.55);
+  background:rgba(24,38,34,0.55);
   display:none; align-items:center; justify-content:center;
   padding:24px;
 }
@@ -287,7 +285,7 @@ body::before{
 .total-row{
   display:flex; justify-content:space-between; align-items:baseline;
   padding:14px 0; margin-bottom:20px;
-  border-top:2px dashed rgba(35,35,56,0.25); border-bottom:2px dashed rgba(35,35,56,0.25);
+  border-top:2px dashed rgba(24,38,34,0.25); border-bottom:2px dashed rgba(24,38,34,0.25);
 }
 .total-row .amount{ font-family:"plunct", sans-serif; font-size:1.5rem; }
 .email-block{ margin-bottom:18px; }
@@ -321,21 +319,21 @@ body::before{
   padding:32px 28px 32px 44px;
   border-radius:6px 18px 6px 18px;
   background:rgba(255,255,255,0.4);
-  border:2px dashed rgba(35,35,56,0.22);
+  border:2px dashed rgba(24,38,34,0.22);
 }
 .faq-list::before{
   content:""; position:absolute; left:14px; top:20px; bottom:20px; width:2px;
-  background:repeating-linear-gradient(to bottom, rgba(64,86,161,0.35) 0 2px, transparent 2px 20px);
+  background:repeating-linear-gradient(to bottom, rgba(45,68,62,0.35) 0 2px, transparent 2px 20px);
 }
 .faq-list::after{
   content:""; position:absolute; left:10px; top:20px; bottom:20px; width:10px;
-  background-image:radial-gradient(circle, var(--paper) 2.6px, rgba(35,35,56,0.3) 2.6px, rgba(35,35,56,0.3) 3.2px, transparent 3.2px);
+  background-image:radial-gradient(circle, var(--paper) 2.6px, rgba(24,38,34,0.3) 2.6px, rgba(24,38,34,0.3) 3.2px, transparent 3.2px);
   background-size:10px 26px; background-repeat:repeat-y;
 }
 .faq-item{ background:var(--paper2); border-radius:24px 8px 24px 8px; overflow:hidden; box-shadow:4px 5px 0 var(--ink); }
 .faq-item:nth-child(3n+1){ box-shadow:4px 5px 0 var(--red); }
 .faq-item:nth-child(3n+2){ box-shadow:4px 5px 0 var(--gold); }
-.faq-item:nth-child(3n+3){ box-shadow:4px 5px 0 var(--blue); }
+.faq-item:nth-child(3n+3){ box-shadow:4px 5px 0 var(--ink); }
 .faq-q{
   width:100%; display:flex; align-items:center; justify-content:space-between; gap:16px;
   padding:18px 22px; background:none; border:none; cursor:pointer; text-align:left;
