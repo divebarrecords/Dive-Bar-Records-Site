@@ -1886,6 +1886,19 @@ footer{
 
 </style>
 
+<script>
+/* always start at the top: the page is scroll-locked until the cap is popped
+   and the click gate sits at the very top, so a browser-restored scroll
+   position on refresh could strand the visitor mid-page with no way to move */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+window.scrollTo(0, 0);
+window.addEventListener('load', function(){
+  if (document.body.classList.contains('pre-pop')) window.scrollTo(0, 0);
+});
+window.addEventListener('pageshow', function(){
+  if (document.body.classList.contains('pre-pop')) window.scrollTo(0, 0);
+});
+</script>
 </head>
 
 <body class="pre-pop hero-lock">
