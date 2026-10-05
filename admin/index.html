@@ -2,761 +2,463 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GIGS - DIVE BAR RECORDS</title>
+<title>Gigs Admin - DIVE BAR RECORDS</title>
+<meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
-<meta name="description" content="Upcoming Dive Bar Records shows. Tickets sold direct - no third-party platform fee.">
-<link rel="stylesheet" href="https://use.typekit.net/jci8qvf.css">
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.1"></script>
 <style>
-@font-face{
-  font-family:'Freya';
-  src:url('/freya.ttf') format('truetype');
-  font-weight:400; font-style:normal; font-display:swap;
-  size-adjust:120%;
-}
 :root{
-  --paper:#f8f7f3;
-  --paper2:#F2EAD2;
-  --ink:#232338;
-  --gold:#D79922;
-  --red:#F13C20;
-  --blue:#4056A1;
-  --lav:#C5CBE3;
+  --paper:#f8f7f3; --paper2:#F2EAD2; --ink:#232338;
+  --gold:#D79922; --red:#F13C20; --blue:#4056A1;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
 body{
-  background:
-    radial-gradient(ellipse 620px 480px at 10% 6%, rgba(215,153,34,0.055), transparent 60%),
-    radial-gradient(ellipse 700px 560px at 92% 96%, rgba(64,86,161,0.05), transparent 58%),
-    radial-gradient(ellipse 520px 420px at 68% 18%, rgba(241,60,32,0.03), transparent 55%),
-    radial-gradient(ellipse 480px 600px at 30% 80%, rgba(35,35,56,0.035), transparent 55%),
-    var(--paper);
-  color:var(--ink);
-  font-family:'Freya', system-ui, sans-serif;
-  font-size:1rem;
-  line-height:1.65;
-  overflow-x:hidden;
-  position:relative;
+  background:var(--paper); color:var(--ink);
+  font-family:'Space Mono', monospace; font-size:0.92rem; line-height:1.5;
+  min-height:100vh;
 }
-a{color:inherit;}
-button{font:inherit;}
+a{color:var(--red);}
+h1{font-size:1.3rem; letter-spacing:-0.5px;}
+h2{font-size:1rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;}
 
-/* paper grain, same recipe as the main site */
-body::before{
-  content:"";
-  position:fixed; inset:-10px; z-index:9999; pointer-events:none;
-  opacity:0.1;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.16  0 0 0 0 0.11  0 0 0 0 0.05  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:260px 260px;
-  mix-blend-mode:multiply;
-  animation:grain-drift 9s steps(6) infinite;
+/* ---- login gate ---- */
+#loginView{
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
 }
-@keyframes grain-drift{
-  0%{transform:translate(0,0);} 20%{transform:translate(-1px,1px);}
-  40%{transform:translate(1px,-1px);} 60%{transform:translate(-1px,-1px);}
-  80%{transform:translate(1px,1px);} 100%{transform:translate(0,0);}
+.login-card{
+  width:100%; max-width:340px; background:var(--paper2);
+  border-radius:12px; padding:32px; box-shadow:4px 5px 0 var(--ink);
 }
-@media (prefers-reduced-motion: reduce){
-  html{scroll-behavior:auto;}
-  body::before{animation:none;}
-  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+.login-card h1{ margin-bottom:6px; }
+.login-card p.sub{ opacity:0.7; font-size:0.8rem; margin-bottom:22px; }
+label{ display:block; font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+input, select{
+  width:100%; font:inherit; padding:10px 12px; margin-bottom:16px;
+  border:2px solid var(--ink); border-radius:6px; background:var(--paper); color:var(--ink);
+  color-scheme: light;
 }
+button{
+  font:inherit; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;
+  background:var(--ink); color:var(--paper); border:none; border-radius:6px;
+  padding:11px 18px; cursor:pointer; transition:background 0.2s ease;
+}
+button:hover{ background:var(--red); }
+button:disabled{ opacity:0.4; cursor:default; }
+button.secondary{ background:none; color:var(--ink); border:2px solid var(--ink); }
+button.secondary:hover{ background:var(--ink); color:var(--paper); }
+button.danger{ background:none; color:var(--red); border:2px solid var(--red); padding:6px 12px; font-size:0.72rem; }
+button.danger:hover{ background:var(--red); color:var(--paper); }
+.form-status{ font-size:0.78rem; min-height:1.2em; margin-top:-8px; margin-bottom:14px; color:var(--red); }
 
-.blob{position:absolute; z-index:0; pointer-events:none; filter:blur(30px); animation:blob-wander 14s ease-in-out infinite;}
-@keyframes blob-wander{
-  0%,100%{ transform:translate(0,0) rotate(0deg) scale(1); }
-  25%{ transform:translate(var(--mx1,60px),var(--my1,-40px)) rotate(8deg) scale(1.08); }
-  50%{ transform:translate(var(--mx2,-70px),var(--my2,50px)) rotate(-6deg) scale(0.94); }
-  75%{ transform:translate(var(--mx3,50px),var(--my3,60px)) rotate(5deg) scale(1.04); }
-}
-@media (prefers-reduced-motion: reduce){ .blob{ animation:none; } }
+.ord{ border:2px solid var(--ink); border-radius:8px; padding:12px 14px; margin-bottom:12px; background:var(--paper); }
+.ord.refunded{ opacity:0.6; }
+.ord-top{ display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.ord small{ opacity:0.7; }
+.ord-actions{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+.ord-actions button, .tk button{ padding:5px 10px; font-size:0.7rem; }
+.tk{ display:flex; align-items:center; gap:10px; margin-top:6px; font-size:0.82rem; flex-wrap:wrap; }
+.tk code{ letter-spacing:1px; font-weight:700; }
+.badge{ display:inline-block; font-size:0.68rem; font-weight:700; text-transform:uppercase; padding:2px 8px; border-radius:20px; border:2px solid var(--ink); }
+.badge.good{ background:#d9efd5; } .badge.bad{ background:var(--red); color:var(--paper); border-color:var(--red); } .badge.wait{ background:var(--paper2); }
+.ord-tools{ display:flex; gap:10px; align-items:flex-start; } .ord-tools input{ margin-bottom:0; }
 
-/* ---- NAV (identical to the main site, GIGS added + marked current) ---- */
-.masthead{
-  position:sticky; top:0; z-index:200;
+/* ---- app shell ---- */
+#appView{ display:none; min-height:100vh; }
+#appView.is-visible{ display:block; }
+.admin-header{
   display:flex; justify-content:space-between; align-items:center;
-  padding:20px 5%;
-  background:var(--paper);
-  border-bottom:2px solid var(--ink);
-  transition:padding 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  padding:20px 5%; border-bottom:2px solid var(--ink); background:var(--paper2);
 }
-.masthead.is-scrolled{
-  padding:12px 5%;
-  box-shadow:0 6px 0 rgba(35,35,56,0.08);
-  background:rgba(251,247,236,0.92);
-  backdrop-filter:blur(6px);
-}
-.logo-lockup{display:flex; align-items:center; gap:12px; text-decoration:none;}
-.logo-mark{
-  height:clamp(38px, 5vw, 50px);
-  width:auto;
-  transition:height 0.25s ease;
-  animation:bottle-sway 5s ease-in-out infinite;
-  transform-origin:70% 90%;
-}
-.masthead.is-scrolled .logo-mark{ height:clamp(30px,4vw,38px); }
-@keyframes bottle-sway{ 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(-4deg);} }
-.logo-text{
-  font-family:"plunct", sans-serif;
-  font-size:clamp(1.5rem, 3vw, 2rem);
-  letter-spacing:-1px;
-  color:var(--ink);
-  white-space:nowrap;
-  transition:color 0.2s ease;
-}
-.logo-lockup:hover .logo-text{ color:var(--red); }
-.back-link{
-  position:relative;
-  font-family:'Freya', system-ui, sans-serif; font-weight:700;
-  font-size:0.72rem;
-  text-transform:uppercase;
-  letter-spacing:1.5px;
-  text-decoration:none;
-  color:var(--ink);
-  padding-bottom:4px;
-}
-.back-link::before{ content:"← "; }
-.back-link::after{
-  content:"";
-  position:absolute; left:0; bottom:0;
-  width:100%; height:2px;
-  background:var(--gold);
-  transform:scaleX(0); transform-origin:left;
-  transition:transform 0.25s ease;
-}
-.back-link:hover{ color:var(--gold); }
-.back-link:hover::after{ transform:scaleX(1); }
+.admin-main{ padding:36px 5% 80px; max-width:820px; margin:0 auto; }
 
-#upcoming, #ticket-faq{ scroll-margin-top:100px; }
+.panel{ background:var(--paper2); border-radius:12px; padding:26px; margin-bottom:32px; box-shadow:4px 5px 0 var(--gold); }
+.field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0 16px; }
+.field-grid .full{ grid-column:1 / -1; }
+@media(max-width:560px){ .field-grid{ grid-template-columns:1fr; } }
 
-/* ---- PAGE HERO (quieter than the homepage - no pre-pop gate, this
-   page has a job to do, not a first impression to make) ---- */
-.page-hero{ padding:64px 5% 40px; position:relative; isolation:isolate; overflow:hidden; }
-.page-hero > *:not(.blob){ position:relative; z-index:1; }
-.hero-tag{
-  font-family:'Freya', system-ui, sans-serif; font-style:italic; font-weight:700;
-  font-size:0.95rem; letter-spacing:1px;
-  display:inline-block; margin-bottom:14px;
-  text-transform:uppercase; color:var(--ink);
+.gig-row{
+  display:flex; justify-content:space-between; align-items:center; gap:16px;
+  background:var(--paper); border:2px solid var(--ink); border-radius:8px;
+  padding:14px 16px; margin-bottom:10px; flex-wrap:wrap;
 }
-.hero-tag::before{content:"» "; color:var(--red);}
-.page-headline{
-  font-family:"plunct", sans-serif;
-  font-size:clamp(2.4rem, 7vw, 4.2rem);
-  line-height:1.05;
-  color:var(--ink);
-  max-width:14ch;
-}
-.page-sub{
-  max-width:520px;
-  margin-top:26px;
-  font-size:1rem;
-  border-left:4px solid var(--gold);
-  padding-left:20px;
-  color:var(--ink);
-  opacity:0.85;
-}
-
-
-.paper-block{ position:relative; isolation:isolate; overflow:hidden; }
-.paper-block > *:not(.blob){ position:relative; z-index:1; }
-
-/* ---- UPCOMING GIGS - pinned to the same corkboard texture as Roster ---- */
-.gigs-section{ padding:70px 5% 40px; position:relative; }
-.gigs-section .eyebrow, .ticket-faq .eyebrow{
-  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.72rem;
-  letter-spacing:2px; margin-bottom:34px; text-transform:uppercase;
-}
-.gigs-section .eyebrow{ color:var(--blue); }
-.gig-grid{
-  position:relative;
-  display:grid; gap:44px 36px;
-  grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
-  padding:44px 28px;
-  border-radius:18px;
-}
-.gig-grid::before{
-  content:""; position:absolute; inset:0; z-index:0; border-radius:18px;
-  background-color:#C09865;
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='70' height='70'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.25' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.35  0 0 0 0 0.24  0 0 0 0 0.13  0 0 0 0.8 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse at top left, rgba(255,255,255,0.22), transparent 65%),
-    radial-gradient(circle at 18% 22%, rgba(74,48,24,0.28) 0, transparent 5%),
-    radial-gradient(circle at 78% 58%, rgba(74,48,24,0.26) 0, transparent 4.5%),
-    radial-gradient(circle at 42% 82%, rgba(74,48,24,0.24) 0, transparent 5%),
-    radial-gradient(circle at 88% 18%, rgba(74,48,24,0.22) 0, transparent 4%),
-    radial-gradient(circle at 8% 78%, rgba(74,48,24,0.2) 0, transparent 4%);
-  background-size:70px 70px, auto, auto, auto, auto, auto, auto;
-  background-blend-mode:multiply, soft-light, multiply, multiply, multiply, multiply, multiply;
-  box-shadow:inset 0 0 0 3px rgba(35,35,56,0.15), inset 0 2px 10px rgba(35,35,56,0.25), 0 10px 24px rgba(35,35,56,0.14);
-}
-.gig-grid > *{ position:relative; z-index:1; }
-
-.gig-flyer{
-  background:var(--paper2); color:var(--ink);
-  padding:24px 22px; position:relative;
-  border-radius:40px 12px 36px 16px / 16px 38px 12px 40px;
-  box-shadow:5px 6px 0 var(--blue), 0 20px 34px rgba(35,35,56,0.22);
-  transition:transform 0.25s ease, box-shadow 0.25s ease;
-}
-.gig-flyer:nth-child(3n+1){ transform:rotate(-2deg); box-shadow:5px 6px 0 var(--red), 0 20px 34px rgba(35,35,56,0.22); }
-.gig-flyer:nth-child(3n+2){ transform:rotate(1.5deg); box-shadow:5px 6px 0 var(--blue), 0 20px 34px rgba(35,35,56,0.22); }
-.gig-flyer:nth-child(3n+3){ transform:rotate(-1deg); box-shadow:5px 6px 0 var(--gold), 0 20px 34px rgba(35,35,56,0.22); }
-.gig-flyer:hover{ transform:rotate(0deg) translateY(-6px); }
-.gig-flyer::before{
-  content:""; position:absolute; top:-8px; left:50%; transform:translateX(-50%);
-  width:15px; height:15px; border-radius:50%; border:2px solid var(--ink);
-}
-.gig-flyer:nth-child(3n+1)::before{ background:var(--red); }
-.gig-flyer:nth-child(3n+2)::before{ background:var(--blue); }
-.gig-flyer:nth-child(3n+3)::before{ background:var(--gold); }
-
-.gig-date{ display:flex; align-items:baseline; gap:8px; margin-bottom:14px; }
-.gig-date .day{ font-family:"plunct", sans-serif; font-size:2.2rem; line-height:1; }
-.gig-date .monyr{ font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:0.75; }
-.gig-flyer h3{ font-family:"plunct", sans-serif; font-size:1.5rem; margin-bottom:4px; line-height:1.15; }
-.gig-venue{ font-size:0.78rem; font-weight:700; letter-spacing:0.5px; opacity:0.7; margin-bottom:10px; }
-.gig-lineup{ font-size:0.85rem; opacity:0.85; margin-bottom:16px; }
-.gig-meta{ display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; font-weight:700; opacity:0.7; margin-bottom:18px; }
-.gig-cta{
-  display:inline-flex; align-items:center; gap:8px;
-  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.78rem;
-  text-transform:uppercase; letter-spacing:1px;
-  background:var(--ink); color:var(--paper);
-  border:none; border-radius:30px 8px 30px 8px;
-  padding:12px 22px; cursor:pointer;
-  transition:background 0.2s ease;
-  width:100%; justify-content:center;
-}
-.gig-cta:hover{ background:var(--red); }
-.gig-cta:disabled{ background:rgba(35,35,56,0.25); cursor:default; }
-.gig-lowstock{ color:var(--red); }
-
-.stamp{
-  position:absolute; top:18px; right:14px;
-  border:3px solid var(--red); color:var(--red);
-  border-radius:8px;
-  padding:6px 10px;
-  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.72rem;
-  letter-spacing:1.5px; text-transform:uppercase;
-  transform:rotate(8deg);
-  opacity:0.85;
-  pointer-events:none;
-}
-
-/* ---- TICKET MODAL ---- */
-.gig-modal-overlay{
-  position:fixed; inset:0; z-index:300;
-  background:rgba(35,35,56,0.55);
-  display:none; align-items:center; justify-content:center;
-  padding:24px;
-}
-.gig-modal-overlay.is-open{ display:flex; }
-.gig-modal{
-  position:relative;
-  width:100%; max-width:400px;
-  background:var(--paper2); color:var(--ink);
-  padding:32px;
-  border-radius:42px 16px 46px 14px / 14px 44px 16px 42px;
-  box-shadow:6px 8px 0 var(--gold), 0 24px 42px rgba(0,0,0,0.35);
-}
-.gig-modal-close{
-  position:absolute; top:16px; right:18px;
-  background:none; border:none; cursor:pointer;
-  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:1.2rem;
-  color:var(--ink); line-height:1;
-}
-.gig-modal .eyebrow{
-  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.68rem;
-  letter-spacing:2px; color:var(--red); text-transform:uppercase; margin-bottom:10px;
-}
-.gig-modal h3{ font-family:"plunct", sans-serif; font-size:1.6rem; margin-bottom:4px; }
-.gig-modal .gig-venue{ margin-bottom:20px; }
-.qty-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-.qty-label{ font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-.qty-stepper{ display:flex; align-items:center; gap:14px; }
-.qty-stepper button{
-  width:32px; height:32px; border-radius:50%;
-  border:2px solid var(--ink); background:var(--paper);
-  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:1rem;
-  cursor:pointer; color:var(--ink);
-}
-.qty-stepper button:disabled{ opacity:0.35; cursor:default; }
-.qty-stepper span{ font-weight:700; min-width:1.2em; text-align:center; }
-.total-row{
-  display:flex; justify-content:space-between; align-items:baseline;
-  padding:14px 0; margin-bottom:20px;
-  border-top:2px dashed rgba(35,35,56,0.25); border-bottom:2px dashed rgba(35,35,56,0.25);
-}
-.total-row .amount{ font-family:"plunct", sans-serif; font-size:1.5rem; }
-.email-block{ margin-bottom:18px; }
-.email-block .qty-label{ display:block; margin:0 0 6px; }
-.email-block input{
-  width:100%; padding:10px 12px; margin-bottom:12px;
-  font-family:'Freya', system-ui, sans-serif; font-size:0.9rem; color:var(--ink);
-  background:var(--paper); border:2px solid var(--ink); border-radius:10px;
-}
-.email-block input:focus{ outline:3px solid var(--gold); outline-offset:1px; }
-.email-hint{ font-size:0.76rem; line-height:1.4; margin:-4px 0 0; }
-.email-hint button{ font:inherit; font-weight:700; text-decoration:underline; background:none; border:0; color:var(--ink); cursor:pointer; padding:0; }
-.gig-modal button.gig-cta{ margin-bottom:12px; }
-.gig-modal-status{ font-size:0.78rem; min-height:1.3em; color:var(--red); }
-
-.status-banner{
-  max-width:520px; margin-top:22px; padding:14px 18px;
-  font-weight:700; font-size:0.85rem;
-  background:var(--paper2); border:2px solid var(--ink);
-  border-radius:24px 8px 24px 8px; box-shadow:4px 5px 0 var(--gold);
-}
-.status-banner[hidden]{ display:none; }
-
-/* ---- TICKET FAQ - same accordion as the main site ---- */
-.ticket-faq{ padding:30px 5% 90px; position:relative; }
-.ticket-faq .eyebrow{ color:var(--red); }
-.faq-list{
-  position:relative;
-  display:flex; flex-direction:column; gap:16px;
-  max-width:720px;
-  padding:32px 28px 32px 44px;
-  border-radius:6px 18px 6px 18px;
-  background:rgba(255,255,255,0.4);
-  border:2px dashed rgba(35,35,56,0.22);
-}
-.faq-list::before{
-  content:""; position:absolute; left:14px; top:20px; bottom:20px; width:2px;
-  background:repeating-linear-gradient(to bottom, rgba(64,86,161,0.35) 0 2px, transparent 2px 20px);
-}
-.faq-list::after{
-  content:""; position:absolute; left:10px; top:20px; bottom:20px; width:10px;
-  background-image:radial-gradient(circle, var(--paper) 2.6px, rgba(35,35,56,0.3) 2.6px, rgba(35,35,56,0.3) 3.2px, transparent 3.2px);
-  background-size:10px 26px; background-repeat:repeat-y;
-}
-.faq-item{ background:var(--paper2); border-radius:24px 8px 24px 8px; overflow:hidden; box-shadow:4px 5px 0 var(--ink); }
-.faq-item:nth-child(3n+1){ box-shadow:4px 5px 0 var(--red); }
-.faq-item:nth-child(3n+2){ box-shadow:4px 5px 0 var(--gold); }
-.faq-item:nth-child(3n+3){ box-shadow:4px 5px 0 var(--blue); }
-.faq-q{
-  width:100%; display:flex; align-items:center; justify-content:space-between; gap:16px;
-  padding:18px 22px; background:none; border:none; cursor:pointer; text-align:left;
-  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.95rem; color:var(--ink);
-}
-.faq-icon{ flex-shrink:0; font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:1.3rem; transition:transform 0.25s ease; }
-.faq-item.is-open .faq-icon{ transform:rotate(45deg); }
-.faq-a{ display:grid; grid-template-rows:0fr; transition:grid-template-rows 0.35s ease; }
-.faq-item.is-open .faq-a{ grid-template-rows:1fr; }
-.faq-a-inner{ overflow:hidden; min-height:0; }
-.faq-a p{ padding:0 22px 20px; font-size:0.88rem; line-height:1.55; color:var(--ink); opacity:0.85; }
-.faq-a a{ color:var(--red); font-weight:700; text-decoration:underline; }
-
-footer{
-  border-top:2px solid var(--ink);
-  padding:40px 5%;
-  display:flex; flex-wrap:wrap; justify-content:space-between; gap:14px;
-  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.7rem; letter-spacing:1px;
-  color:var(--ink);
-}
-
-.reveal{ opacity:0; transform:translateY(28px); transition:opacity 0.7s ease, transform 0.7s ease; }
-.reveal.in-view{ opacity:1; transform:translateY(0); }
+.gig-row-main{ flex:1; min-width:200px; }
+.gig-row-main strong{ display:block; font-size:0.95rem; }
+.gig-row-main span{ display:block; font-size:0.75rem; opacity:0.7; margin-top:2px; }
+.gig-row-actions{ display:flex; gap:8px; align-items:center; }
+.gig-row-actions button{ padding:7px 12px; font-size:0.72rem; }
+.tag{ font-size:0.68rem; font-weight:700; text-transform:uppercase; padding:3px 8px; border-radius:10px; }
+.tag.soldout{ background:var(--red); color:var(--paper); }
+.tag.low{ background:var(--gold); color:var(--ink); }
+.empty-note{ opacity:0.6; font-size:0.85rem; padding:10px 0; }
 </style>
 </head>
 <body>
 
-<div class="masthead" id="masthead">
-  <a href="/" class="logo-lockup">
-    <img class="logo-mark" src="https://raw.githubusercontent.com/divebarrecords/Dive-Bar-Records-Site/refs/heads/main/DBR%20BOTTLE.png" alt="">
-    <span class="logo-text">DIVE BAR RECORDS</span>
-  </a>
-  <a href="/" class="back-link">Back to site</a>
+<div id="loginView">
+  <div class="login-card">
+    <h1>GIGS ADMIN</h1>
+    <p class="sub">Dive Bar Records - sign in to manage listings.</p>
+    <form id="loginForm">
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" required autocomplete="username">
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" required autocomplete="current-password">
+      <p class="form-status" id="loginStatus" role="status" aria-live="polite"></p>
+      <button type="submit" id="loginBtn">Log in</button>
+    </form>
+  </div>
 </div>
 
-<section class="page-hero">
-  <div class="hero-tag">What's on</div>
-  <h1 class="page-headline">Upcoming gigs</h1>
-  <p class="page-sub">Dates, venues, and tickets for every upcoming Dive Bar Records show.</p>
-<div class="status-banner" id="statusBanner" role="status" hidden></div>
-</section>
-
-<section class="gigs-section paper-block" id="upcoming">
-  <div class="eyebrow reveal">Upcoming</div>
-  <div class="gig-grid" id="gigGrid"><!-- rendered from gigs[] below --></div>
-</section>
-
-<section class="ticket-faq" id="ticket-faq">
-  <div class="eyebrow reveal">Ticket Questions</div>
-  <div class="faq-list">
-    <div class="faq-item reveal">
-      <button class="faq-q" type="button" aria-expanded="false">
-        <span>Are tickets refundable?</span>
-        <span class="faq-icon" aria-hidden="true">+</span>
-      </button>
-      <div class="faq-a"><div class="faq-a-inner">
-        <p>If a show's cancelled or rescheduled, you'll get a full refund automatically. Otherwise, get in touch and we'll see what we can do.</p>
-      </div></div>
-    </div>
-    <div class="faq-item reveal">
-      <button class="faq-q" type="button" aria-expanded="false">
-        <span>Do I need a printed ticket?</span>
-        <span class="faq-icon" aria-hidden="true">+</span>
-      </button>
-      <div class="faq-a"><div class="faq-a-inner">
-        <p>No - your confirmation email is your ticket. Bring it up on your phone at the door, or print it if you'd rather.</p>
-      </div></div>
-    </div>
-    <div class="faq-item reveal">
-      <button class="faq-q" type="button" aria-expanded="false">
-        <span>Is there an age restriction?</span>
-        <span class="faq-icon" aria-hidden="true">+</span>
-      </button>
-      <div class="faq-a"><div class="faq-a-inner">
-        <p>Varies by show and venue - check the listing above. Some rooms will ID on the door regardless.</p>
-      </div></div>
-    </div>
-    <div class="faq-item reveal">
-      <button class="faq-q" type="button" aria-expanded="false">
-        <span>I've lost my confirmation email - what now?</span>
-        <span class="faq-icon" aria-hidden="true">+</span>
-      </button>
-      <div class="faq-a"><div class="faq-a-inner">
-        <p>Email <a href="mailto:info@divebarrecords.co.uk">info@divebarrecords.co.uk</a> with your name and the show, and we'll sort you out before doors.</p>
-      </div></div>
-    </div>
-    <div class="faq-item reveal">
-      <button class="faq-q" type="button" aria-expanded="false">
-        <span>Can I just pay on the door?</span>
-        <span class="faq-icon" aria-hidden="true">+</span>
-      </button>
-      <div class="faq-a"><div class="faq-a-inner">
-        <p>Only if a show hasn't sold out. Booking ahead guarantees you a spot - follow us for live sell-out updates.</p>
-      </div></div>
-    </div>
+<div id="appView">
+  <div class="admin-header">
+    <h1>GIGS ADMIN</h1>
+    <button class="secondary" id="logoutBtn">Log out</button>
   </div>
-</section>
 
-<div class="gig-modal-overlay" id="modalOverlay">
-  <div class="gig-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <button class="gig-modal-close" id="modalClose" aria-label="Close">×</button>
-    <div class="eyebrow">Get Tickets</div>
-    <h3 id="modalTitle"></h3>
-    <div class="gig-venue" id="modalVenue"></div>
-    <div class="qty-row">
-      <span class="qty-label">Tickets</span>
-      <div class="qty-stepper">
-        <button type="button" id="qtyDown" aria-label="Fewer tickets">−</button>
-        <span id="qtyValue">1</span>
-        <button type="button" id="qtyUp" aria-label="More tickets">+</button>
+  <div class="admin-main">
+    <div class="panel">
+      <h2 id="formTitle">Add a gig</h2>
+      <form id="gigForm">
+        <input type="hidden" id="gigId">
+        <div class="field-grid">
+          <div class="full">
+            <label for="fHeadliner">Headliner</label>
+            <input type="text" id="fHeadliner" required>
+          </div>
+          <div class="full">
+            <label for="fSupport">Support / details</label>
+            <input type="text" id="fSupport" placeholder="e.g. Dirty Word + guests">
+          </div>
+          <div>
+            <label for="fDate">Date</label>
+            <input type="date" id="fDate" required>
+          </div>
+          <div>
+            <label for="fDoors">Doors</label>
+            <input type="text" id="fDoors" placeholder="e.g. 7:30pm">
+          </div>
+          <div>
+            <label for="fVenue">Venue</label>
+            <input type="text" id="fVenue" required>
+          </div>
+          <div>
+            <label for="fCity">City</label>
+            <input type="text" id="fCity" required>
+          </div>
+          <div>
+            <label for="fPrice">Price (£)</label>
+            <input type="number" id="fPrice" min="0" step="0.5" required>
+          </div>
+          <div>
+            <label for="fTickets">Capacity (total tickets)</label>
+            <input type="number" id="fTickets" min="0" step="1" required>
+          </div>
+          <div class="full">
+            <label for="fAge">Age restriction</label>
+            <input type="text" id="fAge" placeholder="e.g. 14+, 18+, All ages">
+          </div>
+        </div>
+        <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+        <button type="submit" id="saveBtn">Save gig</button>
+        <button type="button" class="secondary" id="cancelEditBtn" style="display:none; margin-left:8px;">Cancel edit</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Upcoming gigs</h2>
+      <div id="gigList"><p class="empty-note">Loading…</p></div>
+    </div>
+
+    <div class="panel">
+      <h2>Orders &amp; tickets</h2>
+      <div class="ord-tools">
+        <input type="search" id="orderSearch" placeholder="Search email, name, gig or ticket code" autocomplete="off">
+        <button type="button" class="secondary" id="ordersRefresh">Refresh</button>
       </div>
+      <p class="form-status" id="orderMsg" role="status" aria-live="polite" style="margin-top:10px"></p>
+      <div id="orderList"><p class="empty-note">Loading…</p></div>
     </div>
-    <div class="total-row">
-      <span class="qty-label">Total</span>
-      <span class="amount" id="modalTotal">£0</span>
-    </div>
-    <div class="email-block">
-      <label class="qty-label" for="buyerEmail">Email for your tickets</label>
-      <input type="email" id="buyerEmail" autocomplete="email" inputmode="email" maxlength="254" spellcheck="false" autocapitalize="off" required>
-      <label class="qty-label" for="buyerEmail2">Confirm email</label>
-      <input type="email" id="buyerEmail2" autocomplete="off" inputmode="email" maxlength="254" spellcheck="false" autocapitalize="off" required>
-      <p class="email-hint" id="emailHint" role="status" aria-live="polite">Your tickets are emailed here, so double-check it.</p>
-    </div>
-    <button class="gig-cta" id="modalContinue" type="button">Continue to payment</button>
-    <p class="gig-modal-status" id="modalStatus" role="status" aria-live="polite"></p>
   </div>
 </div>
 
-<footer>
-  <div>DIVE BAR RECORDS // EST 2026</div>
-  <div>© ALL RIGHTS RESERVED</div>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.106.1"></script>
 <script>
-// ============================================================
-// GIG DATA
-// Live from Supabase. If the fetch fails for any reason (offline,
-// project paused, etc.) this falls back to a small static list
-// so the page never shows up empty or broken.
-// ============================================================
 const SUPABASE_URL = 'https://ualutedgenurromgylwz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhbHV0ZWRnZW51cnJvbWd5bHd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMTIwNDEsImV4cCI6MjEwNTY4ODA0MX0.HrCUOmaC2Mjk8pp3Nxax2KNduy0_egW2wuJUmgpbLZg';
-const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const FALLBACK_GIGS = [
-  { id: 'fallback-1', date: '2026-11-14', doors: '7:30pm', venue: 'The Anchor House', city: 'Manchester',
-    headliner: 'Concrete Wolves', support: 'Static Halo', priceGBP: 8, availability: 'available', ageRestriction: '14+' }
-];
+const loginView = document.getElementById('loginView');
+const appView = document.getElementById('appView');
+const loginForm = document.getElementById('loginForm');
+const loginStatus = document.getElementById('loginStatus');
+const loginBtn = document.getElementById('loginBtn');
 
-let gigs = [];
-
-function mapRow(row){
-  return {
-    id: row.id,
-    date: row.event_date,
-    doors: row.doors_time,
-    venue: row.venue,
-    city: row.city,
-    headliner: row.headliner,
-    support: row.support,
-    priceGBP: Number(row.price_gbp),
-    availability: row.availability, // 'available' | 'low' | 'sold_out' (stock counts are not public)
-    ageRestriction: row.age_restriction
-  };
+function showApp(){
+  loginView.style.display = 'none';
+  appView.classList.add('is-visible');
+  loadGigs();
+  loadOrders();
+}
+function showLogin(){
+  appView.classList.remove('is-visible');
+  loginView.style.display = 'flex';
 }
 
-async function loadGigs(){
-  const todayISO = new Date().toISOString().slice(0, 10);
-  try {
-    if (!sb) throw new Error('Supabase client failed to load');
-    const { data, error } = await sb
-      .from('gigs')
-      .select('id, headliner, support, event_date, doors_time, venue, city, price_gbp, age_restriction, availability')
-      .gte('event_date', todayISO)
-      .order('event_date', { ascending: true });
-    if (error) throw error;
-    gigs = (data || []).map(mapRow);
-  } catch (err) {
-    gigs = FALLBACK_GIGS;
+// Restore session on load (so a refresh doesn't boot you back to login)
+sb.auth.getSession().then(({ data }) => {
+  if (data.session) showApp(); else showLogin();
+});
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginBtn.disabled = true;
+  loginStatus.textContent = '';
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  loginBtn.disabled = false;
+  if (error) {
+    loginStatus.textContent = error.message || 'Login failed - check your details.';
+    return;
   }
-  renderGigs();
+  showApp();
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  showLogin();
+});
+
+// ---- gig form (shared by add + edit) ----
+const gigForm = document.getElementById('gigForm');
+const formTitle = document.getElementById('formTitle');
+const formStatus = document.getElementById('formStatus');
+const saveBtn = document.getElementById('saveBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+const fIds = ['fHeadliner','fSupport','fDate','fDoors','fVenue','fCity','fPrice','fTickets','fAge'];
+
+function resetForm(){
+  document.getElementById('gigId').value = '';
+  fIds.forEach(id => document.getElementById(id).value = '');
+  formTitle.textContent = 'Add a gig';
+  saveBtn.textContent = 'Save gig';
+  cancelEditBtn.style.display = 'none';
+  formStatus.textContent = '';
+}
+cancelEditBtn.addEventListener('click', resetForm);
+
+function fillForm(gig){
+  document.getElementById('gigId').value = gig.id;
+  document.getElementById('fHeadliner').value = gig.headliner;
+  document.getElementById('fSupport').value = gig.support || '';
+  document.getElementById('fDate').value = gig.event_date;
+  document.getElementById('fDoors').value = gig.doors_time || '';
+  document.getElementById('fVenue').value = gig.venue;
+  document.getElementById('fCity').value = gig.city;
+  document.getElementById('fPrice').value = gig.price_gbp;
+  document.getElementById('fTickets').value = gig.capacity ?? gig.tickets_remaining;
+  document.getElementById('fAge').value = gig.age_restriction || '';
+  formTitle.textContent = 'Edit gig';
+  saveBtn.textContent = 'Update gig';
+  cancelEditBtn.style.display = 'inline-block';
+  formStatus.textContent = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-function formatDateParts(iso){
-  const d = new Date(iso + 'T00:00:00');
-  return { day: d.getDate(), monyr: MONTHS[d.getMonth()] + ' ' + d.getFullYear() };
-}
-function formatDateLong(iso){
-  const d = new Date(iso + 'T00:00:00');
-  return d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
-}
+gigForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  saveBtn.disabled = true;
+  formStatus.textContent = '';
 
+  const id = document.getElementById('gigId').value;
+  const payload = {
+    headliner: document.getElementById('fHeadliner').value.trim(),
+    support: document.getElementById('fSupport').value.trim() || null,
+    event_date: document.getElementById('fDate').value,
+    doors_time: document.getElementById('fDoors').value.trim() || null,
+    venue: document.getElementById('fVenue').value.trim(),
+    city: document.getElementById('fCity').value.trim(),
+    price_gbp: Number(document.getElementById('fPrice').value),
+    capacity: Number(document.getElementById('fTickets').value),
+    age_restriction: document.getElementById('fAge').value.trim() || null
+  };
+
+  // Stock (tickets_remaining) is managed by the database: it starts equal to
+  // capacity and only moves with sales or when capacity is changed.
+  const { error } = id
+    ? await sb.from('gigs').update(payload).eq('id', id)
+    : await sb.from('gigs').insert({ ...payload, tickets_remaining: payload.capacity });
+
+  saveBtn.disabled = false;
+  if (error) {
+    formStatus.textContent = error.message || 'Could not save - try again.';
+    return;
+  }
+  resetForm();
+  loadGigs();
+});
+
+// ---- orders & tickets (talks to the admin-orders edge function) ----
+const ADMIN_API = SUPABASE_URL + '/functions/v1/admin-orders';
+let orders = [];
+const orderMsg = document.getElementById('orderMsg');
 function esc(v){
   return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+async function adminCall(body){
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) throw new Error('Please log in again.');
+  const res = await fetch(ADMIN_API, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'apikey':SUPABASE_ANON_KEY, 'Authorization':'Bearer ' + session.access_token },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || ('Request failed (' + res.status + ')'));
+  return data;
+}
+async function loadOrders(){
+  const el = document.getElementById('orderList');
+  orderMsg.textContent = '';
+  try {
+    orders = (await adminCall({ action:'list' })).orders || [];
+    renderOrders();
+  } catch (err) {
+    el.innerHTML = '<p class="empty-note">Couldn\u2019t load orders \u2014 ' + esc(err.message) + '</p>';
+  }
+}
+function emailBadge(o){
+  if (o.status !== 'paid') return '';
+  const st = o.email_status;
+  if (st === 'delivered') return '<span class="badge good">Email delivered</span>';
+  if (st === 'bounced') return '<span class="badge bad">Email BOUNCED</span>';
+  if (st === 'complained') return '<span class="badge bad">Marked as spam</span>';
+  if (st === 'delivery_delayed') return '<span class="badge wait">Email delayed</span>';
+  if (st) return '<span class="badge wait">Email sent</span>';
+  return '<span class="badge wait">Email not tracked</span>';
+}
+function renderOrders(){
+  const el = document.getElementById('orderList');
+  const q = document.getElementById('orderSearch').value.trim().toLowerCase();
+  const list = orders.filter(o => !q || [o.customer_email, o.customer_name, o.gigs?.headliner, ...(o.tickets||[]).map(t => t.code)]
+    .some(v => String(v || '').toLowerCase().includes(q)));
+  if (!list.length){ el.innerHTML = '<p class="empty-note">' + (orders.length ? 'No matching orders.' : 'No orders yet.') + '</p>'; return; }
+  el.innerHTML = list.map(o => {
+    const g = o.gigs || {};
+    const total = ((o.unit_price_pence * o.quantity) / 100).toFixed(2);
+    const when = new Date(o.paid_at || o.created_at).toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+    const tickets = (o.tickets || []).map(t => {
+      const state = t.voided_at ? '<span class="badge">Void</span>'
+        : t.checked_in_at ? '<span class="badge good">Checked in</span> <button type="button" class="secondary" data-act="undo" data-ticket="' + esc(t.id) + '">Undo</button>'
+        : '<button type="button" class="secondary" data-act="checkin" data-ticket="' + esc(t.id) + '">Check in</button>';
+      return '<div class="tk"><code>' + esc(t.code) + '</code> ' + state + '</div>';
+    }).join('');
+    const actions = o.status === 'paid'
+      ? '<div class="ord-actions">'
+        + '<button type="button" class="secondary" data-act="resend" data-order="' + esc(o.id) + '">Resend email</button>'
+        + '<button type="button" class="secondary" data-act="fix" data-order="' + esc(o.id) + '">Change email &amp; resend</button>'
+        + '<button type="button" class="danger" data-act="refund" data-order="' + esc(o.id) + '">Refund</button></div>'
+      : '';
+    return '<div class="ord ' + esc(o.status) + '">'
+      + '<div class="ord-top"><div><strong>' + esc(g.headliner || 'Gig') + '</strong> <small>\u00b7 ' + esc(o.quantity) + ' \u00d7 \u00a3' + esc((o.unit_price_pence/100).toFixed(2)) + ' = \u00a3' + esc(total) + '</small><br>'
+      + esc(o.customer_name || '') + ' \u00b7 <strong>' + esc(o.customer_email || 'no email') + '</strong><br><small>' + esc(when) + ' \u00b7 ref ' + esc(o.id.slice(0,8).toUpperCase()) + '</small></div>'
+      + '<div>' + (o.status === 'refunded' ? '<span class="badge">Refunded</span>' : emailBadge(o)) + '</div></div>'
+      + tickets + actions + '</div>';
+  }).join('');
+}
+document.getElementById('orderSearch').addEventListener('input', renderOrders);
+document.getElementById('ordersRefresh').addEventListener('click', loadOrders);
+document.getElementById('orderList').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const act = btn.dataset.act;
+  const order = orders.find(o => o.id === btn.dataset.order);
+  let body;
+  if (act === 'resend'){
+    if (!confirm('Resend the ticket email to ' + order.customer_email + '?')) return;
+    body = { action:'resend', orderId:order.id };
+  } else if (act === 'fix'){
+    const next = prompt('Correct email address for this order:', order.customer_email || '');
+    if (!next || next.trim().toLowerCase() === (order.customer_email || '').toLowerCase()) return;
+    if (!confirm('Change the email to ' + next.trim() + ' and send the tickets there?')) return;
+    body = { action:'resend', orderId:order.id, email:next.trim() };
+  } else if (act === 'refund'){
+    const amt = ((order.unit_price_pence * order.quantity) / 100).toFixed(2);
+    if (!confirm('Refund \u00a3' + amt + ' to ' + order.customer_email + '?\n\nThis voids their tickets and puts them back on sale. It can\u2019t be undone.')) return;
+    body = { action:'refund', orderId:order.id };
+  } else if (act === 'checkin' || act === 'undo'){
+    body = { action:'checkin', ticketId:btn.dataset.ticket, undo: act === 'undo' };
+  } else return;
 
-function renderGigs(){
-  const grid = document.getElementById('gigGrid');
-  grid.innerHTML = gigs.map(g => {
-    const { day, monyr } = formatDateParts(g.date);
-    const soldOut = g.availability === 'sold_out';
+  document.querySelectorAll('#orderList button').forEach(b => b.disabled = true);
+  orderMsg.style.color = '';
+  try {
+    await adminCall(body);
+    orderMsg.textContent = 'Done.';
+    await loadOrders();
+    if (act === 'refund') loadGigs();
+  } catch (err) {
+    orderMsg.textContent = err.message;
+    orderMsg.style.color = 'var(--red)';
+    document.querySelectorAll('#orderList button').forEach(b => b.disabled = false);
+  }
+});
+
+// ---- gig list ----
+async function loadGigs(){
+  const listEl = document.getElementById('gigList');
+  const { data, error } = await sb
+    .from('gigs')
+    .select('*')
+    .order('event_date', { ascending: true });
+
+  if (error) {
+    listEl.innerHTML = `<p class="empty-note">Couldn't load gigs - ${error.message}</p>`;
+    return;
+  }
+  if (!data || data.length === 0) {
+    listEl.innerHTML = '<p class="empty-note">No gigs yet - add one above.</p>';
+    return;
+  }
+
+  listEl.innerHTML = data.map(g => {
+    const soldOut = g.tickets_remaining <= 0;
     const lowStock = g.availability === 'low';
+    const dateStr = new Date(g.event_date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
     return `
-      <article class="gig-flyer reveal">
-        ${soldOut ? '<div class="stamp">Sold out</div>' : ''}
-        <div class="gig-date"><span class="day">${day}</span><span class="monyr">${monyr}</span></div>
-        <h3>${esc(g.headliner)}</h3>
-        <div class="gig-venue">${esc(g.venue.toUpperCase())} // ${esc(g.city.toUpperCase())}</div>
-        <div class="gig-lineup">${g.support ? 'w/ ' + esc(g.support) + ' · ' : ''}Doors ${esc(g.doors)} · ${esc(g.ageRestriction)}</div>
-        <div class="gig-meta">
-          <span>£${g.priceGBP} adv</span>
-          <span class="${lowStock ? 'gig-lowstock' : ''}">${soldOut ? '' : (lowStock ? 'Low tickets' : '')}</span>
+      <div class="gig-row" data-id="${g.id}">
+        <div class="gig-row-main">
+          <strong>${g.headliner}</strong>
+          <span>${dateStr} · ${g.venue}, ${g.city} · £${Number(g.price_gbp).toFixed(2)}
+            ${soldOut ? '<span class="tag soldout">Sold out</span>' : (lowStock ? `<span class="tag low">${g.tickets_remaining} of ${g.capacity ?? '?'} left</span>` : `· ${g.tickets_remaining} of ${g.capacity ?? '?'} tickets left`)}
+          </span>
         </div>
-        <button class="gig-cta" type="button" data-gig-id="${esc(g.id)}" ${soldOut ? 'disabled' : ''}>
-          ${soldOut ? 'Sold out' : 'Get tickets →'}
-        </button>
-      </article>
+        <div class="gig-row-actions">
+          <button type="button" class="secondary" data-edit="${g.id}">Edit</button>
+          <button type="button" class="danger" data-delete="${g.id}">Delete</button>
+        </div>
+      </div>
     `;
   }).join('');
 
-  grid.querySelectorAll('.reveal').forEach(observeReveal);
-
-  grid.querySelectorAll('.gig-cta[data-gig-id]').forEach(btn => {
-    btn.addEventListener('click', () => openModal(btn.dataset.gigId));
+  listEl.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const gig = data.find(g => g.id === btn.dataset.edit);
+      if (gig) fillForm(gig);
+    });
+  });
+  listEl.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const gig = data.find(g => g.id === btn.dataset.delete);
+      if (!gig) return;
+      if (!confirm(`Delete "${gig.headliner}"? This can't be undone.`)) return;
+      const { error } = await sb.from('gigs').delete().eq('id', gig.id);
+      if (error) { alert('Could not delete: ' + error.message); return; }
+      loadGigs();
+    });
   });
 }
-
-// ============================================================
-// TICKET MODAL
-// ============================================================
-const overlay = document.getElementById('modalOverlay');
-const modalTitle = document.getElementById('modalTitle');
-const modalVenue = document.getElementById('modalVenue');
-const modalTotal = document.getElementById('modalTotal');
-const modalStatus = document.getElementById('modalStatus');
-const qtyValue = document.getElementById('qtyValue');
-const qtyDown = document.getElementById('qtyDown');
-const qtyUp = document.getElementById('qtyUp');
-const continueBtn = document.getElementById('modalContinue');
-
-let activeGig = null;
-let qty = 1;
-const MAX_QTY = 6;
-
-// ---- email checks (the server repeats all of these; this is just fast feedback) ----
-const EMAIL_RE = /^[A-Za-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\.[A-Za-z]{2,24}$/;
-const DOMAIN_FIXES = {
-  'gmail.con':'gmail.com','gmail.co':'gmail.com','gmail.cm':'gmail.com','gmail.om':'gmail.com',
-  'gmial.com':'gmail.com','gmai.com':'gmail.com','gmal.com':'gmail.com','gnail.com':'gmail.com',
-  'hotmial.com':'hotmail.com','hotmai.com':'hotmail.com','hotmail.con':'hotmail.com',
-  'yahoo.con':'yahoo.com','yaho.com':'yahoo.com','outlook.con':'outlook.com','icloud.con':'icloud.com'
-};
-const buyerEmail = document.getElementById('buyerEmail');
-const buyerEmail2 = document.getElementById('buyerEmail2');
-const emailHint = document.getElementById('emailHint');
-const EMAIL_HINT_DEFAULT = 'Your tickets are emailed here, so double-check it.';
-
-function setEmailHint(msg, suggestion){
-  emailHint.textContent = msg;
-  if (suggestion){
-    emailHint.append(' ');
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.textContent = 'Use ' + suggestion;
-    b.addEventListener('click', () => {
-      buyerEmail.value = suggestion;
-      buyerEmail2.value = '';
-      emailHint.textContent = 'Now confirm it below.';
-      buyerEmail2.focus();
-    });
-    emailHint.append(b);
-  }
-}
-// returns the cleaned email, or null after showing a message
-function validateEmailFields(){
-  const email = buyerEmail.value.trim().toLowerCase();
-  if (!EMAIL_RE.test(email) || email.length > 254){
-    setEmailHint('That email address doesn\u2019t look right.'); buyerEmail.focus(); return null;
-  }
-  const [local, domain] = email.split('@');
-  if (DOMAIN_FIXES[domain]){
-    setEmailHint('Did you mean ' + local + '@' + DOMAIN_FIXES[domain] + '?', local + '@' + DOMAIN_FIXES[domain]);
-    buyerEmail.focus(); return null;
-  }
-  if (buyerEmail2.value.trim().toLowerCase() !== email){
-    setEmailHint('The two email addresses don\u2019t match.'); buyerEmail2.focus(); return null;
-  }
-  return email;
-}
-
-function openModal(gigId){
-  activeGig = gigs.find(g => g.id === gigId);
-  if (!activeGig) return;
-  qty = 1;
-  modalTitle.textContent = activeGig.headliner;
-  modalVenue.textContent = `${activeGig.venue}, ${activeGig.city} - ${formatDateLong(activeGig.date)}`;
-  modalStatus.textContent = '';
-  buyerEmail.value = ''; buyerEmail2.value = '';
-  emailHint.textContent = EMAIL_HINT_DEFAULT;
-  updateTotal();
-  overlay.classList.add('is-open');
-  document.getElementById('modalClose').focus();
-}
-function closeModal(){
-  overlay.classList.remove('is-open');
-  activeGig = null;
-}
-function updateTotal(){
-  qtyValue.textContent = qty;
-  qtyDown.disabled = qty <= 1;
-  qtyUp.disabled = qty >= MAX_QTY;
-  if (activeGig) modalTotal.textContent = '£' + (activeGig.priceGBP * qty);
-}
-qtyDown.addEventListener('click', () => { if (qty > 1){ qty--; updateTotal(); } });
-qtyUp.addEventListener('click', () => { if (qty < MAX_QTY){ qty++; updateTotal(); } });
-document.getElementById('modalClose').addEventListener('click', closeModal);
-overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('is-open')) closeModal(); });
-
-// ------------------------------------------------------------
-// CHECKOUT
-// Sends only { gigId, quantity }. Price, stock and validation are all
-// decided server-side by the create-checkout-session edge function,
-// which returns a Stripe Checkout URL to redirect to.
-// ------------------------------------------------------------
-const CHECKOUT_ENDPOINT = SUPABASE_URL + '/functions/v1/create-checkout-session';
-
-continueBtn.addEventListener('click', async () => {
-  if (!activeGig) return;
-  if (String(activeGig.id).startsWith('fallback-')) {
-    modalStatus.textContent = "Tickets can't be booked right now - please try again shortly.";
-    return;
-  }
-  const email = validateEmailFields();
-  if (!email) return;
-  continueBtn.disabled = true;
-  continueBtn.textContent = 'One moment…';
-  modalStatus.textContent = '';
-  let redirecting = false;
-  try {
-    const res = await fetch(CHECKOUT_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-      },
-      body: JSON.stringify({ gigId: activeGig.id, quantity: qty, email })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.url) {
-      if (data.field === 'email') setEmailHint(data.error, data.suggestion);
-      else modalStatus.textContent = data.error || 'Something went wrong - please try again.';
-      if (res.status === 409) loadGigs(); // stock changed, refresh the cards
-      return;
-    }
-    redirecting = true;
-    window.location.href = data.url;
-  } catch (err) {
-    modalStatus.textContent = 'Something went wrong - please check your connection and try again.';
-  } finally {
-    if (!redirecting) {
-      continueBtn.disabled = false;
-      continueBtn.textContent = 'Continue to payment';
-    }
-  }
-});
-
-// ============================================================
-// SHARED CHROME - same behaviour as the main site
-// ============================================================
-const masthead = document.getElementById('masthead');
-window.addEventListener('scroll', () => {
-  masthead.classList.toggle('is-scrolled', window.scrollY > 40);
-}, { passive: true });
-
-document.addEventListener('click', (e) => {
-  const item = e.target.closest('.faq-item');
-  if (!item) return;
-  const btn = item.querySelector('.faq-q');
-  if (e.target.closest('.faq-q')) {
-    const isOpen = item.classList.toggle('is-open');
-    btn.setAttribute('aria-expanded', String(isOpen));
-  }
-});
-
-// scroll reveal - set up first so it's ready for both the static
-// elements already on the page and the gig cards rendered later
-let io = null;
-if ('IntersectionObserver' in window){
-  io = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
-  }, { threshold: 0.15 });
-}
-function observeReveal(el){
-  if (io) io.observe(el); else el.classList.add('in-view');
-}
-document.querySelectorAll('.reveal').forEach(observeReveal);
-
-(function(){
-  const status = new URLSearchParams(location.search).get('status');
-  const el = document.getElementById('statusBanner');
-  if (!status || !el) return;
-  if (status === 'success') {
-    el.textContent = "You're in! Your tickets are on their way - check your inbox (and spam) for the confirmation email.";
-    el.hidden = false;
-  } else if (status === 'cancelled') {
-    el.textContent = "No worries - you haven't been charged. Any held tickets are released shortly.";
-    el.hidden = false;
-  }
-  history.replaceState(null, '', location.pathname);
-})();
-
-// coming back from Stripe via the back button: refresh stock
-window.addEventListener('pageshow', (e) => { if (e.persisted) loadGigs(); });
-
-loadGigs();
 </script>
 </body>
 </html>
