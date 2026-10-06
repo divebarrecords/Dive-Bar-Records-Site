@@ -78,6 +78,9 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
 .field-grid .full{ grid-column:1 / -1; }
 @media(max-width:560px){ .field-grid{ grid-template-columns:1fr; } }
 
+/* inline checkbox + label (overrides the full-width form input styling) */
+.toggle-row{ display:flex; align-items:center; gap:8px; cursor:pointer; margin:-4px 0 14px; opacity:0.8; }
+.toggle-row input{ width:auto; margin:0; padding:0; accent-color:var(--ink); cursor:pointer; }
 .gig-row{
   display:flex; justify-content:space-between; align-items:center; gap:16px;
   background:var(--paper); border:2px solid var(--ink); border-radius:8px;
@@ -168,7 +171,7 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
 
     <div class="panel">
       <h2>Upcoming gigs</h2>
-      <label style="display:block; font-size:0.78rem; opacity:0.75; margin:-4px 0 12px;"><input type="checkbox" id="showArchived"> Show archived gigs</label>
+      <label class="toggle-row"><input type="checkbox" id="showArchived"><span>Show archived gigs</span></label>
       <div id="gigList"><p class="empty-note">Loading…</p></div>
     </div>
 
