@@ -81,6 +81,16 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
 /* inline checkbox + label (overrides the full-width form input styling) */
 .toggle-row{ display:flex; align-items:center; gap:8px; cursor:pointer; margin:-4px 0 14px; opacity:0.8; }
 .toggle-row input{ width:auto; margin:0; padding:0; accent-color:var(--ink); cursor:pointer; }
+.scan-box{ max-width:420px; margin:0 0 14px; border:2px solid var(--ink); border-radius:8px; overflow:hidden; background:#000; line-height:0; }
+.scan-box video{ width:100%; height:auto; display:block; }
+.scan-actions{ display:flex; gap:10px; margin:0 0 14px; }
+.scan-result{ border:2px solid var(--ink); border-radius:10px; padding:16px 18px; margin:0 0 18px; background:var(--paper); min-height:64px; }
+.scan-result strong{ display:block; font-size:1.15rem; letter-spacing:0.5px; text-transform:uppercase; }
+.scan-result span{ display:block; font-size:0.8rem; margin-top:4px; opacity:0.85; }
+.scan-result.ok{ background:#d9efd5; }
+.scan-result.warn{ background:var(--gold); }
+.scan-result.bad{ background:var(--red); color:var(--paper); border-color:var(--red); }
+.scan-count{ font-size:0.78rem; opacity:0.7; margin:12px 0 0; }
 .gig-row{
   display:flex; justify-content:space-between; align-items:center; gap:16px;
   background:var(--paper); border:2px solid var(--ink); border-radius:8px;
@@ -176,6 +186,24 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
     </div>
 
     <div class="panel">
+      <h2>Door scanner</h2>
+      <label for="scanGig">Scanning for</label>
+      <select id="scanGig"></select>
+      <div class="scan-actions">
+        <button type="button" class="secondary" id="scanStart">Start camera</button>
+        <button type="button" class="secondary" id="scanStop" style="display:none">Stop camera</button>
+      </div>
+      <div class="scan-box" id="scanBox" style="display:none"><video id="scanVideo" playsinline muted></video></div>
+      <div class="scan-result" id="scanResult" role="status" aria-live="polite"><strong>Ready</strong><span>Start the camera and point it at a ticket QR code.</span></div>
+      <label for="scanManual">Or type a ticket code</label>
+      <div class="ord-tools">
+        <input type="text" id="scanManual" placeholder="e.g. A3F09C21B7D4E856" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        <button type="button" id="scanManualGo">Check in</button>
+      </div>
+      <p class="scan-count" id="scanCount"></p>
+    </div>
+
+    <div class="panel">
       <h2>Orders &amp; tickets</h2>
       <div class="ord-tools">
         <input type="search" id="orderSearch" placeholder="Search email, name, gig or ticket code" autocomplete="off">
@@ -205,6 +233,7 @@ function showApp(){
   loadOrders();
 }
 function showLogin(){
+  if (typeof stopScan === 'function') stopScan();
   appView.classList.remove('is-visible');
   loginView.style.display = 'flex';
 }
@@ -409,6 +438,134 @@ document.getElementById('orderList').addEventListener('click', async (e) => {
   }
 });
 
+// ---- door scanner (camera -> QR -> admin-orders 'checkin_code') ----
+const scanEls = {
+  gig: document.getElementById('scanGig'), start: document.getElementById('scanStart'), stop: document.getElementById('scanStop'),
+  box: document.getElementById('scanBox'), video: document.getElementById('scanVideo'), result: document.getElementById('scanResult'),
+  manual: document.getElementById('scanManual'), manualGo: document.getElementById('scanManualGo'), count: document.getElementById('scanCount')
+};
+let scanStream = null, scanTimer = null, scanBusy = false, scanLast = { code:'', at:0 }, scanOk = 0, scanDetector = null, scanWake = null, scanAudio = null;
+const scanCanvas = document.createElement('canvas');
+
+function fillScanGigs(gigs){
+  const keep = scanEls.gig.value;
+  const today = new Date().toISOString().slice(0, 10);
+  const live = (gigs || []).filter(g => !g.archived_at);
+  const nearest = live.find(g => g.event_date >= today);
+  scanEls.gig.innerHTML = '<option value="">Any gig (no check)</option>' + live.map(g =>
+    '<option value="' + esc(g.id) + '">' + esc(g.headliner) + ' \u2013 ' + esc(g.event_date) + '</option>').join('');
+  scanEls.gig.value = (keep && live.some(g => g.id === keep)) ? keep : (nearest ? nearest.id : '');
+}
+function showScan(kind, title, sub){
+  scanEls.result.className = 'scan-result ' + kind;
+  scanEls.result.innerHTML = '<strong>' + esc(title) + '</strong>' + (sub ? '<span>' + esc(sub) + '</span>' : '');
+}
+function scanFeedback(good){
+  try { navigator.vibrate && navigator.vibrate(good ? 60 : [120, 60, 120]); } catch {}
+  try {
+    scanAudio = scanAudio || new (window.AudioContext || window.webkitAudioContext)();
+    const beep = (freq, start, dur) => {
+      const o = scanAudio.createOscillator(), g = scanAudio.createGain();
+      o.frequency.value = freq; g.gain.value = 0.08; o.connect(g); g.connect(scanAudio.destination);
+      o.start(scanAudio.currentTime + start); o.stop(scanAudio.currentTime + start + dur);
+    };
+    if (good) beep(880, 0, 0.12); else { beep(220, 0, 0.14); beep(220, 0.2, 0.14); }
+  } catch {}
+}
+async function scanHandle(raw, manual){
+  const code = String(raw || '').trim().toUpperCase();
+  if (!code || scanBusy) return;
+  if (!manual && code === scanLast.code && Date.now() - scanLast.at < 4000) return;   // same QR still in view
+  scanBusy = true;
+  try {
+    const r = await adminCall({ action:'checkin_code', code, gigId: scanEls.gig.value || undefined });
+    scanLast = { code, at: Date.now() };
+    const who = [r.name, r.code].filter(Boolean).join(' \u00b7 ');
+    if (r.result === 'ok'){
+      scanOk++; scanEls.count.textContent = 'Checked in this session: ' + scanOk;
+      showScan('ok', 'Checked in', who); scanFeedback(true); loadOrders();
+    } else if (r.result === 'already'){
+      const when = r.checkedInAt ? new Date(r.checkedInAt).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) : '';
+      showScan('warn', 'Already used', (when ? 'Checked in at ' + when + ' \u00b7 ' : '') + who); scanFeedback(false);
+    } else if (r.result === 'void'){
+      showScan('bad', 'Void \u2013 refunded', who); scanFeedback(false);
+    } else if (r.result === 'wrong_gig'){
+      showScan('bad', 'Wrong gig', r.message || ''); scanFeedback(false);
+    } else {
+      showScan('bad', 'Not recognised', r.message || 'No ticket with that code.'); scanFeedback(false);
+    }
+  } catch (err){
+    showScan('bad', 'Couldn\u2019t check in', err.message + ' \u2013 scan again to retry.'); scanFeedback(false);
+  }
+  setTimeout(() => { scanBusy = false; }, 900);
+}
+function loadJsQR(){
+  if (window.jsQR) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const el = document.createElement('script');
+    el.src = '/admin/jsqr.min.js';
+    el.onload = () => window.jsQR ? resolve() : reject(new Error('jsQR missing'));
+    el.onerror = () => reject(new Error('jsQR failed to load'));
+    document.head.appendChild(el);
+  });
+}
+async function scanFrame(){
+  if (scanBusy || !scanStream || scanEls.video.readyState < 2) return;
+  try {
+    let value = null;
+    if (scanDetector){
+      const found = await scanDetector.detect(scanEls.video);
+      value = found && found[0] && found[0].rawValue;
+    } else if (window.jsQR){
+      const vw = scanEls.video.videoWidth, vh = scanEls.video.videoHeight;
+      if (!vw || !vh) return;
+      const k = Math.min(1, 640 / vw);
+      scanCanvas.width = Math.round(vw * k); scanCanvas.height = Math.round(vh * k);
+      const ctx = scanCanvas.getContext('2d', { willReadFrequently:true });
+      ctx.drawImage(scanEls.video, 0, 0, scanCanvas.width, scanCanvas.height);
+      const img = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+      const hit = window.jsQR(img.data, img.width, img.height, { inversionAttempts:'dontInvert' });
+      value = hit && hit.data;
+    }
+    if (value) scanHandle(value, false);
+  } catch {}
+}
+async function startScan(){
+  if (scanStream) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    showScan('bad', 'No camera access', 'This browser can\u2019t open the camera here. Type the ticket code below instead.'); return;
+  }
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' } }, audio:false });
+  } catch {
+    showScan('bad', 'Camera blocked', 'Allow camera access for this site in your browser settings, or type the code below.'); return;
+  }
+  scanEls.video.srcObject = scanStream;
+  try { await scanEls.video.play(); } catch {}
+  scanEls.box.style.display = 'block'; scanEls.start.style.display = 'none'; scanEls.stop.style.display = '';
+  scanDetector = null;
+  if ('BarcodeDetector' in window){ try { scanDetector = new BarcodeDetector({ formats:['qr_code'] }); } catch { scanDetector = null; } }
+  if (!scanDetector){
+    try { await loadJsQR(); }
+    catch { stopScan(); showScan('bad', 'Scanner unavailable', 'Camera scanning couldn\u2019t start here (jsqr.min.js missing?). Type the code below instead.'); return; }
+  }
+  try { scanWake = navigator.wakeLock ? await navigator.wakeLock.request('screen') : null; } catch { scanWake = null; }
+  showScan('', 'Scanning\u2026', 'Hold a ticket QR code in view.');
+  scanTimer = setInterval(scanFrame, 200);
+}
+function stopScan(){
+  if (scanTimer){ clearInterval(scanTimer); scanTimer = null; }
+  if (scanStream){ scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+  if (scanWake){ try { scanWake.release(); } catch {} scanWake = null; }
+  scanEls.video.srcObject = null;
+  scanEls.box.style.display = 'none'; scanEls.start.style.display = ''; scanEls.stop.style.display = 'none';
+}
+scanEls.start.addEventListener('click', startScan);
+scanEls.stop.addEventListener('click', () => { stopScan(); showScan('', 'Ready', 'Start the camera and point it at a ticket QR code.'); });
+scanEls.manualGo.addEventListener('click', () => { scanHandle(scanEls.manual.value, true); scanEls.manual.value = ''; });
+scanEls.manual.addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); scanEls.manualGo.click(); } });
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopScan(); });
+
 // ---- gig list ----
 document.getElementById('showArchived').addEventListener('change', () => loadGigs());
 async function loadGigs(){
@@ -422,6 +579,7 @@ async function loadGigs(){
     listEl.innerHTML = `<p class="empty-note">Couldn't load gigs - ${error.message}</p>`;
     return;
   }
+  fillScanGigs(data);
   const showArchived = document.getElementById('showArchived').checked;
   const rows = (data || []).filter(g => showArchived || !g.archived_at);
   if (rows.length === 0) {
