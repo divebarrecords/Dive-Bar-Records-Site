@@ -168,6 +168,7 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
 
     <div class="panel">
       <h2>Upcoming gigs</h2>
+      <label style="display:block; font-size:0.78rem; opacity:0.75; margin:-4px 0 12px;"><input type="checkbox" id="showArchived"> Show archived gigs</label>
       <div id="gigList"><p class="empty-note">Loading…</p></div>
     </div>
 
@@ -406,6 +407,7 @@ document.getElementById('orderList').addEventListener('click', async (e) => {
 });
 
 // ---- gig list ----
+document.getElementById('showArchived').addEventListener('change', () => loadGigs());
 async function loadGigs(){
   const listEl = document.getElementById('gigList');
   const { data, error } = await sb
@@ -417,25 +419,30 @@ async function loadGigs(){
     listEl.innerHTML = `<p class="empty-note">Couldn't load gigs - ${error.message}</p>`;
     return;
   }
-  if (!data || data.length === 0) {
-    listEl.innerHTML = '<p class="empty-note">No gigs yet - add one above.</p>';
+  const showArchived = document.getElementById('showArchived').checked;
+  const rows = (data || []).filter(g => showArchived || !g.archived_at);
+  if (rows.length === 0) {
+    listEl.innerHTML = '<p class="empty-note">' + ((data && data.length) ? 'No active gigs - tick "Show archived gigs" to see the rest.' : 'No gigs yet - add one above.') + '</p>';
     return;
   }
 
-  listEl.innerHTML = data.map(g => {
+  listEl.innerHTML = rows.map(g => {
     const soldOut = g.tickets_remaining <= 0;
     const lowStock = g.availability === 'low';
     const dateStr = new Date(g.event_date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
     return `
-      <div class="gig-row" data-id="${g.id}">
+      <div class="gig-row" data-id="${g.id}"${g.archived_at ? ' style="opacity:0.55"' : ''}>
         <div class="gig-row-main">
-          <strong>${g.headliner}</strong>
+          <strong>${g.headliner}${g.archived_at ? ' <span class="tag" style="display:inline">Archived</span>' : ''}</strong>
           <span>${dateStr} · ${g.venue}, ${g.city} · £${Number(g.price_gbp).toFixed(2)}
             ${soldOut ? '<span class="tag soldout">Sold out</span>' : (lowStock ? `<span class="tag low">${g.tickets_remaining} of ${g.capacity ?? '?'} left</span>` : `· ${g.tickets_remaining} of ${g.capacity ?? '?'} tickets left`)}
           </span>
         </div>
         <div class="gig-row-actions">
           <button type="button" class="secondary" data-edit="${g.id}">Edit</button>
+          ${g.archived_at
+            ? `<button type="button" class="secondary" data-restore="${g.id}">Restore</button>`
+            : `<button type="button" class="secondary" data-archive="${g.id}">Archive</button>`}
           <button type="button" class="danger" data-delete="${g.id}">Delete</button>
         </div>
       </div>
@@ -448,13 +455,40 @@ async function loadGigs(){
       if (gig) fillForm(gig);
     });
   });
+  listEl.querySelectorAll('[data-archive]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const gig = data.find(g => g.id === btn.dataset.archive);
+      if (!gig) return;
+      let warn = '';
+      const { count } = await sb.from('orders').select('id', { count: 'exact', head: true }).eq('gig_id', gig.id).eq('status', 'paid');
+      if (count > 0) warn = `\n\n${count} paid order${count === 1 ? '' : 's'} exist for this gig. Archiving does NOT refund anyone - refund them first if the gig is cancelled.`;
+      if (!confirm(`Archive "${gig.headliner}"? It will be hidden from the public gigs page. Orders and tickets are kept, and you can restore it later.${warn}`)) return;
+      const { error } = await sb.from('gigs').update({ archived_at: new Date().toISOString() }).eq('id', gig.id);
+      if (error) { alert('Could not archive: ' + error.message); return; }
+      loadGigs();
+    });
+  });
+  listEl.querySelectorAll('[data-restore]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const gig = data.find(g => g.id === btn.dataset.restore);
+      if (!gig) return;
+      if (!confirm(`Restore "${gig.headliner}"? It will show on the public gigs page again if its date hasn't passed.`)) return;
+      const { error } = await sb.from('gigs').update({ archived_at: null }).eq('id', gig.id);
+      if (error) { alert('Could not restore: ' + error.message); return; }
+      loadGigs();
+    });
+  });
   listEl.querySelectorAll('[data-delete]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const gig = data.find(g => g.id === btn.dataset.delete);
       if (!gig) return;
       if (!confirm(`Delete "${gig.headliner}"? This can't be undone.`)) return;
       const { error } = await sb.from('gigs').delete().eq('id', gig.id);
-      if (error) { alert('Could not delete: ' + error.message); return; }
+      if (error) {
+        const fk = error.code === '23503' || /foreign key/i.test(error.message);
+        alert(fk ? 'This gig has orders or tickets attached, so it can\'t be deleted. Use Archive instead - it hides the gig from the site and keeps the order history.' : 'Could not delete: ' + error.message);
+        return;
+      }
       loadGigs();
     });
   });
