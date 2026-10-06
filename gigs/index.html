@@ -541,6 +541,7 @@ async function loadGigs(){
       .from('gigs')
       .select('id, headliner, support, event_date, doors_time, venue, city, price_gbp, age_restriction, availability')
       .gte('event_date', todayISO)
+      .is('archived_at', null)
       .order('event_date', { ascending: true });
     if (error) throw error;
     gigs = (data || []).map(mapRow);
