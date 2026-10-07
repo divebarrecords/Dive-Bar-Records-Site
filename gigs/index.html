@@ -531,8 +531,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const FALLBACK_GIGS = [
-  { id: 'fallback-1', date: '2026-11-14', doors: '7:30pm', venue: 'The Poop Hut', city: 'Manchester',
-    headliner: 'Placeholder Band', support: 'Placeholder support', priceGBP: 8, availability: 'available', ageRestriction: '14+' }
+  { id: 'fallback-1', date: '2026-11-14', doors: '7:30pm', venue: 'The Anchor House', city: 'Manchester',
+    headliner: 'Concrete Wolves', support: 'Static Halo', priceGBP: 8, availability: 'available', ageRestriction: '14+' }
 ];
 
 let gigs = [];
@@ -560,7 +560,7 @@ async function loadGigs(){
     const { data, error } = await sb
       .from('gigs')
       .select('id, headliner, support, event_date, doors_time, venue, city, price_gbp, age_restriction, availability, kind')
-      .gte('event_date', todayISO)
+      .or('kind.eq.support,event_date.gte.' + todayISO) // support items never lapse by date
       .is('archived_at', null)
       .order('event_date', { ascending: true });
     if (error) throw error;
