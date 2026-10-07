@@ -137,6 +137,10 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
         <input type="hidden" id="gigId">
         <div class="field-grid">
           <div class="full">
+            <label for="fKind">Type</label>
+            <select id="fKind"><option value="gig">Gig (shows in the gigs list)</option><option value="support">Support item (shown separately)</option></select>
+          </div>
+          <div class="full">
             <label for="fHeadliner">Headliner</label>
             <input type="text" id="fHeadliner" required>
           </div>
@@ -274,6 +278,7 @@ const fIds = ['fHeadliner','fSupport','fDate','fDoors','fVenue','fCity','fPrice'
 function resetForm(){
   document.getElementById('gigId').value = '';
   fIds.forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fKind').value = 'gig';
   formTitle.textContent = 'Add a gig';
   saveBtn.textContent = 'Save gig';
   cancelEditBtn.style.display = 'none';
@@ -283,6 +288,7 @@ cancelEditBtn.addEventListener('click', resetForm);
 
 function fillForm(gig){
   document.getElementById('gigId').value = gig.id;
+  document.getElementById('fKind').value = gig.kind || 'gig';
   document.getElementById('fHeadliner').value = gig.headliner;
   document.getElementById('fSupport').value = gig.support || '';
   document.getElementById('fDate').value = gig.event_date;
@@ -306,6 +312,7 @@ gigForm.addEventListener('submit', async (e) => {
 
   const id = document.getElementById('gigId').value;
   const payload = {
+    kind: document.getElementById('fKind').value || 'gig',
     headliner: document.getElementById('fHeadliner').value.trim(),
     support: document.getElementById('fSupport').value.trim() || null,
     event_date: document.getElementById('fDate').value,
@@ -594,7 +601,7 @@ async function loadGigs(){
     return `
       <div class="gig-row" data-id="${g.id}"${g.archived_at ? ' style="opacity:0.55"' : ''}>
         <div class="gig-row-main">
-          <strong>${g.headliner}${g.archived_at ? ' <span class="tag" style="display:inline">Archived</span>' : ''}</strong>
+          <strong>${g.headliner}${g.kind === 'support' ? ' <span class="tag" style="display:inline">Support item</span>' : ''}${g.archived_at ? ' <span class="tag" style="display:inline">Archived</span>' : ''}</strong>
           <span>${dateStr} · ${g.venue}, ${g.city} · £${Number(g.price_gbp).toFixed(2)}
             ${soldOut ? '<span class="tag soldout">Sold out</span>' : (lowStock ? `<span class="tag low">${g.tickets_remaining} of ${g.capacity ?? '?'} left</span>` : `· ${g.tickets_remaining} of ${g.capacity ?? '?'} tickets left`)}
           </span>
