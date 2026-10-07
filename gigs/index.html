@@ -344,6 +344,20 @@ body::before{
 /* ---- TICKET FAQ - same accordion as the main site ---- */
 .ticket-faq{ padding:30px 5% 90px; position:relative; }
 .ticket-faq .eyebrow{ color:var(--red); }
+.support-section{ padding:10px 5% 50px; position:relative; }
+.support-section .eyebrow{
+  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.72rem;
+  letter-spacing:2px; margin-bottom:22px; text-transform:uppercase; color:var(--ink);
+}
+.support-card{
+  max-width:620px; background:var(--paper2); color:var(--ink);
+  border:2px solid var(--ink); border-radius:16px; padding:26px 26px 24px;
+  box-shadow:5px 6px 0 var(--gold);
+}
+.support-card h3{ font-family:"plunct", sans-serif; font-size:1.5rem; line-height:1.15; margin-bottom:10px; }
+.support-card p{ font-size:0.9rem; opacity:0.85; margin-bottom:10px; }
+.support-card .support-price{ font-size:0.8rem; font-weight:700; letter-spacing:0.5px; opacity:0.7; margin:14px 0 16px; }
+.support-card .gig-cta{ width:auto; padding:12px 26px; }
 .faq-list{
   position:relative;
   display:flex; flex-direction:column; gap:16px;
@@ -411,6 +425,11 @@ footer{
 <section class="gigs-section paper-block" id="upcoming">
   <div class="eyebrow reveal">Upcoming</div>
   <div class="gig-grid" id="gigGrid"><!-- rendered from gigs[] below --></div>
+</section>
+
+<section class="support-section" id="support" hidden>
+  <div class="eyebrow">Support the label</div>
+  <div id="supportList"><!-- rendered from support items below --></div>
 </section>
 
 <section class="ticket-faq" id="ticket-faq">
@@ -512,8 +531,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const FALLBACK_GIGS = [
-  { id: 'fallback-1', date: '2026-11-14', doors: '7:30pm', venue: 'The Anchor House', city: 'Manchester',
-    headliner: 'Concrete Wolves', support: 'Static Halo', priceGBP: 8, availability: 'available', ageRestriction: '14+' }
+  { id: 'fallback-1', date: '2026-11-14', doors: '7:30pm', venue: 'The Poop Hut', city: 'Manchester',
+    headliner: 'Placeholder Band', support: 'Placeholder support', priceGBP: 8, availability: 'available', ageRestriction: '14+' }
 ];
 
 let gigs = [];
@@ -529,7 +548,8 @@ function mapRow(row){
     support: row.support,
     priceGBP: Number(row.price_gbp),
     availability: row.availability, // 'available' | 'low' | 'sold_out' (stock counts are not public)
-    ageRestriction: row.age_restriction
+    ageRestriction: row.age_restriction,
+    kind: row.kind || 'gig' // 'gig' | 'support'
   };
 }
 
@@ -539,7 +559,7 @@ async function loadGigs(){
     if (!sb) throw new Error('Supabase client failed to load');
     const { data, error } = await sb
       .from('gigs')
-      .select('id, headliner, support, event_date, doors_time, venue, city, price_gbp, age_restriction, availability')
+      .select('id, headliner, support, event_date, doors_time, venue, city, price_gbp, age_restriction, availability, kind')
       .gte('event_date', todayISO)
       .is('archived_at', null)
       .order('event_date', { ascending: true });
@@ -567,7 +587,9 @@ function esc(v){
 
 function renderGigs(){
   const grid = document.getElementById('gigGrid');
-  grid.innerHTML = gigs.map(g => {
+  const shows = gigs.filter(g => g.kind !== 'support');
+  const supportItems = gigs.filter(g => g.kind === 'support');
+  grid.innerHTML = shows.length ? shows.map(g => {
     const { day, monyr } = formatDateParts(g.date);
     const soldOut = g.availability === 'sold_out';
     const lowStock = g.availability === 'low';
@@ -587,11 +609,34 @@ function renderGigs(){
         </button>
       </article>
     `;
-  }).join('');
+  }).join('') : '<div class="gig-flyer" style="grid-column:1/-1; transform:none; text-align:center; font-weight:700;">No gigs announced just yet \u2013 check back soon.</div>';
 
+  renderSupport(supportItems);
   grid.querySelectorAll('.reveal').forEach(observeReveal);
 
   grid.querySelectorAll('.gig-cta[data-gig-id]').forEach(btn => {
+    btn.addEventListener('click', () => openModal(btn.dataset.gigId));
+  });
+}
+
+function renderSupport(items){
+  const sec = document.getElementById('support');
+  const list = document.getElementById('supportList');
+  if (!items.length){ sec.hidden = true; list.innerHTML = ''; return; }
+  sec.hidden = false;
+  list.innerHTML = items.map(g => {
+    const unavailable = g.availability === 'sold_out';
+    const detail = [g.venue, g.city].filter(Boolean).join(' \u2014 ');
+    return `
+      <article class="support-card">
+        <h3>${esc(g.headliner)}</h3>
+        ${g.support ? `<p>${esc(g.support)}</p>` : ''}
+        ${detail ? `<p>${esc(detail)}</p>` : ''}
+        <div class="support-price">£${g.priceGBP} each</div>
+        <button class="gig-cta" type="button" data-gig-id="${esc(g.id)}" ${unavailable ? 'disabled' : ''}>${unavailable ? 'Unavailable' : 'Support us \u2192'}</button>
+      </article>`;
+  }).join('');
+  list.querySelectorAll('.gig-cta[data-gig-id]').forEach(btn => {
     btn.addEventListener('click', () => openModal(btn.dataset.gigId));
   });
 }
@@ -663,11 +708,17 @@ function openModal(gigId){
   activeGig = gigs.find(g => g.id === gigId);
   if (!activeGig) return;
   qty = 1;
+  const isSupport = activeGig.kind === 'support';
+  overlay.querySelector('.eyebrow').textContent = isSupport ? 'Support the label' : 'Get Tickets';
+  overlay.querySelector('.qty-label').textContent = isSupport ? 'Quantity' : 'Tickets';
+  document.querySelector('label[for="buyerEmail"]').textContent = isSupport ? 'Email for your confirmation' : 'Email for your tickets';
   modalTitle.textContent = activeGig.headliner;
-  modalVenue.textContent = `${activeGig.venue}, ${activeGig.city} - ${formatDateLong(activeGig.date)}`;
+  modalVenue.textContent = isSupport
+    ? [activeGig.venue, activeGig.city].filter(Boolean).join(' \u2014 ')
+    : `${activeGig.venue}, ${activeGig.city} - ${formatDateLong(activeGig.date)}`;
   modalStatus.textContent = '';
   buyerEmail.value = ''; buyerEmail2.value = '';
-  emailHint.textContent = EMAIL_HINT_DEFAULT;
+  emailHint.textContent = isSupport ? 'Your confirmation is emailed here, so double-check it.' : EMAIL_HINT_DEFAULT;
   updateTotal();
   overlay.classList.add('is-open');
   document.getElementById('modalClose').focus();
@@ -726,6 +777,7 @@ continueBtn.addEventListener('click', async () => {
       return;
     }
     redirecting = true;
+    try { sessionStorage.setItem('dbrKind', activeGig.kind || 'gig'); } catch {}
     window.location.href = data.url;
   } catch (err) {
     modalStatus.textContent = 'Something went wrong - please check your connection and try again.';
@@ -773,7 +825,10 @@ document.querySelectorAll('.reveal').forEach(observeReveal);
   const el = document.getElementById('statusBanner');
   if (!status || !el) return;
   if (status === 'success') {
-    el.textContent = "You're in! Your tickets are on their way - check your inbox (and spam) for the confirmation email.";
+    let kind = 'gig'; try { kind = sessionStorage.getItem('dbrKind') || 'gig'; sessionStorage.removeItem('dbrKind'); } catch {}
+    el.textContent = kind === 'support'
+      ? "Thank you for supporting Dive Bar Records - check your inbox (and spam) for the confirmation email."
+      : "You're in! Your tickets are on their way - check your inbox (and spam) for the confirmation email.";
     el.hidden = false;
   } else if (status === 'cancelled') {
     el.textContent = "No worries - you haven't been charged. Any held tickets are released shortly.";
