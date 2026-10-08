@@ -1761,6 +1761,86 @@ body.pre-pop .hero-photo-wrap{ visibility:hidden; opacity:0; }
 
 
 
+/* ---- COMING UP (miniature gig carousel; full listings + ticketing live on /gigs) ---- */
+.upnext{ padding:70px 5% 0; position:relative; }
+.upnext[hidden]{ display:none; }
+.upnext-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:10px; }
+.upnext .eyebrow{
+  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.72rem;
+  letter-spacing:2px; color:var(--ink); text-transform:uppercase;
+}
+.upnext-controls{ display:flex; align-items:center; gap:14px; }
+.upnext-all{
+  position:relative; font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:0.72rem;
+  text-transform:uppercase; letter-spacing:1.5px; text-decoration:none; color:var(--ink); padding-bottom:4px;
+}
+.upnext-all::after{
+  content:""; position:absolute; left:0; bottom:0; width:100%; height:2px; background:var(--gold);
+  transform:scaleX(0); transform-origin:left; transition:transform 0.25s ease;
+}
+.upnext-all:hover{ color:var(--gold); }
+.upnext-all:hover::after, .upnext-all:focus-visible::after{ transform:scaleX(1); }
+.upnext-arrows{ display:flex; gap:8px; }
+.upnext-arrows[hidden]{ display:none; }
+.upnext-arrows button{
+  width:32px; height:32px; border-radius:50%;
+  border:2px solid var(--ink); background:var(--paper); color:var(--ink);
+  font-family:'Freya', system-ui, sans-serif; font-weight:700; font-size:1rem; line-height:1; cursor:pointer;
+  transition:background 0.2s ease, color 0.2s ease;
+}
+.upnext-arrows button:hover:not(:disabled){ background:var(--ink); color:var(--paper); }
+.upnext-arrows button:disabled{ opacity:0.35; cursor:default; }
+/* generous padding: rotated cards, pins and hard shadows would otherwise be clipped by the scroller */
+.upnext-track{
+  display:flex; gap:26px; overflow-x:auto; scroll-snap-type:x proximity; scroll-behavior:smooth;
+  padding:26px 14px 30px 8px; margin:0 -8px; scroll-padding-left:8px;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
+}
+.upnext-track::-webkit-scrollbar{ display:none; }
+.upnext-track:focus-visible{ outline:3px solid var(--gold); outline-offset:2px; border-radius:12px; }
+.upnext-card{
+  flex:0 0 auto; width:210px; scroll-snap-align:start;
+  display:block; position:relative; text-decoration:none; color:var(--ink);
+  background:var(--paper2); padding:18px 16px 16px;
+  border-radius:32px 10px 28px 12px / 12px 30px 10px 32px;
+  box-shadow:4px 5px 0 var(--ink), 0 14px 24px rgba(24,38,34,0.18);
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+}
+.upnext-card:nth-child(3n+1){ transform:rotate(-1.8deg); box-shadow:4px 5px 0 var(--red), 0 14px 24px rgba(24,38,34,0.18); }
+.upnext-card:nth-child(3n+2){ transform:rotate(1.3deg); }
+.upnext-card:nth-child(3n+3){ transform:rotate(-0.8deg); box-shadow:4px 5px 0 var(--gold), 0 14px 24px rgba(24,38,34,0.18); }
+.upnext-card:hover, .upnext-card:focus-visible{ transform:rotate(0deg) translateY(-5px); }
+.upnext-card:focus-visible{ outline:3px solid var(--gold); outline-offset:3px; }
+.upnext-card::before{
+  content:""; position:absolute; top:-7px; left:50%; transform:translateX(-50%);
+  width:13px; height:13px; border-radius:50%; border:2px solid var(--ink);
+}
+.upnext-card:nth-child(3n+1)::before{ background:var(--red); }
+.upnext-card:nth-child(3n+2)::before{ background:var(--ink); }
+.upnext-card:nth-child(3n+3)::before{ background:var(--gold); }
+.upnext-date{ display:flex; align-items:baseline; gap:7px; margin-bottom:8px; }
+.upnext-date .day{ font-family:"plunct", sans-serif; font-size:1.9rem; line-height:1; }
+.upnext-date .monyr{ font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:0.75; }
+.upnext-card h3{
+  font-family:"plunct", sans-serif; font-size:1.25rem; line-height:1.15; margin-bottom:4px;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.upnext-venue{ font-size:0.7rem; font-weight:700; letter-spacing:0.5px; opacity:0.7; margin-bottom:12px; }
+.upnext-foot{
+  display:flex; justify-content:space-between; align-items:center; gap:8px;
+  font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+}
+.upnext-foot .go{ color:var(--red); }
+.upnext-foot .low{ color:var(--red); }
+.upnext-card.is-sold-out .go{ color:inherit; opacity:0.5; }
+.upnext-stamp{
+  position:absolute; top:14px; right:10px;
+  border:2px solid var(--red); color:var(--red); border-radius:6px; padding:3px 7px;
+  font-weight:700; font-size:0.6rem; letter-spacing:1.5px; text-transform:uppercase;
+  transform:rotate(8deg); opacity:0.85; pointer-events:none;
+}
+@media (prefers-reduced-motion: reduce){ .upnext-track{ scroll-behavior:auto; } }
+
 /* ---- ROSTER ---- */
 
 .corkboard{ padding:70px 5% 40px; position:relative; }
@@ -2220,6 +2300,19 @@ window.addEventListener('pageshow', function(){
 
 <div class="paper-block">
 
+<section class="upnext" id="upcoming-gigs" aria-labelledby="upnextLabel" hidden>
+  <div class="upnext-head">
+    <div class="eyebrow reveal" id="upnextLabel">Coming Up</div>
+    <div class="upnext-controls">
+      <div class="upnext-arrows" id="upnextArrows" hidden>
+        <button type="button" id="upnextPrev" aria-label="Previous gigs">←</button>
+        <button type="button" id="upnextNext" aria-label="Next gigs">→</button>
+      </div>
+      <a class="upnext-all" href="/gigs">All gigs →</a>
+    </div>
+  </div>
+  <div class="upnext-track" id="upnextTrack" tabindex="0" role="region" aria-label="Upcoming gigs"><!-- rendered from Supabase below --></div>
+</section>
 <section class="corkboard" id="roster">
 
   <div class="eyebrow reveal">Roster</div>
@@ -3649,6 +3742,86 @@ if (logoComposition){
 </script>
 
 
+
+<script>
+// ============================================================
+// COMING UP carousel - same Supabase `gigs` table as /gigs, via a
+// plain REST call (no need to load supabase-js on the landing page).
+// If the request fails or there are no upcoming shows, the whole
+// section stays hidden rather than showing an empty box.
+// ============================================================
+(function(){
+  const SUPABASE_URL = 'https://ualutedgenurromgylwz.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhbHV0ZWRnZW51cnJvbWd5bHd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMTIwNDEsImV4cCI6MjEwNTY4ODA0MX0.HrCUOmaC2Mjk8pp3Nxax2KNduy0_egW2wuJUmgpbLZg';
+  const MAX_CARDS = 8;
+  const section = document.getElementById('upcoming-gigs');
+  const track = document.getElementById('upnextTrack');
+  const arrows = document.getElementById('upnextArrows');
+  const prev = document.getElementById('upnextPrev');
+  const next = document.getElementById('upnextNext');
+  if (!section || !track) return;
+
+  const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function card(g){
+    const d = new Date(g.event_date + 'T00:00:00');
+    const soldOut = g.availability === 'sold_out';
+    const low = g.availability === 'low';
+    const venue = [g.venue, g.city].filter(Boolean).map(x => esc(String(x).toUpperCase())).join(' // ');
+    return `
+      <a class="upnext-card${soldOut ? ' is-sold-out' : ''}" href="/gigs#upcoming">
+        ${soldOut ? '<div class="upnext-stamp">Sold out</div>' : ''}
+        <div class="upnext-date"><span class="day">${d.getDate()}</span><span class="monyr">${MONTHS[d.getMonth()]} ${d.getFullYear()}</span></div>
+        <h3>${esc(g.headliner)}</h3>
+        <div class="upnext-venue">${venue}</div>
+        <div class="upnext-foot">
+          <span class="${low ? 'low' : ''}">${low ? 'Low tickets' : '£' + esc(Number(g.price_gbp)) + ' adv'}</span>
+          <span class="go">${soldOut ? 'Sold out' : 'Tickets →'}</span>
+        </div>
+      </a>`;
+  }
+
+  function updateArrows(){
+    const overflowing = track.scrollWidth > track.clientWidth + 4;
+    arrows.hidden = !overflowing;
+    prev.disabled = track.scrollLeft <= 2;
+    next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+  }
+  function step(dir){
+    const c = track.querySelector('.upnext-card');
+    const w = c ? c.getBoundingClientRect().width + 26 : track.clientWidth * 0.8;
+    track.scrollBy({ left: dir * w * (window.innerWidth < 700 ? 1 : 2), behavior: 'smooth' });
+  }
+  prev.addEventListener('click', () => step(-1));
+  next.addEventListener('click', () => step(1));
+  track.addEventListener('scroll', updateArrows, { passive: true });
+  window.addEventListener('resize', updateArrows);
+
+  async function load(){
+    const today = new Date().toISOString().slice(0, 10); // same cut-off as /gigs
+    const qs = 'select=id,headliner,event_date,venue,city,price_gbp,availability,kind'
+      + '&event_date=gte.' + today
+      + '&archived_at=is.null'
+      + '&or=(kind.is.null,kind.neq.support)'
+      + '&order=event_date.asc&limit=' + MAX_CARDS;
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/gigs?' + qs, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY }
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const rows = (await res.json()).filter(g => g.kind !== 'support' && g.event_date);
+      if (!rows.length) return;
+      track.innerHTML = rows.map(card).join('');
+      section.hidden = false;
+      updateArrows();
+    } catch (err) {
+      /* leave the section hidden */
+    }
+  }
+  load();
+})();
+</script>
 
 </body>
 
