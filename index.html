@@ -1841,6 +1841,24 @@ body.pre-pop .hero-photo-wrap{ visibility:hidden; opacity:0; }
 }
 @media (prefers-reduced-motion: reduce){ .upnext-track{ scroll-behavior:auto; } }
 
+/* ---- UPCOMING RELEASES (reuses the .upnext carousel chrome; cards add a cover) ---- */
+.releases{ padding-top:50px; }
+.rel-cover{
+  aspect-ratio:1 / 1; width:100%; margin-bottom:12px; overflow:hidden;
+  border:2px solid var(--ink); border-radius:10px; background:var(--ink);
+  display:flex; align-items:center; justify-content:center;
+}
+.rel-cover img{ width:100%; height:100%; object-fit:cover; display:block; }
+.rel-cover.is-blank span{ font-family:"plunct", sans-serif; font-size:2.6rem; color:var(--gold); letter-spacing:2px; }
+.rel-type{ font-size:0.62rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--red); margin-bottom:4px; }
+.rel-artist{ font-size:0.72rem; font-weight:700; letter-spacing:0.5px; opacity:0.75; margin-bottom:8px; }
+.rel-desc{
+  font-size:0.72rem; line-height:1.4; opacity:0.85; margin-bottom:12px;
+  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+}
+.upnext-date .when{ font-family:"plunct", sans-serif; font-size:1.3rem; line-height:1.1; }
+a.nav-releases[hidden]{ display:none !important; }
+
 /* ---- ROSTER ---- */
 
 .corkboard{ padding:70px 5% 40px; position:relative; }
@@ -2042,6 +2060,8 @@ window.addEventListener('pageshow', function(){
 
     <a href="#roster">ROSTER</a>
 
+    <a href="#releases" class="nav-releases" hidden>RELEASES</a>
+
     <a href="/gigs">GIGS</a>
 
     <a href="#faq">FAQ</a>
@@ -2067,6 +2087,8 @@ window.addEventListener('pageshow', function(){
   <a href="#what-we-do">WHAT WE DO</a>
 
   <a href="#roster">ROSTER</a>
+
+  <a href="#releases" class="nav-releases" hidden>RELEASES</a>
 
   <a href="/gigs">GIGS</a>
 
@@ -2312,6 +2334,19 @@ window.addEventListener('pageshow', function(){
     </div>
   </div>
   <div class="upnext-track" id="upnextTrack" tabindex="0" role="region" aria-label="Upcoming gigs"><!-- rendered from Supabase below --></div>
+</section>
+
+<section class="upnext releases" id="releases" aria-labelledby="relLabel" hidden>
+  <div class="upnext-head">
+    <div class="eyebrow reveal" id="relLabel">Upcoming Releases</div>
+    <div class="upnext-controls">
+      <div class="upnext-arrows" id="relArrows" hidden>
+        <button type="button" id="relPrev" aria-label="Previous releases">←</button>
+        <button type="button" id="relNext" aria-label="Next releases">→</button>
+      </div>
+    </div>
+  </div>
+  <div class="upnext-track" id="relTrack" tabindex="0" role="region" aria-label="Upcoming releases"><!-- rendered from Supabase below --></div>
 </section>
 <section class="corkboard" id="roster">
 
@@ -3814,6 +3849,98 @@ if (logoComposition){
       if (!rows.length) return;
       track.innerHTML = rows.map(card).join('');
       section.hidden = false;
+      updateArrows();
+    } catch (err) {
+      /* leave the section hidden */
+    }
+  }
+  load();
+})();
+</script>
+
+<script>
+// ============================================================
+// UPCOMING RELEASES - managed from /admin (Supabase `releases` table).
+// Shows published releases that haven't dropped yet (or have no date).
+// If the request fails or there's nothing to show, the section and its
+// nav links stay hidden rather than showing an empty box.
+// ============================================================
+(function(){
+  const SUPABASE_URL = 'https://ualutedgenurromgylwz.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhbHV0ZWRnZW51cnJvbWd5bHd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMTIwNDEsImV4cCI6MjEwNTY4ODA0MX0.HrCUOmaC2Mjk8pp3Nxax2KNduy0_egW2wuJUmgpbLZg';
+  const section = document.getElementById('releases');
+  const track = document.getElementById('relTrack');
+  const arrows = document.getElementById('relArrows');
+  const prev = document.getElementById('relPrev');
+  const next = document.getElementById('relNext');
+  if (!section || !track) return;
+
+  const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const TYPES = { single:'Single', ep:'EP', album:'Album', compilation:'Compilation' };
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeUrl = u => /^https?:\/\//i.test(String(u || '').trim()) ? String(u).trim() : '';
+
+  function card(r){
+    const link = safeUrl(r.link_url);
+    const cover = safeUrl(r.cover_url);
+    let when;
+    if (r.release_date){
+      const d = new Date(r.release_date + 'T00:00:00');
+      when = '<span class="day">' + d.getDate() + '</span><span class="monyr">' + MONTHS[d.getMonth()] + ' ' + d.getFullYear() + '</span>';
+    } else {
+      when = '<span class="when">' + esc(r.date_note || 'Date TBA') + '</span>';
+    }
+    const initials = String(r.artist || r.title || '?').trim().slice(0, 2).toUpperCase();
+    const media = cover
+      ? '<div class="rel-cover"><img src="' + esc(cover) + '" alt="Cover art for ' + esc(r.title) + '" loading="lazy"></div>'
+      : '<div class="rel-cover is-blank" aria-hidden="true"><span>' + esc(initials) + '</span></div>';
+    const foot = link
+      ? '<div class="upnext-foot"><span></span><span class="go">' + esc(r.link_label || 'Listen →') + '</span></div>'
+      : '';
+    const inner = media
+      + '<div class="rel-type">' + esc(TYPES[r.release_type] || 'Release') + '</div>'
+      + '<div class="upnext-date">' + when + '</div>'
+      + '<h3>' + esc(r.title) + '</h3>'
+      + '<div class="rel-artist">' + esc(r.artist) + '</div>'
+      + (r.description ? '<div class="rel-desc">' + esc(r.description) + '</div>' : '')
+      + foot;
+    return link
+      ? '<a class="upnext-card rel-card" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">' + inner + '</a>'
+      : '<div class="upnext-card rel-card">' + inner + '</div>';
+  }
+
+  function updateArrows(){
+    const overflowing = track.scrollWidth > track.clientWidth + 4;
+    arrows.hidden = !overflowing;
+    prev.disabled = track.scrollLeft <= 2;
+    next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+  }
+  function step(dir){
+    const c = track.querySelector('.upnext-card');
+    const w = c ? c.getBoundingClientRect().width + 26 : track.clientWidth * 0.8;
+    track.scrollBy({ left: dir * w * (window.innerWidth < 700 ? 1 : 2), behavior: 'smooth' });
+  }
+  prev.addEventListener('click', () => step(-1));
+  next.addEventListener('click', () => step(1));
+  track.addEventListener('scroll', updateArrows, { passive: true });
+  window.addEventListener('resize', updateArrows);
+
+  async function load(){
+    const today = new Date().toISOString().slice(0, 10);
+    const qs = 'select=id,title,artist,release_type,release_date,date_note,description,cover_url,link_url,link_label'
+      + '&published=eq.true'
+      + '&or=(release_date.is.null,release_date.gte.' + today + ')'
+      + '&order=release_date.asc.nullslast,created_at.asc&limit=12';
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/releases?' + qs, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY }
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const rows = await res.json();
+      if (!rows.length) return;
+      track.innerHTML = rows.map(card).join('');
+      section.hidden = false;
+      document.querySelectorAll('a.nav-releases').forEach(a => { a.hidden = false; });
       updateArrows();
     } catch (err) {
       /* leave the section hidden */
