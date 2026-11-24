@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gigs Admin - DIVE BAR RECORDS</title>
+<title>Admin - DIVE BAR RECORDS</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -34,7 +34,7 @@ h2{font-size:1rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:1
 .login-card h1{ margin-bottom:6px; }
 .login-card p.sub{ opacity:0.7; font-size:0.8rem; margin-bottom:22px; }
 label{ display:block; font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
-input, select{
+input, select, textarea{
   width:100%; font:inherit; padding:10px 12px; margin-bottom:16px;
   border:2px solid var(--ink); border-radius:6px; background:var(--paper); color:var(--ink);
   color-scheme: light;
@@ -105,14 +105,26 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
 .tag.soldout{ background:var(--red); color:var(--paper); }
 .tag.low{ background:var(--gold); color:var(--ink); }
 .empty-note{ opacity:0.6; font-size:0.85rem; padding:10px 0; }
+textarea{ resize:vertical; min-height:84px; }
+.hint{ font-size:0.72rem; opacity:0.65; margin:-10px 0 14px; }
+.rel-thumb{ width:44px; height:44px; object-fit:cover; border:2px solid var(--ink); border-radius:6px; flex:none; background:var(--paper2); }
+.cover-preview{ display:none; align-items:center; gap:12px; margin:-6px 0 14px; font-size:0.75rem; }
+.cover-preview img{ width:64px; height:64px; object-fit:cover; border:2px solid var(--ink); border-radius:6px; }
+.tabs{ display:flex; gap:8px; padding:12px 5% 0; background:var(--paper2); border-bottom:2px solid var(--ink); }
+.tab{ background:var(--paper); color:var(--ink); border:2px solid var(--ink); border-bottom:none; border-radius:8px 8px 0 0; padding:9px 16px; margin-bottom:-2px; }
+.tab:hover{ background:var(--paper); color:var(--red); }
+.tab.is-active{ background:var(--ink); color:var(--paper); }
+.tab-pane{ display:none; }
+.tab-pane.is-active{ display:block; }
+.tag.draft{ background:var(--paper2); border:2px solid var(--ink); }
 </style>
 </head>
 <body>
 
 <div id="loginView">
   <div class="login-card">
-    <h1>GIGS ADMIN</h1>
-    <p class="sub">Dive Bar Records - sign in to manage listings.</p>
+    <h1>ADMIN</h1>
+    <p class="sub">Dive Bar Records - sign in to manage gigs and releases.</p>
     <form id="loginForm">
       <label for="loginEmail">Email</label>
       <input type="email" id="loginEmail" required autocomplete="username">
@@ -126,11 +138,16 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
 
 <div id="appView">
   <div class="admin-header">
-    <h1>GIGS ADMIN</h1>
+    <h1>ADMIN</h1>
     <button class="secondary" id="logoutBtn">Log out</button>
+  </div>
+  <div class="tabs" role="tablist" aria-label="Admin sections">
+    <button type="button" class="tab is-active" role="tab" aria-selected="true" data-tab="gigs">Gigs &amp; tickets</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-tab="releases">Releases</button>
   </div>
 
   <div class="admin-main">
+    <div class="tab-pane is-active" data-tab="gigs" id="tabGigs">
     <div class="panel">
       <h2 id="formTitle">Add a gig</h2>
       <form id="gigForm">
@@ -216,6 +233,74 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
       <p class="form-status" id="orderMsg" role="status" aria-live="polite" style="margin-top:10px"></p>
       <div id="orderList"><p class="empty-note">Loading…</p></div>
     </div>
+    </div>
+
+    <div class="tab-pane" data-tab="releases" id="tabReleases">
+    <div class="panel">
+      <h2 id="relFormTitle">Add an upcoming release</h2>
+      <form id="relForm">
+        <input type="hidden" id="relId">
+        <div class="field-grid">
+          <div class="full">
+            <label for="rTitle">Title</label>
+            <input type="text" id="rTitle" required>
+          </div>
+          <div class="full">
+            <label for="rArtist">Artist</label>
+            <input type="text" id="rArtist" required>
+          </div>
+          <div>
+            <label for="rType">Format</label>
+            <select id="rType">
+              <option value="single">Single</option>
+              <option value="ep">EP</option>
+              <option value="album">Album</option>
+              <option value="compilation">Compilation</option>
+            </select>
+          </div>
+          <div>
+            <label for="rDate">Release date</label>
+            <input type="date" id="rDate">
+          </div>
+          <div class="full">
+            <label for="rDateNote">Date note (used if no date set)</label>
+            <input type="text" id="rDateNote" placeholder="e.g. Early 2027, or leave blank for 'Date TBA'">
+          </div>
+          <div class="full">
+            <label for="rDesc">Blurb</label>
+            <textarea id="rDesc" maxlength="400" placeholder="A line or two about the release"></textarea>
+          </div>
+          <div class="full">
+            <label for="rCoverFile">Cover art (JPG, PNG or WebP - resized automatically)</label>
+            <input type="file" id="rCoverFile" accept="image/jpeg,image/png,image/webp">
+            <div class="cover-preview" id="rCoverPreview"><img id="rCoverImg" alt=""><button type="button" class="danger" id="rCoverClear">Remove cover</button></div>
+            <input type="hidden" id="rCoverUrl">
+          </div>
+          <div>
+            <label for="rLink">Link (pre-save / listen)</label>
+            <input type="url" id="rLink" placeholder="https://">
+          </div>
+          <div>
+            <label for="rLinkLabel">Link button text</label>
+            <input type="text" id="rLinkLabel" placeholder="e.g. Pre-save →" maxlength="24">
+          </div>
+          <div class="full">
+            <label class="toggle-row"><input type="checkbox" id="rPublished" checked><span>Show on the public site</span></label>
+          </div>
+        </div>
+        <p class="form-status" id="relFormStatus" role="status" aria-live="polite"></p>
+        <button type="submit" id="relSaveBtn">Save release</button>
+        <button type="button" class="secondary" id="relCancelBtn" style="display:none; margin-left:8px;">Cancel edit</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Upcoming releases</h2>
+      <p class="hint">Releases drop off the public site automatically once their date has passed. Releases with no date stay until you unpublish or delete them.</p>
+      <div id="relList"><p class="empty-note">Loading…</p></div>
+    </div>
+
+    </div>
   </div>
 </div>
 
@@ -230,10 +315,24 @@ const loginForm = document.getElementById('loginForm');
 const loginStatus = document.getElementById('loginStatus');
 const loginBtn = document.getElementById('loginBtn');
 
+function showTab(name){
+  if (name !== 'gigs' && typeof stopScan === 'function') stopScan();   // don't leave the camera running on another tab
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('is-active', p.dataset.tab === name));
+  document.querySelectorAll('.tab').forEach(t => {
+    const on = t.dataset.tab === name;
+    t.classList.toggle('is-active', on);
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  try { history.replaceState(null, '', name === 'gigs' ? location.pathname : '#' + name); } catch {}
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+
 function showApp(){
   loginView.style.display = 'none';
   appView.classList.add('is-visible');
+  showTab(location.hash === '#releases' ? 'releases' : 'gigs');
   loadGigs();
+  loadReleases();
   loadOrders();
 }
 function showLogin(){
@@ -359,6 +458,190 @@ gigForm.addEventListener('submit', async (e) => {
   }
   resetForm();
   loadGigs();
+});
+
+// ---- upcoming releases (Supabase `releases` table; covers in the `release-covers` bucket) ----
+const relForm = document.getElementById('relForm');
+const relStatus = document.getElementById('relFormStatus');
+const relSaveBtn = document.getElementById('relSaveBtn');
+const relCancelBtn = document.getElementById('relCancelBtn');
+const relCoverFile = document.getElementById('rCoverFile');
+const relCoverUrl = document.getElementById('rCoverUrl');
+const relCoverPreview = document.getElementById('rCoverPreview');
+const REL_TYPES = { single:'Single', ep:'EP', album:'Album', compilation:'Compilation' };
+let releases = [];
+
+function setCover(url){
+  relCoverUrl.value = url || '';
+  relCoverPreview.style.display = url ? 'flex' : 'none';
+  if (url) document.getElementById('rCoverImg').src = url;
+}
+document.getElementById('rCoverClear').addEventListener('click', () => { setCover(''); relCoverFile.value = ''; });
+relCoverFile.addEventListener('change', () => {
+  const f = relCoverFile.files[0];
+  if (f) setCover(URL.createObjectURL(f));   // local preview; uploaded on save
+});
+
+function resetRelForm(){
+  relForm.reset();
+  document.getElementById('relId').value = '';
+  document.getElementById('rPublished').checked = true;
+  setCover('');
+  document.getElementById('relFormTitle').textContent = 'Add an upcoming release';
+  relSaveBtn.textContent = 'Save release';
+  relCancelBtn.style.display = 'none';
+  relStatus.textContent = '';
+}
+relCancelBtn.addEventListener('click', resetRelForm);
+
+function fillRelForm(r){
+  resetRelForm();
+  document.getElementById('relId').value = r.id;
+  document.getElementById('rTitle').value = r.title;
+  document.getElementById('rArtist').value = r.artist;
+  document.getElementById('rType').value = r.release_type;
+  document.getElementById('rDate').value = r.release_date || '';
+  document.getElementById('rDateNote').value = r.date_note || '';
+  document.getElementById('rDesc').value = r.description || '';
+  document.getElementById('rLink').value = r.link_url || '';
+  document.getElementById('rLinkLabel').value = r.link_label || '';
+  document.getElementById('rPublished').checked = !!r.published;
+  setCover(r.cover_url || '');
+  document.getElementById('relFormTitle').textContent = 'Edit release';
+  relSaveBtn.textContent = 'Update release';
+  relCancelBtn.style.display = 'inline-block';
+  relForm.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// Covers are shrunk in the browser before upload (free-tier storage + egress are limited):
+// longest side capped at 800px, re-encoded as WebP (JPEG fallback), kept under COVER_MAX_BYTES.
+const COVER_MAX_SIDE = 800, COVER_MAX_BYTES = 1024 * 1024;
+async function shrinkCover(file){
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error('Could not read that image - try a JPG, PNG or WebP.'));
+      i.src = url;
+    });
+    const k = Math.min(1, COVER_MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    const encode = (type, q) => new Promise(r => canvas.toBlob(r, type, q));
+    let blob = await encode('image/webp', 0.82);
+    if (!blob || blob.type !== 'image/webp'){            // browser can't encode WebP: use JPEG on white
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+      blob = await encode('image/jpeg', 0.85);
+    }
+    for (let q = 0.7; blob && blob.size > COVER_MAX_BYTES && q > 0.3; q -= 0.15) blob = await encode(blob.type, q);
+    if (!blob || blob.size > COVER_MAX_BYTES) throw new Error('Could not shrink that image enough - try a simpler one.');
+    return blob;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+async function uploadCover(file){
+  if (file.size > 25 * 1024 * 1024) throw new Error('That file is over 25MB - please pick a smaller image.');
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error('Cover must be a JPG, PNG or WebP image.');
+  const blob = await shrinkCover(file);
+  const ext = blob.type === 'image/webp' ? 'webp' : 'jpg';
+  const path = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())) + '.' + ext;
+  const { error } = await sb.storage.from('release-covers').upload(path, blob, { contentType:blob.type, cacheControl:'31536000' });
+  if (error) throw error;
+  return sb.storage.from('release-covers').getPublicUrl(path).data.publicUrl;
+}
+
+relForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  relSaveBtn.disabled = true;
+  relStatus.textContent = '';
+  try {
+    const id = document.getElementById('relId').value;
+    const link = document.getElementById('rLink').value.trim();
+    if (link && !/^https?:\/\//i.test(link)) throw new Error('Link must start with http:// or https://');
+
+    let cover = relCoverUrl.value || null;
+    if (relCoverFile.files[0]) cover = await uploadCover(relCoverFile.files[0]);
+    else if (cover && cover.startsWith('blob:')) cover = null;
+
+    const payload = {
+      title: document.getElementById('rTitle').value.trim(),
+      artist: document.getElementById('rArtist').value.trim(),
+      release_type: document.getElementById('rType').value,
+      release_date: document.getElementById('rDate').value || null,
+      date_note: document.getElementById('rDateNote').value.trim() || null,
+      description: document.getElementById('rDesc').value.trim() || null,
+      cover_url: cover,
+      link_url: link || null,
+      link_label: document.getElementById('rLinkLabel').value.trim() || null,
+      published: document.getElementById('rPublished').checked
+    };
+    const { error } = id
+      ? await sb.from('releases').update(payload).eq('id', id)
+      : await sb.from('releases').insert(payload);
+    if (error) throw error;
+    resetRelForm();
+    loadReleases();
+  } catch (err) {
+    relStatus.textContent = (err && err.message) || 'Could not save - try again.';
+  } finally {
+    relSaveBtn.disabled = false;
+  }
+});
+
+async function loadReleases(){
+  const listEl = document.getElementById('relList');
+  const { data, error } = await sb.from('releases').select('*')
+    .order('release_date', { ascending:true, nullsFirst:false })
+    .order('created_at', { ascending:true });
+  if (error){ listEl.innerHTML = '<p class="empty-note">Couldn’t load releases — ' + esc(error.message) + '</p>'; return; }
+  releases = data || [];
+  if (!releases.length){ listEl.innerHTML = '<p class="empty-note">No releases yet - add one above.</p>'; return; }
+  const today = new Date().toISOString().slice(0, 10);
+  listEl.innerHTML = releases.map(r => {
+    const dropped = r.release_date && r.release_date < today;
+    const when = r.release_date
+      ? new Date(r.release_date + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+      : (r.date_note || 'Date TBA');
+    const live = r.published && !dropped;
+    const state = !r.published ? '<span class="tag draft">Hidden</span>'
+      : dropped ? '<span class="tag draft">Released – off site</span>'
+      : '<span class="tag low" style="background:#d9efd5">Live</span>';
+    return '<div class="gig-row"' + (live ? '' : ' style="opacity:0.6"') + '>'
+      + (r.cover_url ? '<img class="rel-thumb" src="' + esc(r.cover_url) + '" alt="">' : '')
+      + '<div class="gig-row-main"><strong>' + esc(r.title) + '</strong>'
+      + '<span>' + esc(r.artist) + ' · ' + esc(REL_TYPES[r.release_type] || r.release_type) + ' · ' + esc(when) + ' ' + state + '</span></div>'
+      + '<div class="gig-row-actions">'
+      + '<button type="button" class="secondary" data-rel-edit="' + esc(r.id) + '">Edit</button>'
+      + '<button type="button" class="secondary" data-rel-toggle="' + esc(r.id) + '">' + (r.published ? 'Hide' : 'Publish') + '</button>'
+      + '<button type="button" class="danger" data-rel-delete="' + esc(r.id) + '">Delete</button>'
+      + '</div></div>';
+  }).join('');
+}
+document.getElementById('relList').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const find = id => releases.find(r => r.id === id);
+  if (btn.dataset.relEdit){
+    const r = find(btn.dataset.relEdit); if (r) fillRelForm(r);
+  } else if (btn.dataset.relToggle){
+    const r = find(btn.dataset.relToggle); if (!r) return;
+    const { error } = await sb.from('releases').update({ published: !r.published }).eq('id', r.id);
+    if (error){ alert('Could not update: ' + error.message); return; }
+    loadReleases();
+  } else if (btn.dataset.relDelete){
+    const r = find(btn.dataset.relDelete); if (!r) return;
+    if (!confirm('Delete "' + r.title + '"? This can’t be undone. (Use Hide to keep it for later.)')) return;
+    const { error } = await sb.from('releases').delete().eq('id', r.id);
+    if (error){ alert('Could not delete: ' + error.message); return; }
+    if (document.getElementById('relId').value === r.id) resetRelForm();
+    loadReleases();
+  }
 });
 
 // ---- orders & tickets (talks to the admin-orders edge function) ----
