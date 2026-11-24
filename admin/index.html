@@ -87,7 +87,7 @@ button.danger:hover{ background:var(--red); color:var(--paper); }
 .scan-result{ border:2px solid var(--ink); border-radius:10px; padding:16px 18px; margin:0 0 18px; background:var(--paper); min-height:64px; }
 .scan-result strong{ display:block; font-size:1.15rem; letter-spacing:0.5px; text-transform:uppercase; }
 .scan-result span{ display:block; font-size:0.8rem; margin-top:4px; opacity:0.85; }
-.scan-result.ok{ background:#d9efd5; }
+.scan-result.ok{ background:#1b7f3f; color:#fff; border-color:#1b7f3f; }
 .scan-result.warn{ background:var(--gold); }
 .scan-result.bad{ background:var(--red); color:var(--paper); border-color:var(--red); }
 .scan-count{ font-size:0.78rem; opacity:0.7; margin:12px 0 0; }
@@ -116,6 +116,18 @@ textarea{ resize:vertical; min-height:84px; }
 .tab.is-active{ background:var(--ink); color:var(--paper); }
 .tab-pane{ display:none; }
 .tab-pane.is-active{ display:block; }
+.scan-flash{ position:fixed; inset:0; z-index:1000; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; color:#fff; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.scan-flash.is-visible{ display:flex; }
+.scan-flash.ok{ background:#1b7f3f; }
+.scan-flash.warn{ background:var(--gold); color:var(--ink); }
+.scan-flash.bad{ background:var(--red); }
+.scan-flash .icon{ font-size:clamp(6rem, 30vw, 12rem); line-height:1; font-weight:700; }
+.scan-flash .title{ font-size:clamp(1.8rem, 8vw, 3rem); font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+.scan-flash .sub{ font-size:1.1rem; margin-top:10px; }
+.scan-flash .tap{ font-size:0.7rem; margin-top:22px; opacity:0.7; text-transform:uppercase; letter-spacing:1px; }
+@keyframes scanPop{ from{ transform:scale(0.8); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.scan-flash.is-visible .icon{ animation:scanPop 0.18s ease-out; }
+@media (prefers-reduced-motion: reduce){ .scan-flash.is-visible .icon{ animation:none; } }
 .tag.draft{ background:var(--paper2); border:2px solid var(--ink); }
 </style>
 </head>
@@ -230,6 +242,8 @@ textarea{ resize:vertical; min-height:84px; }
         <input type="search" id="orderSearch" placeholder="Search email, name, gig or ticket code" autocomplete="off">
         <button type="button" class="secondary" id="ordersRefresh">Refresh</button>
       </div>
+      <label class="toggle-row" style="margin-top:12px"><input type="checkbox" id="showArchivedOrders"><span>Show orders for archived gigs</span></label>
+      <p class="scan-count" id="orderHiddenNote" style="margin:-6px 0 0"></p>
       <p class="form-status" id="orderMsg" role="status" aria-live="polite" style="margin-top:10px"></p>
       <div id="orderList"><p class="empty-note">Loading…</p></div>
     </div>
@@ -302,6 +316,13 @@ textarea{ resize:vertical; min-height:84px; }
 
     </div>
   </div>
+</div>
+
+<div class="scan-flash" id="scanFlash" role="status" aria-live="assertive">
+  <div class="icon" id="scanFlashIcon" aria-hidden="true"></div>
+  <div class="title" id="scanFlashTitle"></div>
+  <div class="sub" id="scanFlashSub"></div>
+  <div class="tap">Tap to dismiss</div>
 </div>
 
 <script>
@@ -647,7 +668,21 @@ document.getElementById('relList').addEventListener('click', async (e) => {
 // ---- orders & tickets (talks to the admin-orders edge function) ----
 const ADMIN_API = SUPABASE_URL + '/functions/v1/admin-orders';
 let orders = [];
+let allGigs = [];   // every gig incl. archived, filled by loadGigs(); used to tell which orders belong to archived gigs
 const orderMsg = document.getElementById('orderMsg');
+// The orders list carries each gig's headliner/date/venue but not its id or archive state, so orders are
+// matched to gigs on those three fields. If two gigs share all three and only one is archived we can't
+// tell their orders apart, so they stay visible - the safe side (extra clutter, never a hidden live order).
+const gigKey = g => [g.headliner, g.event_date, g.venue].join('|');
+function archivedGigKeys(){
+  const seen = new Map();
+  allGigs.forEach(g => {
+    const k = gigKey(g), v = seen.get(k) || { n:0, archived:0 };
+    v.n++; if (g.archived_at) v.archived++;
+    seen.set(k, v);
+  });
+  return new Set([...seen].filter(([, v]) => v.archived === v.n).map(([k]) => k));
+}
 function esc(v){
   return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -686,9 +721,24 @@ function emailBadge(o){
 function renderOrders(){
   const el = document.getElementById('orderList');
   const q = document.getElementById('orderSearch').value.trim().toLowerCase();
-  const list = orders.filter(o => !q || [o.customer_email, o.customer_name, o.gigs?.headliner, ...(o.tickets||[]).map(t => t.code)]
-    .some(v => String(v || '').toLowerCase().includes(q)));
-  if (!list.length){ el.innerHTML = '<p class="empty-note">' + (orders.length ? 'No matching orders.' : 'No orders yet.') + '</p>'; return; }
+  // Orders for archived gigs are hidden by default to cut clutter. They stay reachable: tick the box, or just
+  // search (a search always includes them, so an old ticket code or email can still be found for a refund).
+  const archKeys = archivedGigKeys();
+  const isArchived = o => !!o.gigs && archKeys.has(gigKey(o.gigs));
+  const showArchivedOrders = document.getElementById('showArchivedOrders').checked;
+  const matches = o => !q || [o.customer_email, o.customer_name, o.gigs?.headliner, ...(o.tickets||[]).map(t => t.code)]
+    .some(v => String(v || '').toLowerCase().includes(q));
+  const list = orders.filter(o => matches(o) && (showArchivedOrders || q || !isArchived(o)));
+  const hiddenCount = (showArchivedOrders || q) ? 0 : orders.filter(isArchived).length;
+  document.getElementById('orderHiddenNote').textContent = hiddenCount
+    ? hiddenCount + ' order' + (hiddenCount === 1 ? '' : 's') + ' for archived gigs hidden – tick the box above, or search, to see ' + (hiddenCount === 1 ? 'it' : 'them') + '.'
+    : '';
+  if (!list.length){
+    el.innerHTML = '<p class="empty-note">' + (orders.length
+      ? (hiddenCount && !q ? 'No orders for active gigs.' : 'No matching orders.')
+      : 'No orders yet.') + '</p>';
+    return;
+  }
   el.innerHTML = list.map(o => {
     const g = o.gigs || {};
     const total = ((o.unit_price_pence * o.quantity) / 100).toFixed(2);
@@ -708,11 +758,12 @@ function renderOrders(){
     return '<div class="ord ' + esc(o.status) + '">'
       + '<div class="ord-top"><div><strong>' + esc(g.headliner || 'Gig') + '</strong> <small>\u00b7 ' + esc(o.quantity) + ' \u00d7 \u00a3' + esc((o.unit_price_pence/100).toFixed(2)) + ' = \u00a3' + esc(total) + '</small><br>'
       + esc(o.customer_name || '') + ' \u00b7 <strong>' + esc(o.customer_email || 'no email') + '</strong><br><small>' + esc(when) + ' \u00b7 ref ' + esc(o.id.slice(0,8).toUpperCase()) + '</small></div>'
-      + '<div>' + (o.status === 'refunded' ? '<span class="badge">Refunded</span>' : emailBadge(o)) + '</div></div>'
+      + '<div>' + (isArchived(o) ? '<span class="badge">Archived gig</span> ' : '') + (o.status === 'refunded' ? '<span class="badge">Refunded</span>' : emailBadge(o)) + '</div></div>'
       + tickets + actions + '</div>';
   }).join('');
 }
 document.getElementById('orderSearch').addEventListener('input', renderOrders);
+document.getElementById('showArchivedOrders').addEventListener('change', renderOrders);
 document.getElementById('ordersRefresh').addEventListener('click', loadOrders);
 document.getElementById('orderList').addEventListener('click', async (e) => {
   const btn = e.target.closest('button[data-act]');
@@ -772,10 +823,28 @@ function showScan(kind, title, sub){
   scanEls.result.className = 'scan-result ' + kind;
   scanEls.result.innerHTML = '<strong>' + esc(title) + '</strong>' + (sub ? '<span>' + esc(sub) + '</span>' : '');
 }
+// Full-screen confirmation so a result can't be missed at the door: green tick = in, gold ! = already used, red cross = rejected.
+let scanFlashTimer = null;
+function hideScanFlash(){
+  clearTimeout(scanFlashTimer); scanFlashTimer = null;
+  document.getElementById('scanFlash').classList.remove('is-visible');
+}
+function flashScan(kind, title, sub){
+  const el = document.getElementById('scanFlash');
+  el.className = 'scan-flash is-visible ' + kind;
+  document.getElementById('scanFlashIcon').textContent = kind === 'ok' ? '\u2713' : kind === 'warn' ? '!' : '\u2715';
+  document.getElementById('scanFlashTitle').textContent = title;
+  document.getElementById('scanFlashSub').textContent = sub || '';
+  clearTimeout(scanFlashTimer);
+  scanFlashTimer = setTimeout(hideScanFlash, kind === 'ok' ? 1300 : 2400);
+}
+function showScanResult(kind, title, sub){ showScan(kind, title, sub); flashScan(kind, title, sub); }
+document.getElementById('scanFlash').addEventListener('click', hideScanFlash);
 function scanFeedback(good){
   try { navigator.vibrate && navigator.vibrate(good ? 60 : [120, 60, 120]); } catch {}
   try {
     scanAudio = scanAudio || new (window.AudioContext || window.webkitAudioContext)();
+    if (scanAudio.state === 'suspended') scanAudio.resume();
     const beep = (freq, start, dur) => {
       const o = scanAudio.createOscillator(), g = scanAudio.createGain();
       o.frequency.value = freq; g.gain.value = 0.08; o.connect(g); g.connect(scanAudio.destination);
@@ -787,7 +856,7 @@ function scanFeedback(good){
 async function scanHandle(raw, manual){
   const code = String(raw || '').trim().toUpperCase();
   if (!code || scanBusy) return;
-  if (!manual && code === scanLast.code && Date.now() - scanLast.at < 4000) return;   // same QR still in view
+  if (!manual && code === scanLast.code && Date.now() - scanLast.at < 2500){ scanLast.at = Date.now(); return; }   // same QR still in view: keep ignoring it while it stays visible
   scanBusy = true;
   try {
     const r = await adminCall({ action:'checkin_code', code, gigId: scanEls.gig.value || undefined });
@@ -795,19 +864,19 @@ async function scanHandle(raw, manual){
     const who = [r.name, r.code].filter(Boolean).join(' \u00b7 ');
     if (r.result === 'ok'){
       scanOk++; scanEls.count.textContent = 'Checked in this session: ' + scanOk;
-      showScan('ok', 'Checked in', who); scanFeedback(true); loadOrders();
+      showScanResult('ok', 'Checked in', who); scanFeedback(true); loadOrders();
     } else if (r.result === 'already'){
       const when = r.checkedInAt ? new Date(r.checkedInAt).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) : '';
-      showScan('warn', 'Already used', (when ? 'Checked in at ' + when + ' \u00b7 ' : '') + who); scanFeedback(false);
+      showScanResult('warn', 'Already used', (when ? 'Checked in at ' + when + ' \u00b7 ' : '') + who); scanFeedback(false);
     } else if (r.result === 'void'){
-      showScan('bad', 'Void \u2013 refunded', who); scanFeedback(false);
+      showScanResult('bad', 'Void \u2013 refunded', who); scanFeedback(false);
     } else if (r.result === 'wrong_gig'){
-      showScan('bad', 'Wrong gig', r.message || ''); scanFeedback(false);
+      showScanResult('bad', 'Wrong gig', r.message || ''); scanFeedback(false);
     } else {
-      showScan('bad', 'Not recognised', r.message || 'No ticket with that code.'); scanFeedback(false);
+      showScanResult('bad', 'Not recognised', r.message || 'No ticket with that code.'); scanFeedback(false);
     }
   } catch (err){
-    showScan('bad', 'Couldn\u2019t check in', err.message + ' \u2013 scan again to retry.'); scanFeedback(false);
+    showScanResult('bad', 'Couldn\u2019t check in', err.message + ' \u2013 scan again to retry.'); scanFeedback(false);
   }
   setTimeout(() => { scanBusy = false; }, 900);
 }
@@ -844,6 +913,7 @@ async function scanFrame(){
 }
 async function startScan(){
   if (scanStream) return;
+  try { scanAudio = scanAudio || new (window.AudioContext || window.webkitAudioContext)(); scanAudio.resume && scanAudio.resume(); } catch {}   // created inside the tap so the beep isn't blocked
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
     showScan('bad', 'No camera access', 'This browser can\u2019t open the camera here. Type the ticket code below instead.'); return;
   }
@@ -866,6 +936,7 @@ async function startScan(){
   scanTimer = setInterval(scanFrame, 200);
 }
 function stopScan(){
+  hideScanFlash();
   if (scanTimer){ clearInterval(scanTimer); scanTimer = null; }
   if (scanStream){ scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
   if (scanWake){ try { scanWake.release(); } catch {} scanWake = null; }
@@ -892,6 +963,8 @@ async function loadGigs(){
     return;
   }
   fillScanGigs(data);
+  allGigs = data || [];
+  if (orders.length) renderOrders();   // archiving/restoring a gig immediately hides/shows its orders
   const showArchived = document.getElementById('showArchived').checked;
   const rows = (data || []).filter(g => showArchived || !g.archived_at);
   if (rows.length === 0) {
