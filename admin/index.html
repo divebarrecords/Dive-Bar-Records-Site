@@ -111,9 +111,12 @@ textarea{ resize:vertical; min-height:84px; }
 .cover-preview{ display:none; align-items:center; gap:12px; margin:-6px 0 14px; font-size:0.75rem; }
 .cover-preview img{ width:64px; height:64px; object-fit:cover; border:2px solid var(--ink); border-radius:6px; }
 .tabs{ display:flex; gap:8px; padding:12px 5% 0; background:var(--paper2); border-bottom:2px solid var(--ink); }
-.tab{ background:var(--paper); color:var(--ink); border:2px solid var(--ink); border-bottom:none; border-radius:8px 8px 0 0; padding:9px 16px; margin-bottom:-2px; }
-.tab:hover{ background:var(--paper); color:var(--red); }
-.tab.is-active{ background:var(--ink); color:var(--paper); }
+/* Unselected tabs: navy, shorter and sat back, with the bar's bottom line running under them.
+   Active tab: off-white like the page, drops over that line so it joins the content below. */
+.tab{ position:relative; background:var(--ink); color:var(--paper); border:2px solid var(--ink); border-bottom:none; border-radius:8px 8px 0 0; padding:9px 16px; margin-top:6px; margin-bottom:0; }
+.tab:hover{ background:var(--ink); color:var(--gold); }
+.tab.is-active{ background:var(--paper); color:var(--ink); margin-top:0; margin-bottom:-2px; z-index:1; cursor:default; }
+.tab.is-active:hover{ color:var(--ink); }
 .tab-pane{ display:none; }
 .tab-pane.is-active{ display:block; }
 .scan-flash{ position:fixed; inset:0; z-index:1000; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; color:#fff; cursor:pointer; -webkit-tap-highlight-color:transparent; }
