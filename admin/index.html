@@ -230,7 +230,7 @@ textarea{ resize:vertical; min-height:84px; }
             <textarea id="rDesc" maxlength="400" placeholder="A line or two about the release"></textarea>
           </div>
           <div class="full">
-            <label for="rCoverFile">Cover art (JPG, PNG or WebP, max 5MB)</label>
+            <label for="rCoverFile">Cover art (JPG, PNG or WebP - resized automatically)</label>
             <input type="file" id="rCoverFile" accept="image/jpeg,image/png,image/webp">
             <div class="cover-preview" id="rCoverPreview"><img id="rCoverImg" alt=""><button type="button" class="danger" id="rCoverClear">Remove cover</button></div>
             <input type="hidden" id="rCoverUrl">
@@ -485,12 +485,45 @@ function fillRelForm(r){
   relForm.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
+// Covers are shrunk in the browser before upload (free-tier storage + egress are limited):
+// longest side capped at 800px, re-encoded as WebP (JPEG fallback), kept under COVER_MAX_BYTES.
+const COVER_MAX_SIDE = 800, COVER_MAX_BYTES = 1024 * 1024;
+async function shrinkCover(file){
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error('Could not read that image - try a JPG, PNG or WebP.'));
+      i.src = url;
+    });
+    const k = Math.min(1, COVER_MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    const encode = (type, q) => new Promise(r => canvas.toBlob(r, type, q));
+    let blob = await encode('image/webp', 0.82);
+    if (!blob || blob.type !== 'image/webp'){            // browser can't encode WebP: use JPEG on white
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+      blob = await encode('image/jpeg', 0.85);
+    }
+    for (let q = 0.7; blob && blob.size > COVER_MAX_BYTES && q > 0.3; q -= 0.15) blob = await encode(blob.type, q);
+    if (!blob || blob.size > COVER_MAX_BYTES) throw new Error('Could not shrink that image enough - try a simpler one.');
+    return blob;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
 async function uploadCover(file){
-  if (file.size > 5 * 1024 * 1024) throw new Error('Cover is over 5MB - please use a smaller image.');
-  const ext = ({ 'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp' })[file.type];
-  if (!ext) throw new Error('Cover must be a JPG, PNG or WebP image.');
+  if (file.size > 25 * 1024 * 1024) throw new Error('That file is over 25MB - please pick a smaller image.');
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error('Cover must be a JPG, PNG or WebP image.');
+  const blob = await shrinkCover(file);
+  const ext = blob.type === 'image/webp' ? 'webp' : 'jpg';
   const path = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())) + '.' + ext;
-  const { error } = await sb.storage.from('release-covers').upload(path, file, { contentType:file.type, cacheControl:'31536000' });
+  const { error } = await sb.storage.from('release-covers').upload(path, blob, { contentType:blob.type, cacheControl:'31536000' });
   if (error) throw error;
   return sb.storage.from('release-covers').getPublicUrl(path).data.publicUrl;
 }
