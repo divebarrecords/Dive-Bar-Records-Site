@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gigs Admin - DIVE BAR RECORDS</title>
+<title>Admin - DIVE BAR RECORDS</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -110,6 +110,12 @@ textarea{ resize:vertical; min-height:84px; }
 .rel-thumb{ width:44px; height:44px; object-fit:cover; border:2px solid var(--ink); border-radius:6px; flex:none; background:var(--paper2); }
 .cover-preview{ display:none; align-items:center; gap:12px; margin:-6px 0 14px; font-size:0.75rem; }
 .cover-preview img{ width:64px; height:64px; object-fit:cover; border:2px solid var(--ink); border-radius:6px; }
+.tabs{ display:flex; gap:8px; padding:12px 5% 0; background:var(--paper2); border-bottom:2px solid var(--ink); }
+.tab{ background:var(--paper); color:var(--ink); border:2px solid var(--ink); border-bottom:none; border-radius:8px 8px 0 0; padding:9px 16px; margin-bottom:-2px; }
+.tab:hover{ background:var(--paper); color:var(--red); }
+.tab.is-active{ background:var(--ink); color:var(--paper); }
+.tab-pane{ display:none; }
+.tab-pane.is-active{ display:block; }
 .tag.draft{ background:var(--paper2); border:2px solid var(--ink); }
 </style>
 </head>
@@ -117,8 +123,8 @@ textarea{ resize:vertical; min-height:84px; }
 
 <div id="loginView">
   <div class="login-card">
-    <h1>GIGS ADMIN</h1>
-    <p class="sub">Dive Bar Records - sign in to manage listings.</p>
+    <h1>ADMIN</h1>
+    <p class="sub">Dive Bar Records - sign in to manage gigs and releases.</p>
     <form id="loginForm">
       <label for="loginEmail">Email</label>
       <input type="email" id="loginEmail" required autocomplete="username">
@@ -132,11 +138,16 @@ textarea{ resize:vertical; min-height:84px; }
 
 <div id="appView">
   <div class="admin-header">
-    <h1>GIGS ADMIN</h1>
+    <h1>ADMIN</h1>
     <button class="secondary" id="logoutBtn">Log out</button>
+  </div>
+  <div class="tabs" role="tablist" aria-label="Admin sections">
+    <button type="button" class="tab is-active" role="tab" aria-selected="true" data-tab="gigs">Gigs &amp; tickets</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" data-tab="releases">Releases</button>
   </div>
 
   <div class="admin-main">
+    <div class="tab-pane is-active" data-tab="gigs" id="tabGigs">
     <div class="panel">
       <h2 id="formTitle">Add a gig</h2>
       <form id="gigForm">
@@ -195,6 +206,36 @@ textarea{ resize:vertical; min-height:84px; }
       <div id="gigList"><p class="empty-note">Loading…</p></div>
     </div>
 
+    <div class="panel">
+      <h2>Door scanner</h2>
+      <label for="scanGig">Scanning for</label>
+      <select id="scanGig"></select>
+      <div class="scan-actions">
+        <button type="button" class="secondary" id="scanStart">Start camera</button>
+        <button type="button" class="secondary" id="scanStop" style="display:none">Stop camera</button>
+      </div>
+      <div class="scan-box" id="scanBox" style="display:none"><video id="scanVideo" playsinline muted></video></div>
+      <div class="scan-result" id="scanResult" role="status" aria-live="polite"><strong>Ready</strong><span>Start the camera and point it at a ticket QR code.</span></div>
+      <label for="scanManual">Or type a ticket code</label>
+      <div class="ord-tools">
+        <input type="text" id="scanManual" placeholder="e.g. A3F09C21B7D4E856" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        <button type="button" id="scanManualGo">Check in</button>
+      </div>
+      <p class="scan-count" id="scanCount"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Orders &amp; tickets</h2>
+      <div class="ord-tools">
+        <input type="search" id="orderSearch" placeholder="Search email, name, gig or ticket code" autocomplete="off">
+        <button type="button" class="secondary" id="ordersRefresh">Refresh</button>
+      </div>
+      <p class="form-status" id="orderMsg" role="status" aria-live="polite" style="margin-top:10px"></p>
+      <div id="orderList"><p class="empty-note">Loading…</p></div>
+    </div>
+    </div>
+
+    <div class="tab-pane" data-tab="releases" id="tabReleases">
     <div class="panel">
       <h2 id="relFormTitle">Add an upcoming release</h2>
       <form id="relForm">
@@ -259,32 +300,6 @@ textarea{ resize:vertical; min-height:84px; }
       <div id="relList"><p class="empty-note">Loading…</p></div>
     </div>
 
-    <div class="panel">
-      <h2>Door scanner</h2>
-      <label for="scanGig">Scanning for</label>
-      <select id="scanGig"></select>
-      <div class="scan-actions">
-        <button type="button" class="secondary" id="scanStart">Start camera</button>
-        <button type="button" class="secondary" id="scanStop" style="display:none">Stop camera</button>
-      </div>
-      <div class="scan-box" id="scanBox" style="display:none"><video id="scanVideo" playsinline muted></video></div>
-      <div class="scan-result" id="scanResult" role="status" aria-live="polite"><strong>Ready</strong><span>Start the camera and point it at a ticket QR code.</span></div>
-      <label for="scanManual">Or type a ticket code</label>
-      <div class="ord-tools">
-        <input type="text" id="scanManual" placeholder="e.g. A3F09C21B7D4E856" autocomplete="off" autocapitalize="characters" spellcheck="false">
-        <button type="button" id="scanManualGo">Check in</button>
-      </div>
-      <p class="scan-count" id="scanCount"></p>
-    </div>
-
-    <div class="panel">
-      <h2>Orders &amp; tickets</h2>
-      <div class="ord-tools">
-        <input type="search" id="orderSearch" placeholder="Search email, name, gig or ticket code" autocomplete="off">
-        <button type="button" class="secondary" id="ordersRefresh">Refresh</button>
-      </div>
-      <p class="form-status" id="orderMsg" role="status" aria-live="polite" style="margin-top:10px"></p>
-      <div id="orderList"><p class="empty-note">Loading…</p></div>
     </div>
   </div>
 </div>
@@ -300,9 +315,22 @@ const loginForm = document.getElementById('loginForm');
 const loginStatus = document.getElementById('loginStatus');
 const loginBtn = document.getElementById('loginBtn');
 
+function showTab(name){
+  if (name !== 'gigs' && typeof stopScan === 'function') stopScan();   // don't leave the camera running on another tab
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('is-active', p.dataset.tab === name));
+  document.querySelectorAll('.tab').forEach(t => {
+    const on = t.dataset.tab === name;
+    t.classList.toggle('is-active', on);
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  try { history.replaceState(null, '', name === 'gigs' ? location.pathname : '#' + name); } catch {}
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+
 function showApp(){
   loginView.style.display = 'none';
   appView.classList.add('is-visible');
+  showTab(location.hash === '#releases' ? 'releases' : 'gigs');
   loadGigs();
   loadReleases();
   loadOrders();
