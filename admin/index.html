@@ -230,6 +230,8 @@ textarea{ resize:vertical; min-height:84px; }
         <input type="search" id="orderSearch" placeholder="Search email, name, gig or ticket code" autocomplete="off">
         <button type="button" class="secondary" id="ordersRefresh">Refresh</button>
       </div>
+      <label class="toggle-row" style="margin-top:12px"><input type="checkbox" id="showArchivedOrders"><span>Show orders for archived gigs</span></label>
+      <p class="scan-count" id="orderHiddenNote" style="margin:-6px 0 0"></p>
       <p class="form-status" id="orderMsg" role="status" aria-live="polite" style="margin-top:10px"></p>
       <div id="orderList"><p class="empty-note">Loading…</p></div>
     </div>
@@ -647,7 +649,21 @@ document.getElementById('relList').addEventListener('click', async (e) => {
 // ---- orders & tickets (talks to the admin-orders edge function) ----
 const ADMIN_API = SUPABASE_URL + '/functions/v1/admin-orders';
 let orders = [];
+let allGigs = [];   // every gig incl. archived, filled by loadGigs(); used to tell which orders belong to archived gigs
 const orderMsg = document.getElementById('orderMsg');
+// The orders list carries each gig's headliner/date/venue but not its id or archive state, so orders are
+// matched to gigs on those three fields. If two gigs share all three and only one is archived we can't
+// tell their orders apart, so they stay visible - the safe side (extra clutter, never a hidden live order).
+const gigKey = g => [g.headliner, g.event_date, g.venue].join('|');
+function archivedGigKeys(){
+  const seen = new Map();
+  allGigs.forEach(g => {
+    const k = gigKey(g), v = seen.get(k) || { n:0, archived:0 };
+    v.n++; if (g.archived_at) v.archived++;
+    seen.set(k, v);
+  });
+  return new Set([...seen].filter(([, v]) => v.archived === v.n).map(([k]) => k));
+}
 function esc(v){
   return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -686,9 +702,24 @@ function emailBadge(o){
 function renderOrders(){
   const el = document.getElementById('orderList');
   const q = document.getElementById('orderSearch').value.trim().toLowerCase();
-  const list = orders.filter(o => !q || [o.customer_email, o.customer_name, o.gigs?.headliner, ...(o.tickets||[]).map(t => t.code)]
-    .some(v => String(v || '').toLowerCase().includes(q)));
-  if (!list.length){ el.innerHTML = '<p class="empty-note">' + (orders.length ? 'No matching orders.' : 'No orders yet.') + '</p>'; return; }
+  // Orders for archived gigs are hidden by default to cut clutter. They stay reachable: tick the box, or just
+  // search (a search always includes them, so an old ticket code or email can still be found for a refund).
+  const archKeys = archivedGigKeys();
+  const isArchived = o => !!o.gigs && archKeys.has(gigKey(o.gigs));
+  const showArchivedOrders = document.getElementById('showArchivedOrders').checked;
+  const matches = o => !q || [o.customer_email, o.customer_name, o.gigs?.headliner, ...(o.tickets||[]).map(t => t.code)]
+    .some(v => String(v || '').toLowerCase().includes(q));
+  const list = orders.filter(o => matches(o) && (showArchivedOrders || q || !isArchived(o)));
+  const hiddenCount = (showArchivedOrders || q) ? 0 : orders.filter(isArchived).length;
+  document.getElementById('orderHiddenNote').textContent = hiddenCount
+    ? hiddenCount + ' order' + (hiddenCount === 1 ? '' : 's') + ' for archived gigs hidden – tick the box above, or search, to see ' + (hiddenCount === 1 ? 'it' : 'them') + '.'
+    : '';
+  if (!list.length){
+    el.innerHTML = '<p class="empty-note">' + (orders.length
+      ? (hiddenCount && !q ? 'No orders for active gigs.' : 'No matching orders.')
+      : 'No orders yet.') + '</p>';
+    return;
+  }
   el.innerHTML = list.map(o => {
     const g = o.gigs || {};
     const total = ((o.unit_price_pence * o.quantity) / 100).toFixed(2);
@@ -708,11 +739,12 @@ function renderOrders(){
     return '<div class="ord ' + esc(o.status) + '">'
       + '<div class="ord-top"><div><strong>' + esc(g.headliner || 'Gig') + '</strong> <small>\u00b7 ' + esc(o.quantity) + ' \u00d7 \u00a3' + esc((o.unit_price_pence/100).toFixed(2)) + ' = \u00a3' + esc(total) + '</small><br>'
       + esc(o.customer_name || '') + ' \u00b7 <strong>' + esc(o.customer_email || 'no email') + '</strong><br><small>' + esc(when) + ' \u00b7 ref ' + esc(o.id.slice(0,8).toUpperCase()) + '</small></div>'
-      + '<div>' + (o.status === 'refunded' ? '<span class="badge">Refunded</span>' : emailBadge(o)) + '</div></div>'
+      + '<div>' + (isArchived(o) ? '<span class="badge">Archived gig</span> ' : '') + (o.status === 'refunded' ? '<span class="badge">Refunded</span>' : emailBadge(o)) + '</div></div>'
       + tickets + actions + '</div>';
   }).join('');
 }
 document.getElementById('orderSearch').addEventListener('input', renderOrders);
+document.getElementById('showArchivedOrders').addEventListener('change', renderOrders);
 document.getElementById('ordersRefresh').addEventListener('click', loadOrders);
 document.getElementById('orderList').addEventListener('click', async (e) => {
   const btn = e.target.closest('button[data-act]');
@@ -892,6 +924,8 @@ async function loadGigs(){
     return;
   }
   fillScanGigs(data);
+  allGigs = data || [];
+  if (orders.length) renderOrders();   // archiving/restoring a gig immediately hides/shows its orders
   const showArchived = document.getElementById('showArchived').checked;
   const rows = (data || []).filter(g => showArchived || !g.archived_at);
   if (rows.length === 0) {
